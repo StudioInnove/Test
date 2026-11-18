@@ -20,33 +20,14 @@ void main(){ vUv = vec2(aPos.x*0.5+0.5, 0.5-aPos.y*0.5); gl_Position = vec4(aPos
 const FRAG = `#version 300 es
 precision highp float;
 in vec2 vUv; out vec4 o;
-uniform sampler2D uA, uB, uD;
-uniform float uMix, uZoomA, uZoomB, uRest, uTime, uHasDepth, uDepthAmt, uGrain, uMotion;
-uniform vec2 uScaleA, uScaleB, uCenterA, uCenterB, uMouse, uPointer, uRes;
-float hash(vec2 p){ p = fract(p*vec2(123.34, 456.21)); p += dot(p, p+45.32); return fract(p.x*p.y); }
+uniform sampler2D uA, uB;
+uniform float uMix, uZoomA, uZoomB;
+uniform vec2 uScaleA, uScaleB, uCenterA, uCenterB;
 vec2 cover(vec2 uv, vec2 s, vec2 c, float z){ return c + (uv-0.5)*s/z; }
 void main(){
-  vec2 uv = vUv;
-  float breath = 1.0 + 0.010*uMotion*(0.5+0.5*sin(uTime*0.42));
-  vec2 baseA = cover(uv, uScaleA, uCenterA, uZoomA*breath);
-  float d = uHasDepth > 0.5 ? texture(uD, baseA).r : 0.55;
-  vec2 par = uMouse * (d - 0.4) * uDepthAmt * uRest * uMotion;
-  vec2 uvA = baseA - par;
-  vec2 uvB = cover(uv, uScaleB, uCenterB, uZoomB*breath) - par;
-  vec3 a = texture(uA, clamp(uvA, 0.001, 0.999)).rgb;
-  vec3 b = texture(uB, clamp(uvB, 0.001, 0.999)).rgb;
-  vec3 c = mix(a, b, uMix);
-  // warm light that follows the cursor
-  vec2 asp = vec2(uRes.x/uRes.y, 1.0);
-  float g = exp(-dot((uv-uPointer)*asp, (uv-uPointer)*asp) * 7.0);
-  c += vec3(1.0, 0.72, 0.42) * g * 0.07 * uRest * uMotion;
-  // vignette
-  float v = smoothstep(1.15, 0.35, length((uv-0.5)*vec2(1.15, 1.0)));
-  c *= mix(0.72, 1.0, v);
-  // grain
-  float n = hash(uv*uRes + fract(uTime*7.0)*311.0) - 0.5;
-  c += n * uGrain;
-  o = vec4(c, 1.0);
+  vec3 a = texture(uA, clamp(cover(vUv, uScaleA, uCenterA, uZoomA), 0.0005, 0.9995)).rgb;
+  vec3 b = texture(uB, clamp(cover(vUv, uScaleB, uCenterB, uZoomB), 0.0005, 0.9995)).rgb;
+  o = vec4(mix(a, b, uMix), 1.0);
 }`;
 
 /** Loads and paints the film. Frames stay compressed in memory and are decoded on demand. */
@@ -177,11 +158,7 @@ export class FilmEngine {
     await one(order[0]);
     await Promise.all(order.slice(1).map(one));
     this.ready = true;
-    // depth maps are small; fetch quietly
-    for (const id of ids) {
-      const dp = this.manifest.stills[id]?.depth;
-      if (dp) this.fetchImage(asset(dp)).then((b) => this.depths.set(id, b)).catch(() => {});
-    }
+
   }
 
   hasStill(id: StillId) {

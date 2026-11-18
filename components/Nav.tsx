@@ -1,33 +1,25 @@
 "use client";
 
 /*
- * Floating glass navigation with a morphing pill.
- * Adapted from "Floating Glassmorphic Navbar with Morphing Pill Indicator" (21st.dev, themeocean),
- * restyled for Studio Innové.
+ * Floating navigation: one compact translucent bar, logo, four destinations, a small call button.
+ * Structure adapted from the 21st.dev "Floating Glassmorphic Navbar" (themeocean), restyled.
  */
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useEffect, useId, useRef, useState } from "react";
-import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { asset, content, href } from "@/lib/content";
 import { BookCall } from "./BookCall";
 
-const SPRING = { type: "spring", stiffness: 420, damping: 34, mass: 0.8 } as const;
+const glass = {
+  background: "rgba(175,175,175,0.1)",
+  backdropFilter: "blur(20px) saturate(140%)",
+  WebkitBackdropFilter: "blur(20px) saturate(140%)",
+} as const;
 
 export function Nav() {
   const { links, cta } = content.nav;
-  const [hovered, setHovered] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
-  const [solid, setSolid] = useState(false);
   const reduce = useReducedMotion() ?? false;
-  const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    const on = () => setSolid(window.scrollY > 24);
-    on();
-    window.addEventListener("scroll", on, { passive: true });
-    return () => window.removeEventListener("scroll", on);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -42,94 +34,63 @@ export function Nav() {
   }, [open]);
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-3 z-50 flex justify-center px-3 sm:top-4">
+    <header className="pointer-events-none fixed inset-x-0 top-4 z-50 flex justify-center px-4 sm:top-6">
       <motion.div
         ref={rootRef}
-        initial={reduce ? false : { y: -24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={reduce ? { duration: 0 } : { type: "spring", stiffness: 260, damping: 28, delay: 0.2 }}
+        initial={reduce ? false : { opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1], delay: 0.4 }}
         className="pointer-events-auto relative w-full max-w-[560px] md:w-auto md:max-w-none"
       >
-        <nav
-          aria-label="Main"
-          className={`relative flex items-center justify-between gap-2 rounded-full py-1.5 pl-4 pr-1.5 transition-[background-color,box-shadow] duration-300 md:gap-6 ${
-            solid ? "bg-black/45" : "bg-black/25"
-          }`}
-          style={{
-            backdropFilter: "blur(20px) saturate(160%)",
-            WebkitBackdropFilter: "blur(20px) saturate(160%)",
-            boxShadow: "inset 0 1px 0 rgb(255 255 255 / 0.16), inset 0 0 0 1px rgb(255 255 255 / 0.1), 0 20px 40px -20px rgb(0 0 0 / 0.55)",
-          }}
-        >
-          <span aria-hidden className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-          <Link href={href("/")} aria-label="Studio Innové, home" className="flex items-center rounded-full py-1 outline-none focus-visible:ring-2 focus-visible:ring-amber">
+        <nav aria-label="Main" className="flex h-[44px] items-center gap-7 rounded-[10px] pl-4 pr-[5px]" style={glass}>
+          <a href={href("/")} aria-label="Studio Innové, home" className="link shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset("/brand/wordmark.png")} alt="Studio Innové" width={67} height={28} className="h-7 w-auto select-none" draggable={false} />
-          </Link>
-
-          <ul className="hidden items-center gap-0.5 md:flex" onPointerLeave={() => setHovered(null)}>
+            <img src={asset("/brand/logo.svg")} alt="Studio Innové" width={64} height={25} className="h-[22px] w-auto select-none" draggable={false} />
+          </a>
+          <ul className="hidden items-center gap-7 md:flex">
             {links.map((l) => (
               <li key={l.href}>
-                <a
-                  href={href(l.href)}
-                  onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(l.href)}
-                  onFocus={() => setHovered(l.href)}
-                  onBlur={() => setHovered(null)}
-                  className={`relative isolate flex items-center rounded-full px-4 py-2 text-[14px] font-medium outline-none transition-colors duration-200 ${
-                    hovered === l.href ? "text-paper" : "text-paper/70"
-                  }`}
-                >
-                  {hovered === l.href && (
-                    <motion.span layoutId={`pill-${id}`} aria-hidden transition={reduce ? { duration: 0 } : SPRING} className="absolute inset-0 -z-10 rounded-full bg-white/12" />
-                  )}
-                  {l.label}
-                </a>
+                <a href={href(l.href)} className="link text-[14px] text-paper/75 hover:text-paper">{l.label}</a>
               </li>
             ))}
           </ul>
-
-          <BookCall size="sm" arrow={false} className="ml-auto md:ml-0">
-            {cta}
-          </BookCall>
-
-          <button
-            type="button"
-            onClick={() => setOpen((o) => !o)}
-            aria-expanded={open}
-            aria-label={open ? "Close menu" : "Open menu"}
-            className="relative flex h-10 w-10 items-center justify-center rounded-full text-paper outline-none transition-colors hover:bg-white/10 focus-visible:ring-2 focus-visible:ring-amber md:hidden"
-          >
-            <span aria-hidden className="relative block h-3 w-5">
-              <span className={`absolute left-0 block h-[1.5px] w-5 rounded-full bg-current transition-all duration-300 ${open ? "top-1.5 rotate-45" : "top-0.5"}`} />
-              <span className={`absolute left-0 block h-[1.5px] w-5 rounded-full bg-current transition-all duration-300 ${open ? "top-1.5 -rotate-45" : "top-2.5"}`} />
-            </span>
-          </button>
+          <div className="ml-auto flex items-center gap-1 md:ml-0">
+            <BookCall size="sm">{cta}</BookCall>
+            <button
+              type="button"
+              onClick={() => setOpen((o) => !o)}
+              aria-expanded={open}
+              aria-label={open ? "Close menu" : "Open menu"}
+              className="flex h-[34px] w-[34px] items-center justify-center rounded-[7px] text-paper md:hidden"
+            >
+              <span aria-hidden className="relative block h-2.5 w-4">
+                <span className={`absolute left-0 block h-px w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] rotate-45" : "top-0.5"}`} />
+                <span className={`absolute left-0 block h-px w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] -rotate-45" : "top-2"}`} />
+              </span>
+            </button>
+          </div>
         </nav>
 
         <AnimatePresence>
           {open && (
             <motion.div
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: -8, scale: 0.97 }}
-              animate={{ opacity: 1, y: 0, scale: 1 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6, scale: 0.98 }}
-              transition={reduce ? { duration: 0.12 } : SPRING}
-              style={{ transformOrigin: "top center", backdropFilter: "blur(24px) saturate(160%)", WebkitBackdropFilter: "blur(24px) saturate(160%)" }}
-              className="absolute inset-x-0 top-full mt-2 rounded-[28px] bg-black/60 p-2 shadow-2xl ring-1 ring-white/10 md:hidden"
+              initial={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -4 }}
+              transition={{ duration: 0.25, ease: [0.23, 1, 0.32, 1] }}
+              style={{ ...glass, background: "rgba(20,20,22,0.72)" }}
+              className="absolute inset-x-0 top-full mt-1.5 rounded-[10px] p-2 md:hidden"
             >
-              <ul className="flex flex-col">
-                {links.map((l) => (
+              <ul>
+                {links.map((l, i) => (
                   <li key={l.href}>
-                    <a href={href(l.href)} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3.5 text-[17px] font-medium text-paper/90 active:bg-white/10">
+                    <a href={href(l.href)} onClick={() => setOpen(false)} className="flex items-baseline gap-4 rounded-[7px] px-3 py-3 text-[20px]">
+                      <span className="index">0{i + 1}</span>
                       {l.label}
                     </a>
                   </li>
                 ))}
               </ul>
-              <div className="p-1 pt-2">
-                <BookCall className="w-full" onOpen={() => setOpen(false)}>
-                  {cta}
-                </BookCall>
-              </div>
             </motion.div>
           )}
         </AnimatePresence>

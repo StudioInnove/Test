@@ -4,31 +4,29 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useState } from "react";
 import { content } from "@/lib/content";
 
-/** FAQ accordion: one open at a time, spring reveal, plus that turns into a cross. */
+/** Ruled question rows: index, question, a thin plus that turns to a minus. */
 export function Faq({ items = content.faq.items }: { items?: { q: string; a: string }[] }) {
-  const [open, setOpen] = useState<number | null>(0);
+  const [open, setOpen] = useState<number | null>(null);
   const reduce = useReducedMotion();
   return (
-    <ul className="divide-y divide-white/10 border-y border-white/10">
+    <ul className="border-t-[0.5px] border-white/20">
       {items.map((it, i) => {
         const isOpen = open === i;
         return (
-          <li key={it.q}>
+          <li key={it.q} className="rise border-b-[0.5px] border-white/20" style={{ ["--d" as string]: `${200 + i * 90}ms` }}>
             <h3>
               <button
                 type="button"
                 aria-expanded={isOpen}
                 aria-controls={`faq-${i}`}
                 onClick={() => setOpen(isOpen ? null : i)}
-                className="group flex w-full items-center justify-between gap-6 py-6 text-left outline-none focus-visible:text-amber"
+                className="group grid w-full grid-cols-[44px_1fr_20px] items-baseline gap-2 py-7 text-left outline-none focus-visible:outline-1 focus-visible:outline-dashed focus-visible:outline-paper/70 sm:grid-cols-[72px_1fr_20px]"
               >
-                <span className="text-[19px] font-medium tracking-[-0.01em] text-paper sm:text-[21px]">{it.q}</span>
-                <span
-                  aria-hidden
-                  className={`relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full ring-1 transition-[background-color,transform] duration-300 [transition-timing-function:var(--ease-out)] ${isOpen ? "rotate-45 bg-amber/15 ring-amber/50" : "ring-white/15 group-hover:bg-white/5"}`}
-                >
-                  <span className={`absolute h-[1.5px] w-3.5 rounded ${isOpen ? "bg-amber" : "bg-paper"}`} />
-                  <span className={`absolute h-3.5 w-[1.5px] rounded ${isOpen ? "bg-amber" : "bg-paper"}`} />
+                <span className="index">0{i + 1}</span>
+                <span className={`t-head transition-opacity duration-300 ${open !== null && !isOpen ? "opacity-45" : ""} group-hover:opacity-100`}>{it.q}</span>
+                <span aria-hidden className="relative h-3 w-3 self-center justify-self-end">
+                  <span className="absolute left-0 top-1/2 h-px w-3 -translate-y-1/2 bg-paper" />
+                  <span className={`absolute left-1/2 top-0 h-3 w-px -translate-x-1/2 bg-paper transition-transform duration-500 [transition-timing-function:var(--ease-out)] ${isOpen ? "scale-y-0" : ""}`} />
                 </span>
               </button>
             </h3>
@@ -40,10 +38,10 @@ export function Faq({ items = content.faq.items }: { items?: { q: string; a: str
                   initial={{ height: 0, opacity: 0 }}
                   animate={{ height: "auto", opacity: 1 }}
                   exit={{ height: 0, opacity: 0 }}
-                  transition={reduce ? { duration: 0 } : { type: "spring", duration: 0.45, bounce: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.6, ease: [0.22, 0.61, 0.36, 1] }}
                   className="overflow-hidden"
                 >
-                  <p className="max-w-[60ch] pb-7 pr-12 text-[16.5px] leading-relaxed text-paper/70">{it.a}</p>
+                  <p className="t-body muted max-w-[52ch] pb-8 pl-[52px] pr-8 sm:pl-[80px]">{it.a}</p>
                 </motion.div>
               )}
             </AnimatePresence>

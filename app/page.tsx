@@ -2,11 +2,13 @@ import { FilmStage } from "@/components/film/FilmStage";
 import { Nav } from "@/components/Nav";
 import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
-import { BookCall } from "@/components/BookCall";
+import { InView } from "@/components/InView";
+import { Words } from "@/components/Words";
+import { ArrowLink } from "@/components/ui/ArrowLink";
 import { content, SITE_URL } from "@/lib/content";
 
 export default function Home() {
-  const { faq, contact, studio, seo } = content;
+  const { faq, studio, seo } = content;
 
   const jsonLd = [
     {
@@ -40,27 +42,21 @@ export default function Home() {
       <Nav />
       <FilmStage />
 
-      <section id="faq" className="relative bg-ink px-6 pb-28 pt-32 sm:px-10 md:pt-40">
-        <div className="mx-auto grid max-w-[1200px] gap-14 md:grid-cols-[1fr_1.5fr]">
-          <div>
-            <p className="eyebrow mb-4">FAQ</p>
-            <h2 className="display text-[clamp(40px,5vw,72px)]">{faq.heading}</h2>
+      <section id="faq" className="relative bg-ink-2 px-[var(--gutter)] pb-32 pt-32 md:pt-40">
+        <InView className="grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
+          <div className="md:col-span-2">
+            <h2 className="t-title"><Words text={faq.heading} /></h2>
+            <p className="rise t-body muted mt-4 max-w-[30ch]" style={{ ["--d" as string]: "300ms" }}>
+              {faq.line} {studio.replyPromise}
+            </p>
+            <p className="rise mt-6" style={{ ["--d" as string]: "450ms" }}>
+              <ArrowLink href={`mailto:${studio.email}`}>{studio.email}</ArrowLink>
+            </p>
           </div>
-          <Faq />
-        </div>
-      </section>
-
-      <section className="relative bg-ink px-6 pb-8 sm:px-10">
-        <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-8 rounded-[32px] bg-white/[0.035] p-8 ring-1 ring-white/10 sm:p-12 md:flex-row md:items-center">
-          <div>
-            <h2 className="text-[clamp(28px,3vw,40px)] font-semibold tracking-[-0.025em]">{contact.heading}</h2>
-            <p className="mt-2 text-paper/65">{contact.line} {studio.replyPromise}</p>
+          <div className="md:col-span-3">
+            <Faq />
           </div>
-          <div className="flex flex-wrap items-center gap-3">
-            <a href={`mailto:${studio.email}`} className="btn btn-ghost">{studio.email}</a>
-            <BookCall>{content.close.cta}</BookCall>
-          </div>
-        </div>
+        </InView>
       </section>
 
       <Footer />

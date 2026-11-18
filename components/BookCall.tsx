@@ -14,7 +14,7 @@ function initCal() {
         theme: "dark",
         hideEventTypeDetails: false,
         layout: "month_view",
-        cssVarsPerTheme: { dark: { "cal-brand": "#E8A15A" }, light: { "cal-brand": "#E8A15A" } },
+        cssVarsPerTheme: { dark: { "cal-brand": "#F2F2F4" }, light: { "cal-brand": "#0A0A0B" } },
       });
       return cal;
     });
@@ -34,14 +34,14 @@ export function CalWarmup() {
 type Props = {
   children: ReactNode;
   className?: string;
-  variant?: "amber" | "ghost";
+  variant?: "primary" | "ghost";
   size?: "sm" | "md";
   arrow?: boolean;
   onOpen?: () => void;
 };
 
 /** Opens the calendar over the page. Without JavaScript it is a plain link to the booking page. */
-export function BookCall({ children, className = "", variant = "amber", size = "md", arrow = true, onOpen }: Props) {
+export function BookCall({ children, className = "", variant = "primary", size = "md", arrow = false, onOpen }: Props) {
   const { calLink, calUrl } = content.studio;
   return (
     <a
@@ -62,12 +62,12 @@ export function BookCall({ children, className = "", variant = "amber", size = "
           })
           .catch(() => window.open(calUrl, "_blank", "noopener"));
       }}
-      className={`btn ${variant === "amber" ? "btn-amber" : "btn-ghost"} ${size === "sm" ? "btn-sm" : ""} ${className}`}
+      className={`btn ${variant === "primary" ? "btn-primary" : "btn-ghost"} ${size === "sm" ? "btn-sm" : ""} ${className}`}
     >
       <span>{children}</span>
       {arrow && (
-        <svg className="arrow" width="14" height="14" viewBox="0 0 14 14" aria-hidden="true">
-          <path d="M2 7h9.5M7.5 3l4 4-4 4" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden="true">
+          <path d="M2 6h7.5M6.5 3l3 3-3 3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       )}
     </a>

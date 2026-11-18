@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
-import { GeistSans } from "geist/font/sans";
+import "@fontsource-variable/inter/opsz.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -35,11 +35,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={GeistSans.variable}>
+    <html lang="en">
       <head>
-        <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
-        <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />
-        <link rel="stylesheet" href="https://api.fontshare.com/v2/css?f[]=satoshi@400,500,600,700&display=swap" />
         <noscript>
           <style>{`.reveal .w,.rise{opacity:1!important;filter:none!important;transform:none!important}[data-scene="hero"]{opacity:1!important}`}</style>
         </noscript>

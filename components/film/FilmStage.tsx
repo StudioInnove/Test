@@ -5,26 +5,24 @@ import { useEffect, useRef, useState } from "react";
 import { asset, content } from "@/lib/content";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
-import { GlassCard } from "../GlassCard";
-import { BuildLog, StatusTrack, WaitlistForm } from "../Originals";
+import { StatusTrack, WaitlistForm } from "../Originals";
+import { ArrowLink } from "../ui/ArrowLink";
 import { Words } from "../Words";
 import { FilmEngine, type Manifest, type Shot } from "./engine";
-import { SCENES, SEGMENTS, STARTS, TOTAL, WINDOWS, locate, sceneStart, type ClipId, type SceneId } from "./timeline";
+import { SEGMENTS, STARTS, TOTAL, WINDOWS, locate, sceneStart, type ClipId, type SceneId } from "./timeline";
 
-const FADE = 0.16;
-const AUTOPLAY_S = 9;
-
+const FADE = 0.22;
+const AUTOPLAY_S = 10;
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => t * t * (3 - 2 * t);
+const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
 
 export function FilmStage() {
   const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const ringRef = useRef<SVGCircleElement>(null);
-  const countRef = useRef<HTMLSpanElement>(null);
   const cueRef = useRef<HTMLDivElement>(null);
-  const scrimRef = useRef<HTMLDivElement>(null);
+  const curtainRef = useRef<HTMLDivElement>(null);
   const soundRef = useRef<Soundscape | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -35,67 +33,78 @@ export function FilmStage() {
     const track = trackRef.current!;
     const stage = stageRef.current!;
     const canvas = canvasRef.current!;
+    const curtain = curtainRef.current!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const isMobile = window.matchMedia("(max-width: 767px), (pointer: coarse)").matches;
-    const mode: "d" | "m" = window.innerWidth < 900 || isMobile ? "m" : "d";
+    const narrow = window.matchMedia("(max-width: 899px)").matches;
+    const mode: "d" | "m" = narrow ? "m" : "d";
     let engine: FilmEngine | null = null;
     let raf = 0;
     let alive = true;
-    let lenis: Lenis | null = null;
     let autoStart = -1;
-    let auto = 0;
-    let lastScene = -1;
+    let shown = 0; // the film position actually drawn, eased toward the scroll position
+    let last = performance.now();
     let lastClipKey = "";
-    const mouse = { x: 0, y: 0, tx: 0, ty: 0, px: 0.5, py: 0.5, tpx: 0.5, tpy: 0.5 };
+    let lastScene = "";
+    let jumping = false;
+    const loadedRef = { current: false };
+
+    const lenis = reduce ? null : new Lenis({ lerp: 0.06, wheelMultiplier: 0.85, touchMultiplier: 1.1, smoothWheel: true });
 
     const overlays = Array.from(stage.querySelectorAll<HTMLElement>("[data-scene]"));
     const steps = Array.from(stage.querySelectorAll<HTMLElement>("[data-step]"));
+    const stepBar = stage.querySelector<HTMLElement>("[data-stepbar]");
     const onState = new Map<HTMLElement, boolean>();
 
-    if (!reduce) {
-      lenis = new Lenis({ lerp: 0.09, smoothWheel: true, anchors: true, syncTouch: false });
-    }
+    const span = () => track.offsetHeight - stage.offsetHeight;
+    const position = () => clamp(-track.getBoundingClientRect().top / Math.max(1, span())) * TOTAL;
 
-    const onPointer = (e: PointerEvent) => {
-      if (e.pointerType !== "mouse") return;
-      mouse.tx = (e.clientX / window.innerWidth) * 2 - 1;
-      mouse.ty = (e.clientY / window.innerHeight) * 2 - 1;
-      mouse.tpx = e.clientX / window.innerWidth;
-      mouse.tpy = e.clientY / window.innerHeight;
-    };
-    window.addEventListener("pointermove", onPointer, { passive: true });
-
-    const resize = () => {
-      if (!engine) return;
-      const dpr = Math.min(window.devicePixelRatio || 1, mode === "m" ? 2 : 1.5);
-      engine.resize(stage.clientWidth, stage.clientHeight, dpr);
-    };
+    const resize = () => engine?.resize(stage.clientWidth, stage.clientHeight, Math.min(window.devicePixelRatio || 1, 2));
     window.addEventListener("resize", resize);
 
-    const position = () => {
-      const r = track.getBoundingClientRect();
-      const span = track.offsetHeight - stage.offsetHeight;
-      return clamp(-r.top / Math.max(1, span)) * TOTAL;
+    // Nav links fade to black, cut to the scene, then fade back in.
+    const onClick = (e: MouseEvent) => {
+      const a = (e.target as HTMLElement).closest("a");
+      if (!a) return;
+      const raw = a.getAttribute("href") || "";
+      const id = raw.startsWith("#") ? raw.slice(1) : raw.startsWith("/#") ? raw.slice(2) : "";
+      if (!id) return;
+      const target = document.getElementById(id);
+      if (!target) return;
+      e.preventDefault();
+      if (jumping) return;
+      jumping = true;
+      const y = target.getBoundingClientRect().top + window.scrollY;
+      curtain.style.transition = "opacity 520ms cubic-bezier(0.77,0,0.175,1)";
+      curtain.style.opacity = "1";
+      setTimeout(() => {
+        if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
+        else window.scrollTo(0, y);
+        shown = position();
+        history.replaceState(null, "", `#${id}`);
+        setTimeout(() => {
+          curtain.style.transition = "opacity 1100ms cubic-bezier(0.22,0.61,0.36,1)";
+          curtain.style.opacity = "0";
+          setTimeout(() => (jumping = false), 1100);
+        }, 120);
+      }, 560);
     };
+    document.addEventListener("click", onClick, true);
 
-    const shotAt = (pos: number): { shot: Shot; clip?: ClipId } => {
+    const shotAt = (pos: number, auto: number): { shot: Shot; clip?: ClipId } => {
       const { index, local } = locate(pos);
       const seg = SEGMENTS[index];
       if (seg.kind === "clip") {
-        let t = local;
-        if (seg.id === "c0") t = Math.max(local, auto);
+        const t = seg.id === "c0" ? Math.max(local, auto) : local;
         return { shot: { kind: "clip", clip: seg.id, from: seg.from, to: seg.to, t: clamp(t) }, clip: seg.id };
       }
-      const rest = smooth(clamp(local / 0.25)) * smooth(clamp((1 - local) / 0.15));
-      // At the very top, before the time-lapse has finished, keep showing c0.
-      return { shot: { kind: "hold", still: seg.still, rest: reduce ? 0 : rest } };
+      return { shot: { kind: "hold", still: seg.still, rest: 0 } };
     };
 
     const setOverlay = (el: HTMLElement, vis: number) => {
       el.style.opacity = String(vis);
       el.style.visibility = vis < 0.01 ? "hidden" : "visible";
       el.style.pointerEvents = vis > 0.6 ? "auto" : "none";
-      const on = vis > 0.35;
+      const on = vis > 0.3;
       if (onState.get(el) !== on) {
         onState.set(el, on);
         el.classList.toggle("on", on);
@@ -105,25 +114,23 @@ export function FilmStage() {
     const tick = (now: number) => {
       if (!alive) return;
       lenis?.raf(now);
-      const pos = position();
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const target = position();
+      // critically damped follow: cinematic, never jumpy
+      shown += (target - shown) * (1 - Math.exp(-dt * (reduce ? 60 : 7)));
+      if (Math.abs(target - shown) < 0.0005) shown = target;
+      const pos = shown;
       const time = now / 1000;
-      if (autoStart >= 0) auto = clamp((time - autoStart) / AUTOPLAY_S);
-      const autoEase = auto < 0.5 ? 4 * auto ** 3 : 1 - (-2 * auto + 2) ** 3 / 2;
-      auto = autoStart >= 0 ? autoEase : 0;
-
-      mouse.x += (mouse.tx - mouse.x) * 0.06;
-      mouse.y += (mouse.ty - mouse.y) * 0.06;
-      mouse.px += (mouse.tpx - mouse.px) * 0.08;
-      mouse.py += (mouse.tpy - mouse.py) * 0.08;
+      const auto = autoStart >= 0 ? easeInOut(clamp((time - autoStart) / AUTOPLAY_S)) : 0;
 
       if (engine?.ready) {
-        const { shot, clip } = shotAt(pos);
-        engine.paint(shot, { time, mouse: [mouse.x, mouse.y], pointer: [mouse.px, mouse.py], motion: reduce ? 0 : 1 });
-        // keep the nearest clips loading first
-        const key = clip ?? `h${locate(pos).index}`;
+        const { shot, clip } = shotAt(pos, auto);
+        engine.paint(shot, { time, mouse: [0, 0], pointer: [0.5, 0.5], motion: 0 });
+        const i = locate(pos).index;
+        const key = clip ?? `h${i}`;
         if (key !== lastClipKey) {
           lastClipKey = key;
-          const i = locate(pos).index;
           const order: ClipId[] = [];
           for (let r = 0; r < SEGMENTS.length; r++) {
             for (const j of [i + r, i - r]) {
@@ -135,45 +142,35 @@ export function FilmStage() {
         }
       }
 
-      // text
       for (const el of overlays) {
         const id = el.dataset.scene as SceneId;
         const [a, b] = WINDOWS[id];
         let vis = Math.min(clamp((pos - a) / FADE + 1), clamp((b - pos) / FADE));
-        if (id === "hero") vis = clamp((b - pos) / FADE);
-        if (id === "hero" && !loadedRef.current) vis = 0;
+        if (id === "hero") vis = loadedRef.current ? clamp((b - pos) / FADE) : 0;
         setOverlay(el, smooth(vis));
       }
-      // how-it-works steps light up across their hold
+
+      // process steps: brighten one by one across their hold
       const howStart = sceneStart("how");
       const howLen = SEGMENTS.find((s) => s.kind === "hold" && s.scene === "how")!.len;
-      const hp = clamp((pos - howStart) / (howLen * 0.8));
+      const hp = clamp((pos - howStart + 0.15) / (howLen * 0.85));
       const active = Math.min(steps.length - 1, Math.floor(hp * steps.length));
-      steps.forEach((s, i) => (s.dataset.state = i < active ? "done" : i === active ? "now" : "next"));
+      steps.forEach((s, i) => (s.dataset.state = i <= active ? "on" : "off"));
+      if (stepBar) stepBar.style.transform = `scaleX(${hp})`;
 
-      // scrim behind the hero text
-      if (scrimRef.current) scrimRef.current.style.opacity = String(clamp(1 - pos / 1.8) * 0.95 + 0.05);
-
-      // HUD
-      let scene = 0;
-      SCENES.forEach((s, i) => {
-        if (pos >= (s === "hero" ? 0 : WINDOWS[s][0] - 0.4)) scene = i;
-      });
-      const p = pos / TOTAL;
-      if (ringRef.current) ringRef.current.style.strokeDashoffset = String(100 - p * 100);
+      // sound follows the camera inside, and marks each new scene softly
+      let scene = "";
+      for (const [id, [a]] of Object.entries(WINDOWS)) if (pos >= Math.max(0, a)) scene = id;
       if (scene !== lastScene) {
-        if (countRef.current) countRef.current.textContent = String(scene + 1).padStart(2, "0");
-        if (lastScene !== -1) soundRef.current?.chime();
+        if (lastScene) soundRef.current?.chime();
         lastScene = scene;
       }
       const inside = pos > STARTS[2] + SEGMENTS[2].len * 0.6 && pos < STARTS[12] + SEGMENTS[12].len * 0.5 ? 1 : 0;
       soundRef.current?.setPlace(inside);
-      if (cueRef.current) cueRef.current.style.opacity = String(clamp(1 - pos / 0.35) * (loadedRef.current ? 1 : 0));
+      if (cueRef.current) cueRef.current.style.opacity = String(loadedRef.current ? clamp(1 - pos / 0.4) : 0);
 
       raf = requestAnimationFrame(tick);
     };
-
-    const loadedRef = { current: false };
 
     fetch(asset("/film/manifest.json"))
       .then((r) => r.json())
@@ -184,13 +181,15 @@ export function FilmStage() {
         resize();
         const t0 = performance.now();
         await engine.loadStills(["s1", "s1n", "s2"]);
+        engine.prioritise(["c0", "c1"]);
         if (!alive) return;
-        const wait = Math.max(0, 700 - (performance.now() - t0));
+        // let the loader breathe; it is part of the film
+        const wait = Math.max(0, 2200 - (performance.now() - t0));
         setTimeout(() => {
           setCanvasOn(true);
           setLoaded(true);
           loadedRef.current = true;
-          autoStart = performance.now() / 1000 + 0.6;
+          autoStart = performance.now() / 1000 + 1.4;
         }, wait);
       })
       .catch(() => {
@@ -198,28 +197,24 @@ export function FilmStage() {
         loadedRef.current = true;
       });
 
-    // never hold visitors on the loader for long
     const failsafe = window.setTimeout(() => {
       setLoaded(true);
       loadedRef.current = true;
       if (autoStart < 0) autoStart = performance.now() / 1000;
-    }, 6000);
+    }, 8000);
 
+    shown = position();
     raf = requestAnimationFrame(tick);
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
       clearTimeout(failsafe);
-      window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("resize", resize);
+      document.removeEventListener("click", onClick, true);
       lenis?.destroy();
       engine?.destroy();
+      soundRef.current?.destroy();
     };
-  }, []);
-
-  // restore the visitor's sound choice (it only starts after they interact)
-  useEffect(() => {
-    return () => soundRef.current?.destroy();
   }, []);
 
   const toggleSound = async () => {
@@ -227,187 +222,165 @@ export function FilmStage() {
     const next = !sound;
     await soundRef.current.toggle(next);
     setSound(next);
-    try {
-      localStorage.setItem("si-sound", next ? "1" : "0");
-    } catch {}
   };
 
   const { hero, services, how, originals, close, studio } = content;
+  const anchor = (id: string, scene: SceneId, off = 0.05) => (
+    <span id={id} className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${(sceneStart(scene) + off) / TOTAL})` }} />
+  );
 
   return (
     <div ref={trackRef} className="relative" style={{ height: `${(TOTAL + 1) * 100}svh` }}>
-      {/* anchors for the nav */}
       <span id="top" className="absolute left-0 top-0" />
-      <span id="services" className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${sceneStart("services") / TOTAL})` }} />
-      <span id="web" className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${sceneStart("web") / TOTAL})` }} />
-      <span id="how" className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${sceneStart("how") / TOTAL})` }} />
-      <span id="originals" className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${(sceneStart("originals") + 0.1) / TOTAL})` }} />
-      <span id="contact" className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${(sceneStart("close") + 0.1) / TOTAL})` }} />
+      {anchor("services", "services")}
+      {anchor("web", "web")}
+      {anchor("how", "how")}
+      {anchor("originals", "originals", 0.15)}
+      {anchor("contact", "close", 0.15)}
 
       <div ref={stageRef} className="sticky top-0 h-svh w-full overflow-hidden bg-ink">
-        {/* First paint: the golden-hour still, before any script runs */}
         <picture>
           <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1-m.webp")} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={asset("/film/stills/s1-d.webp")}
-            alt="A glass penthouse studio above a city at golden hour"
-            fetchPriority="high"
-            className="absolute inset-0 h-full w-full object-cover object-[60%_50%]"
-          />
+          <img src={asset("/film/stills/s1-d.webp")} alt="A glass penthouse studio above a city at golden hour" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[60%_55%]" />
         </picture>
-        <canvas
-          ref={canvasRef}
-          aria-hidden
-          className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${canvasOn ? "opacity-100" : "opacity-0"}`}
-        />
+        <canvas ref={canvasRef} aria-hidden className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ${canvasOn ? "opacity-100" : "opacity-0"}`} />
 
-        {/* scrims for legibility */}
-        <div ref={scrimRef} aria-hidden className="pointer-events-none absolute inset-0 [background:radial-gradient(120%_85%_at_0%_0%,rgb(10_11_13/0.72),rgb(10_11_13/0.35)_42%,transparent_70%)] max-md:[background:linear-gradient(180deg,rgb(10_11_13/0.65),transparent_38%)]" />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-[45%] bg-gradient-to-t from-ink/80 via-ink/25 to-transparent md:h-[28%] md:from-ink/55" />
+        {/* ---------------- Scenes ---------------- */}
 
-        {/* ---------- Scenes ---------- */}
-        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-6 pb-[16svh] sm:px-10 md:justify-start md:px-[6vw] md:pb-0 md:pt-[24svh]" style={{ opacity: 0 }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_11_13/0.85),rgb(10_11_13/0.35)_45%,transparent_70%)] md:[background:linear-gradient(90deg,rgb(10_11_13/0.55),rgb(10_11_13/0.2)_45%,transparent_65%)]" />
-          <h1 className="display legible max-w-[12.5ch] text-[clamp(44px,6.6vw,108px)] text-paper">
-            <Words text={hero.headline} />
-          </h1>
-          <p className="lede legible rise mt-6 max-w-[28ch] text-[clamp(18px,1.5vw,22px)]" style={{ ["--d" as string]: "650ms" }}>{hero.line}</p>
-          <div className="rise mt-9 flex flex-wrap gap-3" style={{ ["--d" as string]: "800ms" }}>
+        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[104px] md:pb-[12svh]" style={{ opacity: 0 }}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.82)_0%,rgb(10_10_11/0.35)_38%,transparent_62%)] md:[background:linear-gradient(20deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.45)_42%,transparent_66%)]" />
+          <p className="rise t-small muted mb-5 flex items-center gap-2.5" style={{ ["--d" as string]: "200ms" }}>
+            <span className="mark" /> {hero.eyebrow}
+          </p>
+          <h1 className="t-display max-w-[11ch]"><Words text={hero.headline} delay={300} /></h1>
+          <p className="rise t-body muted mt-5 max-w-[36ch]" style={{ ["--d" as string]: "900ms" }}>{hero.line}</p>
+          <div className="rise mt-8 flex flex-wrap items-center gap-6" style={{ ["--d" as string]: "1100ms" }}>
             <BookCall>{hero.primary}</BookCall>
-            <a href="#originals" className="btn btn-ghost">{hero.secondary}</a>
+            <ArrowLink href="#originals">{hero.secondary}</ArrowLink>
           </div>
         </section>
 
-        <section data-scene="services" aria-label={services.heading} className="reveal absolute inset-0 flex items-center justify-center px-6 text-center" style={{ opacity: 0, visibility: "hidden" }}>
-          <h2 className="display legible text-[clamp(44px,8vw,132px)]"><Words text={services.heading} /></h2>
+        <section data-scene="services" aria-label={services.intro} className="reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={{ opacity: 0, visibility: "hidden" }}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(75%_60%_at_50%_50%,rgb(10_10_11/0.72),rgb(10_10_11/0.25)_70%,transparent_100%)]" />
+          <p className="rise t-small muted mb-6">{services.intro}</p>
+          <h2 className="t-mono max-w-[14ch]">
+            <span className="dim"><Words text={services.headline[0]} /></span>{" "}
+            <Words text={services.headline[1]} delay={250} />{" "}
+            <span className="dim"><Words text={services.headline[2]} delay={350} /></span>
+          </h2>
         </section>
 
-        <section data-scene="web" aria-label={services.web.title} className="absolute inset-0 flex items-end px-3 pb-[76px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
-          <div className="rise w-full md:w-[440px]">
-            <GlassCard>
-              <p className="eyebrow mb-3">01 — Services</p>
-              <h2 className="display text-[clamp(38px,4vw,56px)]">{services.web.title}</h2>
-              <p className="lede mt-4 text-[17px] leading-relaxed">{services.web.line}</p>
-              <ul className="mt-6 flex flex-wrap gap-2">
-                {services.web.tags.map((t) => (
-                  <li key={t} className="rounded-full bg-white/8 px-3.5 py-1.5 text-[13px] text-paper/85 ring-1 ring-white/12">{t}</li>
-                ))}
-              </ul>
-            </GlassCard>
+        {(["web", "mobile"] as const).map((k) => {
+          const s = services[k];
+          return (
+            <section key={k} data-scene={k} aria-label={s.title} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={{ opacity: 0, visibility: "hidden" }}>
+              <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.4)_35%,transparent_60%)]" />
+              <div className="max-w-[420px]">
+                <p className="rise index mb-4">{s.index}</p>
+                <h2 className="t-title"><Words text={s.title} /></h2>
+                <p className="rise t-body muted mt-4" style={{ ["--d" as string]: "400ms" }}>{s.line}</p>
+                <ul className="rise mt-6 flex flex-wrap gap-1.5" style={{ ["--d" as string]: "600ms" }}>
+                  {s.tags.map((t) => <li key={t} className="pill">{t}</li>)}
+                </ul>
+                {k === "mobile" && (
+                  <div className="rise mt-8" style={{ ["--d" as string]: "800ms" }}><BookCall size="sm">{services.cta}</BookCall></div>
+                )}
+              </div>
+            </section>
+          );
+        })}
+
+        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[11svh]" style={{ opacity: 0, visibility: "hidden" }}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.9)_0%,rgb(10_10_11/0.5)_38%,transparent_68%)]" />
+          <h2 className="t-title mb-10 md:mb-14"><Words text={how.heading} /></h2>
+          <div className="relative">
+            <div className="absolute inset-x-0 top-0 h-px bg-white/15" />
+            <div data-stepbar className="absolute inset-x-0 top-0 h-px origin-left bg-paper" style={{ transform: "scaleX(0)" }} />
+            <ol className="grid grid-cols-2 gap-x-6 gap-y-8 pt-6 md:grid-cols-4 md:gap-[34px]">
+              {how.steps.map((s, i) => (
+                <li key={s.title} data-step={i} data-state="off" className="transition-opacity duration-700 data-[state=off]:opacity-30">
+                  <p className="index mb-3">0{i + 1}</p>
+                  <p className="t-head">{s.title}</p>
+                  <p className="t-body muted mt-2 max-w-[26ch] text-[15px]">{s.line}</p>
+                </li>
+              ))}
+            </ol>
           </div>
         </section>
 
-        <section data-scene="mobile" aria-label={services.mobile.title} className="absolute inset-0 flex items-end px-3 pb-[76px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
-          <div className="rise w-full md:w-[440px]">
-            <GlassCard>
-              <p className="eyebrow mb-3">02 — Services</p>
-              <h2 className="display text-[clamp(38px,4vw,56px)]">{services.mobile.title}</h2>
-              <p className="lede mt-4 text-[17px] leading-relaxed">{services.mobile.line}</p>
-              <ul className="mt-6 flex flex-wrap gap-2">
-                {services.mobile.tags.map((t) => (
-                  <li key={t} className="rounded-full bg-white/8 px-3.5 py-1.5 text-[13px] text-paper/85 ring-1 ring-white/12">{t}</li>
-                ))}
-              </ul>
-              <div className="mt-7"><BookCall size="sm">{services.cta}</BookCall></div>
-            </GlassCard>
+        <section data-scene="originals" aria-label={originals.eyebrow} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[88px] md:justify-center md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.9),rgb(10_10_11/0.45)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.55)_35%,transparent_60%)]" />
+          <div className="max-w-[440px]">
+            <p className="rise t-small mb-5 flex items-center gap-2.5"><span className="mark" />{originals.eyebrow}</p>
+            <h2 className="t-title"><Words text={originals.heading} /></h2>
+            <p className="rise t-body muted mt-4" style={{ ["--d" as string]: "400ms" }}>{originals.line}</p>
+            <div className="rise mt-8" style={{ ["--d" as string]: "550ms" }}><StatusTrack /></div>
+            <div className="rise mt-8" style={{ ["--d" as string]: "700ms" }}><WaitlistForm source="film" /></div>
           </div>
         </section>
 
-        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end px-6 pb-[13svh] sm:px-10 md:px-[6vw] md:pb-[12svh]" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 bg-gradient-to-t from-ink/90 via-ink/45 to-transparent" />
-          <h2 className="display legible mb-8 text-[clamp(38px,5vw,76px)] md:mb-12"><Words text={how.heading} /></h2>
-          <ol className="relative grid grid-cols-2 gap-x-6 gap-y-7 md:grid-cols-4 md:gap-10">
-            <span aria-hidden className="absolute inset-x-0 top-[5px] hidden h-px bg-white/15 md:block" />
-            {how.steps.map((s, i) => (
-              <li key={s.title} data-step={i} data-state="next" className="group relative pt-6 transition-opacity duration-500 data-[state=next]:opacity-45">
-                <span aria-hidden className="absolute left-0 top-0 h-[11px] w-[11px] rounded-full bg-white/25 ring-4 ring-ink/40 transition-all duration-500 group-data-[state=done]:bg-amber/70 group-data-[state=now]:bg-amber group-data-[state=now]:shadow-[0_0_16px_4px_rgb(232_161_90/0.55)]" />
-                <p className="eyebrow mb-2 text-paper/55">0{i + 1}</p>
-                <p className="legible text-[22px] font-semibold tracking-[-0.02em] md:text-[26px]">{s.title}</p>
-                <p className="legible mt-1.5 max-w-[24ch] text-[15px] leading-snug text-paper/75">{s.line}</p>
-              </li>
-            ))}
-          </ol>
-        </section>
-
-        <section data-scene="originals" aria-label={originals.eyebrow} className="absolute inset-0 flex items-end px-3 pb-[72px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
-          <div className="rise w-full md:w-[480px]">
-            <GlassCard tint="rgb(10 9 8 / 0.42)">
-              <p className="eyebrow mb-3 text-amber/90">{originals.eyebrow}</p>
-              <h2 className="display text-[clamp(32px,3.4vw,48px)]">{originals.heading}</h2>
-              <div className="mt-7"><StatusTrack /></div>
-              <div className="mt-7"><WaitlistForm source="film" /></div>
-              <div className="mt-6 hidden border-t border-white/10 pt-5 sm:block"><BuildLog /></div>
-            </GlassCard>
-          </div>
-        </section>
-
-        <section data-scene="close" aria-label={close.heading} className="reveal absolute inset-0 isolate flex flex-col items-center justify-start px-6 pt-[22svh] text-center md:pt-[17svh]" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(70%_55%_at_50%_30%,rgb(10_11_13/0.6),transparent_75%)]" />
-          <h2 className="display legible max-w-[14ch] text-[clamp(44px,7vw,120px)]"><Words text={close.heading} /></h2>
-          <div className="rise mt-10 flex flex-col items-center gap-5" style={{ ["--d" as string]: "500ms" }}>
+        <section data-scene="close" aria-label={close.heading} className="reveal absolute inset-0 isolate flex flex-col items-center justify-start px-[var(--gutter)] pt-[20svh] text-center md:pt-[16svh]" style={{ opacity: 0, visibility: "hidden" }}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_60%_at_50%_30%,rgb(10_10_11/0.72),rgb(10_10_11/0.2)_70%,transparent_100%)]" />
+          <h2 className="t-mono">
+            <Words text={close.heading} />
+            <br />
+            <span className="dim"><Words text={close.sub} delay={300} /></span>
+          </h2>
+          <div className="rise mt-10 flex flex-col items-center gap-5" style={{ ["--d" as string]: "800ms" }}>
             <BookCall>{close.cta}</BookCall>
-            <a href={`mailto:${studio.email}`} className="rounded-full bg-black/30 px-4 py-2 text-[14px] text-paper/85 ring-1 ring-white/10 backdrop-blur-md transition-colors hover:text-paper">{studio.email}</a>
+            <span className="t-small muted select-all">{studio.email}</span>
           </div>
         </section>
 
-        {/* ---------- HUD ---------- */}
-        <div ref={cueRef} aria-hidden className="pointer-events-none absolute bottom-7 left-1/2 flex -translate-x-1/2 flex-col items-center gap-2 text-[11px] uppercase tracking-[0.22em] text-paper/70" style={{ opacity: 0 }}>
-          {hero.scrollCue}
-          <span className="relative h-9 w-px overflow-hidden bg-white/20">
-            <span className="absolute inset-x-0 top-0 h-1/2 animate-[cue_1.8s_cubic-bezier(0.77,0,0.175,1)_infinite] bg-paper" />
-          </span>
+        {/* ---------------- Quiet controls ---------------- */}
+        <div ref={cueRef} aria-hidden className="pointer-events-none absolute bottom-6 left-[var(--gutter)] flex h-10 w-[18px] items-center justify-center rounded-full bg-white/10" style={{ opacity: 0, transition: "opacity 600ms ease" }}>
+          <svg width="7" height="9" viewBox="0 0 7 9" className="animate-[cue_2.4s_ease-in-out_infinite]"><path d="M3.5 0.5v7M1 5l2.5 2.5L6 5" fill="none" stroke="#f2f2f4" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
-
         <button
           type="button"
           onClick={toggleSound}
           aria-pressed={sound}
           aria-label={sound ? "Turn sound off" : "Turn sound on"}
-          className="absolute bottom-5 left-5 z-10 flex h-10 items-center gap-2.5 rounded-full bg-black/25 px-4 text-[12px] font-medium uppercase tracking-[0.16em] text-paper/80 ring-1 ring-white/12 backdrop-blur-md transition-colors hover:text-paper sm:bottom-6 sm:left-6"
+          className="link absolute bottom-6 right-[var(--gutter)] z-10 flex h-10 items-center gap-2.5 text-[13px] text-paper/70"
         >
-          <span aria-hidden className="flex h-3 items-end gap-[2px]">
-            {[0, 1, 2, 3].map((i) => (
-              <span
-                key={i}
-                className="w-[2px] rounded-full bg-current"
-                style={{ height: sound ? undefined : "3px", animation: sound ? `eq 1.${i + 1}s ease-in-out ${i * 0.12}s infinite alternate` : "none" }}
-              />
+          <span aria-hidden className="flex h-2.5 items-end gap-[2px]">
+            {[0, 1, 2].map((i) => (
+              <span key={i} className="w-px bg-current" style={{ height: sound ? undefined : "3px", animation: sound ? `eq 1.${i + 2}s ease-in-out ${i * 0.15}s infinite alternate` : "none" }} />
             ))}
           </span>
-          Sound
+          Sound {sound ? "on" : "off"}
         </button>
 
-        <div aria-hidden className="absolute bottom-5 right-5 z-10 flex items-center gap-3 sm:bottom-6 sm:right-6">
-          <span className="text-[12px] font-medium tabular-nums tracking-[0.12em] text-paper/75">
-            <span ref={countRef}>01</span>
-            <span className="text-paper/40"> / {String(SCENES.length).padStart(2, "0")}</span>
-          </span>
-          <svg width="34" height="34" viewBox="0 0 36 36" className="-rotate-90">
-            <circle cx="18" cy="18" r="15.9" fill="none" strokeWidth="1.5" className="ring-track" />
-            <circle ref={ringRef} cx="18" cy="18" r="15.9" fill="none" strokeWidth="1.5" pathLength={100} strokeDasharray="100" strokeDashoffset="100" strokeLinecap="round" className="ring-fill" style={{ transition: "none" }} />
-          </svg>
+        {/* ---------------- Loader: the city slowly surfacing from the dark ---------------- */}
+        <div aria-hidden={loaded} className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[opacity,visibility] duration-[1800ms] [transition-timing-function:var(--ease-film)] ${loaded ? "invisible opacity-0" : "opacity-100"}`}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={asset("/film/stills/s1-m.webp")}
+            alt=""
+            className="absolute inset-0 h-full w-full object-cover object-[60%_55%] transition-[opacity,filter,transform] duration-[1600ms] [transition-timing-function:var(--ease-film)]"
+            style={{ opacity: 0.08 + progress * 0.32, filter: `blur(${18 - progress * 12}px) saturate(${0.4 + progress * 0.5})`, transform: `scale(${1.14 - progress * 0.06})` }}
+          />
+          <div className="absolute inset-0 [background:radial-gradient(80%_70%_at_50%_50%,transparent,rgb(10_10_11/0.9))]" />
+          <div className="absolute inset-0 flex flex-col items-center justify-center">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset("/brand/logo.svg")} alt="" width={120} height={47} className="h-auto w-[120px] opacity-80" />
+            <div className="mt-8 h-px w-[140px] overflow-hidden bg-white/15">
+              <div className="h-full origin-left bg-paper/80 transition-transform duration-700 [transition-timing-function:var(--ease-out)]" style={{ transform: `scaleX(${progress})` }} />
+            </div>
+          </div>
+          <div className="absolute inset-x-[var(--gutter)] bottom-6 flex items-end justify-between t-small text-paper/45">
+            <span>Web and mobile apps</span>
+            <span className="tabular-nums">{String(Math.round(progress * 100)).padStart(3, "0")}</span>
+          </div>
         </div>
 
-        {/* ---------- Loader ---------- */}
-        <div
-          aria-hidden={loaded}
-          className={`absolute inset-0 z-20 flex flex-col items-center justify-center bg-ink transition-[opacity,visibility] duration-1000 [transition-timing-function:var(--ease-out)] ${loaded ? "invisible opacity-0" : "opacity-100"}`}
-        >
-          <div className="relative flex h-28 w-28 items-center justify-center">
-            <svg viewBox="0 0 100 100" className="absolute inset-0 -rotate-90">
-              <circle cx="50" cy="50" r="46" fill="none" strokeWidth="1" className="ring-track" />
-              <circle cx="50" cy="50" r="46" fill="none" strokeWidth="1.5" pathLength={100} strokeDasharray="100" strokeDashoffset={100 - progress * 100} strokeLinecap="round" className="ring-fill" />
-            </svg>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset("/brand/wordmark.png")} alt="" width={62} height={26} className="h-[26px] w-auto opacity-90" />
-          </div>
-          <p className="mt-6 text-[11px] uppercase tracking-[0.3em] text-paper/45 tabular-nums">{Math.round(progress * 100)}%</p>
-        </div>
+        {/* curtain for nav jumps */}
+        <div ref={curtainRef} aria-hidden className="pointer-events-none absolute inset-0 z-30 bg-ink" style={{ opacity: 0 }} />
       </div>
       <style>{`
-        @keyframes cue { 0% { transform: translateY(-100%); } 100% { transform: translateY(200%); } }
-        @keyframes eq { from { height: 3px; } to { height: 12px; } }
+        @keyframes cue { 0%, 100% { transform: translateY(-3px); opacity: .4; } 50% { transform: translateY(3px); opacity: 1; } }
+        @keyframes eq { from { height: 3px; } to { height: 10px; } }
       `}</style>
     </div>
   );

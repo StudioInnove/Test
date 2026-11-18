@@ -20,7 +20,7 @@ CLIPS = {  # clip -> (from still, to still)
     "c0": ("s1", "s1n"), "c1": ("s1n", "s2"), "c2": ("s2", "s3"), "c3": ("s3", "s4"),
     "c4": ("s4", "s5"), "c5": ("s5", "s6"), "c6": ("s6", "s1n"),
 }
-SIZES = {"d": 1600, "m": 1080}   # desktop, mobile widths
+SIZES = {"d": 1928, "m": 1080}   # desktop, mobile widths
 FPS = 12                          # frames are blended in the shader, so 12 fps scrubs smoothly
 
 
@@ -58,9 +58,9 @@ def main(src):
             d = os.path.join(OUT, c, k)
             shutil.rmtree(d, ignore_errors=True)
             os.makedirs(d)
-            q = 70 if k == "d" else 66
+            q = 80 if k == "d" else 74
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", p,
-                            "-vf", f"fps={FPS},scale={w}:-2:flags=lanczos",
+                            "-vf", f"fps={FPS},scale={w}:-2:flags=lanczos,unsharp=5:5:0.45:5:5:0",
                             "-c:v", "libwebp", "-quality", str(q), "-compression_level", "6",
                             os.path.join(d, "%03d.webp")], check=True)
             n = len([f for f in os.listdir(d) if f.endswith(".webp")])

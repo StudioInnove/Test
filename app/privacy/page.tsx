@@ -15,13 +15,13 @@ export default function Page() {
     <main>
       <Nav />
       <article className="mx-auto max-w-[720px] px-6 pb-28 pt-40">
-        <p className="eyebrow mb-4">Updated {p.updated}</p>
-        <h1 className="display mb-12 text-[clamp(44px,6vw,80px)]">{p.title}</h1>
-        <div className="space-y-6 text-[17px] leading-relaxed text-paper/75">
+        <p className="index mb-5">Updated {p.updated}</p>
+        <h1 className="t-display mb-12">{p.title}</h1>
+        <div className="t-body space-y-6 text-paper/70">
           {p.body.map((b, i) => {
             const [head, ...rest] = b.split(". ");
             return i === 0 ? <p key={i}>{b}</p> : (
-              <p key={i}><strong className="font-semibold text-paper">{head}.</strong> {rest.join(". ")}</p>
+              <p key={i}><strong className="font-[450] text-paper">{head}.</strong> {rest.join(". ")}</p>
             );
           })}
         </div>

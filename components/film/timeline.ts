@@ -11,7 +11,7 @@ export type Segment =
 
 export type SceneId = "hero" | "services" | "web" | "mobile" | "how" | "originals" | "close";
 
-export const SEGMENTS: Segment[] = [
+const RAW: Segment[] = [
   { kind: "clip", id: "c0", from: "s1", to: "s1n", len: 1.1 },
   { kind: "hold", still: "s1n", len: 0.45, scene: "hero" },
   { kind: "clip", id: "c1", from: "s1n", to: "s2", len: 1.5 },
@@ -27,6 +27,10 @@ export const SEGMENTS: Segment[] = [
   { kind: "clip", id: "c6", from: "s6", to: "s1n", len: 1.5 },
   { kind: "hold", still: "s1n", len: 1.1, scene: "close" },
 ];
+
+/** Overall pace: more scroll per scene makes the camera move slowly and calmly. */
+const PACE = 1.4;
+export const SEGMENTS: Segment[] = RAW.map((s) => ({ ...s, len: s.len * PACE }));
 
 export const SCENES: SceneId[] = ["hero", "services", "web", "mobile", "how", "originals", "close"];
 

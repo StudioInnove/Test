@@ -53,11 +53,10 @@
     "scrollCue": "Scroll"
   },
   "services": {
-    "intro": "What we make",
+    "intro": "What we do",
     "headline": [
-      "Web and mobile,",
-      "crafted",
-      "end to end."
+      "We design and build",
+      "web and mobile apps."
     ],
     "web": {
       "index": "1.0",
@@ -104,7 +103,7 @@
   },
   "originals": {
     "eyebrow": "Studio Originals",
-    "heading": "Our own apps, in the making.",
+    "heading": "Something of our own is coming.",
     "statusLabel": "Status",
     "stages": [
       "Idea",
@@ -114,12 +113,13 @@
       "Launch"
     ],
     "current": 2,
-    "cta": "Get early access",
+    "cta": "Join the waitlist",
     "placeholder": "Email address",
     "success": "You're on the list. We'll be in touch.",
     "error": "Something went wrong. Please try again.",
     "privacy": "Only emails about this app. Unsubscribe anytime.",
-    "line": "Alongside client work, we design and build products of our own. The first is in development."
+    "line": "Alongside client work, we're building a product of our own. It's in development now. Join the list to see it first.",
+    "code": "Original 01"
   },
   "close": {
     "heading": "Have an idea?",
@@ -220,5 +220,10 @@
       "Analytics. We use Vercel Analytics to count visits. It uses no cookies and does not identify you.",
       "Contact. Questions about your data: contact.studioinnove@gmail.com."
     ]
+  },
+  "enter": {
+    "cta": "Enter",
+    "quiet": "Enter without sound",
+    "hint": "Best with sound on"
   }
 }

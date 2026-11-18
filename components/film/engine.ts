@@ -176,6 +176,17 @@ export class FilmEngine {
     return asset(`${c.path}${String(i + 1).padStart(3, "0")}.webp`);
   }
 
+  /** Share of the given clips' frames already downloaded (0..1). */
+  loadedRatio(clips: ClipId[]) {
+    let have = 0, total = 0;
+    for (const c of clips) {
+      const n = this.frames(c);
+      total += n;
+      for (let i = 0; i < n; i++) if (this.blobs.has(this.frameUrl(c, i))) have++;
+    }
+    return total ? have / total : 1;
+  }
+
   frames(clip: ClipId) {
     return this.clipSet(clip)?.frames ?? 0;
   }
@@ -293,11 +304,6 @@ export class FilmEngine {
           A = a.bm; aKey = a.url; B = b.bm; bKey = b.url;
           mix = b.url === a.url ? 0 : x - i;
           focusA = focusB = f;
-          // settle onto the exact still in the last few percent so holds never pop
-          const to = this.stills.get(shot.to);
-          if (shot.t > 0.95 && to) {
-            B = to; bKey = "still:" + shot.to; mix = (shot.t - 0.95) / 0.05;
-          }
           // pre-decode ahead and behind
           for (const k of [i + 2, i + 3, i - 1, i - 2]) if (k >= 0 && k < n) this.requestDecode(this.frameUrl(shot.clip, k));
           used = true;

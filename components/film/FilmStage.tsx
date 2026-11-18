@@ -8,167 +8,243 @@ import { BookCall } from "../BookCall";
 import { StatusTrack, WaitlistForm } from "../Originals";
 import { ArrowLink } from "../ui/ArrowLink";
 import { Words } from "../Words";
-import { FilmEngine, type Manifest, type Shot } from "./engine";
-import { SEGMENTS, STARTS, TOTAL, WINDOWS, locate, sceneStart, type ClipId, type SceneId } from "./timeline";
+import { FilmEngine, type Manifest } from "./engine";
+import { SCENES, sceneIndex, type SceneKey } from "./scenes";
+import type { ClipId } from "./timeline";
 
-const FADE = 0.22;
-const AUTOPLAY_S = 10;
+const TRANSITION_S = 3.4; // one clip, played at a calm, even pace
+const SETTLE_S = 0.45; // the idle loop eases back to its end frame before a transition
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
-const smooth = (t: number) => t * t * (3 - 2 * t);
 const easeInOut = (t: number) => (t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2);
+const GLYPHS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+type Move = { from: number; to: number; start: number; settleFrom: number } | null;
 
 export function FilmStage() {
-  const trackRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const cueRef = useRef<HTMLDivElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
   const soundRef = useRef<Soundscape | null>(null);
-  const [loaded, setLoaded] = useState(false);
+  const goRef = useRef<(i: number, cut?: boolean) => void>(() => {});
   const [progress, setProgress] = useState(0);
-  const [canvasOn, setCanvasOn] = useState(false);
+  const [ready, setReady] = useState(false); // assets ready: show Enter
+  const [entered, setEntered] = useState(false);
+  const [scene, setScene] = useState(0);
   const [sound, setSound] = useState(false);
 
   useEffect(() => {
-    const track = trackRef.current!;
     const stage = stageRef.current!;
     const canvas = canvasRef.current!;
     const curtain = curtainRef.current!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const narrow = window.matchMedia("(max-width: 899px)").matches;
-    const mode: "d" | "m" = narrow ? "m" : "d";
+    const mode: "d" | "m" = window.matchMedia("(max-width: 899px)").matches ? "m" : "d";
     let engine: FilmEngine | null = null;
     let raf = 0;
     let alive = true;
-    let autoStart = -1;
-    let shown = 0; // the film position actually drawn, eased toward the scroll position
-    let last = performance.now();
-    let lastClipKey = "";
-    let lastScene = "";
-    let jumping = false;
-    const loadedRef = { current: false };
+    let current = 0;
+    let move: Move = null;
+    let idleStart = performance.now() / 1000;
+    let idleT = 1;
+    let filmMode = true;
+    let lockUntil = 0;
+    let wheelAcc = 0;
+    let lastWheel = 0;
+    let touchY: number | null = null;
 
-    const lenis = reduce ? null : new Lenis({ lerp: 0.06, wheelMultiplier: 0.85, touchMultiplier: 1.1, smoothWheel: true });
+    const lenis = new Lenis({ lerp: reduce ? 1 : 0.075, smoothWheel: !reduce });
+    lenis.stop();
 
     const overlays = Array.from(stage.querySelectorAll<HTMLElement>("[data-scene]"));
-    const steps = Array.from(stage.querySelectorAll<HTMLElement>("[data-step]"));
-    const stepBar = stage.querySelector<HTMLElement>("[data-stepbar]");
-    const onState = new Map<HTMLElement, boolean>();
-
-    const span = () => track.offsetHeight - stage.offsetHeight;
-    const position = () => clamp(-track.getBoundingClientRect().top / Math.max(1, span())) * TOTAL;
-
     const resize = () => engine?.resize(stage.clientWidth, stage.clientHeight, Math.min(window.devicePixelRatio || 1, 2));
     window.addEventListener("resize", resize);
 
-    // Nav links fade to black, cut to the scene, then fade back in.
+    const showText = (i: number | null) => {
+      overlays.forEach((el) => {
+        const on = i !== null && el.dataset.scene === SCENES[i].key;
+        el.classList.toggle("on", on);
+        el.style.opacity = on ? "1" : "0";
+        el.style.visibility = on ? "visible" : "hidden";
+        el.style.pointerEvents = on ? "auto" : "none";
+        if (on) el.querySelectorAll<HTMLElement>("[data-scramble]").forEach(scramble);
+      });
+    };
+
+    const scramble = (el: HTMLElement) => {
+      const final = el.dataset.scramble || "";
+      const t0 = performance.now();
+      const step = () => {
+        const p = clamp((performance.now() - t0) / 1400);
+        const shown = Math.floor(p * final.length);
+        el.textContent = final
+          .split("")
+          .map((c, k) => (k < shown || c === " " ? c : GLYPHS[(Math.random() * GLYPHS.length) | 0]))
+          .join("");
+        if (p < 1 && alive) requestAnimationFrame(step);
+      };
+      setTimeout(step, 500);
+    };
+
+    const preload = (i: number) => {
+      if (!engine) return;
+      const want: ClipId[] = [];
+      const add = (c: ClipId | null | undefined) => c && !want.includes(c) && want.push(c);
+      add(SCENES[i].idle.clip);
+      add(SCENES[i + 1]?.enter);
+      add(SCENES[i].enter);
+      for (let r = 2; r < SCENES.length; r++) add(SCENES[i + r]?.enter);
+      engine.prioritise(want);
+    };
+
+    // Move to scene i: play the clip between, or cut under a curtain for long jumps.
+    const go = (i: number, cut = false) => {
+      if (i < 0 || i >= SCENES.length || i === current || move) return;
+      const now = performance.now() / 1000;
+      if (cut || Math.abs(i - current) > 1 || reduce) {
+        curtain.style.transition = "opacity 520ms cubic-bezier(0.77,0,0.175,1)";
+        curtain.style.opacity = "1";
+        showText(null);
+        lockUntil = now + 2;
+        setTimeout(() => {
+          current = i;
+          setScene(i);
+          idleStart = performance.now() / 1000;
+          preload(i);
+          curtain.style.transition = "opacity 1200ms cubic-bezier(0.22,0.61,0.36,1)";
+          curtain.style.opacity = "0";
+          setTimeout(() => showText(i), 500);
+        }, 560);
+        return;
+      }
+      showText(null);
+      move = { from: current, to: i, start: now, settleFrom: idleT };
+      lockUntil = now + SETTLE_S + TRANSITION_S;
+      setScene(i);
+      preload(i);
+    };
+    goRef.current = go;
+
+    const exitFilm = () => {
+      filmMode = false;
+      lenis.start();
+      const faq = document.getElementById("faq");
+      if (faq) lenis.scrollTo(faq, { duration: 1.8, easing: (t) => 1 - Math.pow(1 - t, 4) });
+    };
+
+    const step = (dir: 1 | -1) => {
+      const now = performance.now() / 1000;
+      if (!filmMode || move || now < lockUntil) return;
+      if (dir > 0 && current === SCENES.length - 1) return exitFilm();
+      go(current + dir);
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (!filmMode) return;
+      e.preventDefault();
+      const now = performance.now();
+      if (now - lastWheel > 220) wheelAcc = 0; // a new gesture
+      lastWheel = now;
+      wheelAcc += e.deltaY;
+      if (Math.abs(wheelAcc) > 40) {
+        step(wheelAcc > 0 ? 1 : -1);
+        wheelAcc = -9999 * Math.sign(wheelAcc); // swallow the rest of this gesture's momentum
+      }
+    };
+    const onTouchStart = (e: TouchEvent) => (touchY = e.touches[0].clientY);
+    const onTouchMove = (e: TouchEvent) => {
+      if (!filmMode || touchY === null) return;
+      e.preventDefault();
+      const dy = touchY - e.touches[0].clientY;
+      if (Math.abs(dy) > 46) {
+        step(dy > 0 ? 1 : -1);
+        touchY = null;
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (!filmMode || (e.target as HTMLElement)?.tagName === "INPUT") return;
+      if (["ArrowDown", "PageDown", " "].includes(e.key)) { e.preventDefault(); step(1); }
+      if (["ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); step(-1); }
+    };
+    // Back at the very top of the page: hand control back to the film.
+    lenis.on("scroll", ({ scroll, direction }: { scroll: number; direction: number }) => {
+      if (!filmMode && scroll <= 1 && direction <= 0) {
+        filmMode = true;
+        lenis.stop();
+        lockUntil = performance.now() / 1000 + 0.6;
+      }
+    });
+
+    // Nav links: film scenes cut under a curtain; FAQ leaves the film.
     const onClick = (e: MouseEvent) => {
       const a = (e.target as HTMLElement).closest("a");
       if (!a) return;
       const raw = a.getAttribute("href") || "";
       const id = raw.startsWith("#") ? raw.slice(1) : raw.startsWith("/#") ? raw.slice(2) : "";
       if (!id) return;
-      const target = document.getElementById(id);
-      if (!target) return;
-      e.preventDefault();
-      if (jumping) return;
-      jumping = true;
-      const y = target.getBoundingClientRect().top + window.scrollY;
-      curtain.style.transition = "opacity 520ms cubic-bezier(0.77,0,0.175,1)";
-      curtain.style.opacity = "1";
-      setTimeout(() => {
-        if (lenis) lenis.scrollTo(y, { immediate: true, force: true });
-        else window.scrollTo(0, y);
-        shown = position();
-        history.replaceState(null, "", `#${id}`);
-        setTimeout(() => {
-          curtain.style.transition = "opacity 1100ms cubic-bezier(0.22,0.61,0.36,1)";
-          curtain.style.opacity = "0";
-          setTimeout(() => (jumping = false), 1100);
-        }, 120);
-      }, 560);
+      const map: Record<string, SceneKey> = { top: "hero", services: "services", web: "web", how: "how", originals: "originals", contact: "close" };
+      if (map[id] !== undefined) {
+        e.preventDefault();
+        const target = sceneIndex(map[id]);
+        if (!filmMode) {
+          curtain.style.transition = "opacity 520ms cubic-bezier(0.77,0,0.175,1)";
+          curtain.style.opacity = "1";
+          setTimeout(() => {
+            lenis.scrollTo(0, { immediate: true, force: true });
+            filmMode = true;
+            lenis.stop();
+            current = -1;
+            go(target, true);
+          }, 560);
+        } else go(target, true);
+      } else if (id === "faq") {
+        e.preventDefault();
+        if (filmMode) exitFilm();
+        else lenis.scrollTo("#faq", { duration: 1.6 });
+      }
     };
+
+    window.addEventListener("wheel", onWheel, { passive: false });
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("keydown", onKey);
     document.addEventListener("click", onClick, true);
 
-    const shotAt = (pos: number, auto: number): { shot: Shot; clip?: ClipId } => {
-      const { index, local } = locate(pos);
-      const seg = SEGMENTS[index];
-      if (seg.kind === "clip") {
-        const t = seg.id === "c0" ? Math.max(local, auto) : local;
-        return { shot: { kind: "clip", clip: seg.id, from: seg.from, to: seg.to, t: clamp(t) }, clip: seg.id };
-      }
-      return { shot: { kind: "hold", still: seg.still, rest: 0 } };
-    };
-
-    const setOverlay = (el: HTMLElement, vis: number) => {
-      el.style.opacity = String(vis);
-      el.style.visibility = vis < 0.01 ? "hidden" : "visible";
-      el.style.pointerEvents = vis > 0.6 ? "auto" : "none";
-      const on = vis > 0.3;
-      if (onState.get(el) !== on) {
-        onState.set(el, on);
-        el.classList.toggle("on", on);
-      }
-    };
-
-    const tick = (now: number) => {
+    const tick = (nowMs: number) => {
       if (!alive) return;
-      lenis?.raf(now);
-      const dt = Math.min(0.05, (now - last) / 1000);
-      last = now;
-      const target = position();
-      // critically damped follow: cinematic, never jumpy
-      shown += (target - shown) * (1 - Math.exp(-dt * (reduce ? 60 : 7)));
-      if (Math.abs(target - shown) < 0.0005) shown = target;
-      const pos = shown;
-      const time = now / 1000;
-      const auto = autoStart >= 0 ? easeInOut(clamp((time - autoStart) / AUTOPLAY_S)) : 0;
-
+      lenis.raf(nowMs);
+      const now = nowMs / 1000;
       if (engine?.ready) {
-        const { shot, clip } = shotAt(pos, auto);
-        engine.paint(shot, { time, mouse: [0, 0], pointer: [0.5, 0.5], motion: 0 });
-        const i = locate(pos).index;
-        const key = clip ?? `h${i}`;
-        if (key !== lastClipKey) {
-          lastClipKey = key;
-          const order: ClipId[] = [];
-          for (let r = 0; r < SEGMENTS.length; r++) {
-            for (const j of [i + r, i - r]) {
-              const s = SEGMENTS[j];
-              if (s && s.kind === "clip" && !order.includes(s.id)) order.push(s.id);
+        if (move) {
+          const el = now - move.start;
+          if (el < SETTLE_S) {
+            // ease the idle loop back to its end frame so the clip starts exactly where we are
+            const idle = SCENES[move.from].idle;
+            const t = move.settleFrom + (1 - move.settleFrom) * easeInOut(el / SETTLE_S);
+            engine.paint({ kind: "clip", clip: idle.clip, from: SCENES[move.from].still, to: SCENES[move.from].still, t }, { time: now, mouse: [0, 0], pointer: [0.5, 0.5], motion: 0 });
+          } else {
+            const p = clamp((el - SETTLE_S) / TRANSITION_S);
+            const forward = move.to > move.from;
+            const clip = (forward ? SCENES[move.to].enter : SCENES[move.from].enter)!;
+            const a = forward ? SCENES[move.from].still : SCENES[move.to].still;
+            const b = forward ? SCENES[move.to].still : SCENES[move.from].still;
+            const e = easeInOut(p);
+            engine.paint({ kind: "clip", clip, from: a, to: b, t: forward ? e : 1 - e }, { time: now, mouse: [0, 0], pointer: [0.5, 0.5], motion: 0 });
+            if (p >= 1) {
+              current = move.to;
+              move = null;
+              idleStart = now;
+              idleT = 1;
+              showText(current);
             }
           }
-          engine.prioritise(order);
+        } else if (current >= 0) {
+          const s = SCENES[current];
+          const ph = reduce ? 0 : (now - idleStart) / s.idle.period;
+          const w = 0.5 - 0.5 * Math.cos(ph * Math.PI * 2); // 0 → 1 → 0, slowing at each end
+          idleT = s.idle.to - (s.idle.to - s.idle.from) * w;
+          engine.paint({ kind: "clip", clip: s.idle.clip, from: s.still, to: s.still, t: idleT }, { time: now, mouse: [0, 0], pointer: [0.5, 0.5], motion: 0 });
         }
+        soundRef.current?.setPlace(current >= 2 && current <= 5 ? 1 : 0);
       }
-
-      for (const el of overlays) {
-        const id = el.dataset.scene as SceneId;
-        const [a, b] = WINDOWS[id];
-        let vis = Math.min(clamp((pos - a) / FADE + 1), clamp((b - pos) / FADE));
-        if (id === "hero") vis = loadedRef.current ? clamp((b - pos) / FADE) : 0;
-        setOverlay(el, smooth(vis));
-      }
-
-      // process steps: brighten one by one across their hold
-      const howStart = sceneStart("how");
-      const howLen = SEGMENTS.find((s) => s.kind === "hold" && s.scene === "how")!.len;
-      const hp = clamp((pos - howStart + 0.15) / (howLen * 0.85));
-      const active = Math.min(steps.length - 1, Math.floor(hp * steps.length));
-      steps.forEach((s, i) => (s.dataset.state = i <= active ? "on" : "off"));
-      if (stepBar) stepBar.style.transform = `scaleX(${hp})`;
-
-      // sound follows the camera inside, and marks each new scene softly
-      let scene = "";
-      for (const [id, [a]] of Object.entries(WINDOWS)) if (pos >= Math.max(0, a)) scene = id;
-      if (scene !== lastScene) {
-        if (lastScene) soundRef.current?.chime();
-        lastScene = scene;
-      }
-      const inside = pos > STARTS[2] + SEGMENTS[2].len * 0.6 && pos < STARTS[12] + SEGMENTS[12].len * 0.5 ? 1 : 0;
-      soundRef.current?.setPlace(inside);
-      if (cueRef.current) cueRef.current.style.opacity = String(loadedRef.current ? clamp(1 - pos / 0.4) : 0);
-
       raf = requestAnimationFrame(tick);
     };
 
@@ -177,210 +253,213 @@ export function FilmStage() {
       .then(async (m: Manifest) => {
         if (!alive) return;
         engine = new FilmEngine(canvas, m, mode);
-        engine.onProgress = (p) => setProgress(p);
+        engine.onProgress = (p) => setProgress(p * 0.6);
         resize();
+        await engine.loadStills(["s1n", "s2"]);
+        preload(0);
+        // wait until the hero loop and the first transition can play, then offer Enter
         const t0 = performance.now();
-        await engine.loadStills(["s1", "s1n", "s2"]);
-        engine.prioritise(["c0", "c1"]);
-        if (!alive) return;
-        // let the loader breathe; it is part of the film
-        const wait = Math.max(0, 2200 - (performance.now() - t0));
-        setTimeout(() => {
-          setCanvasOn(true);
-          setLoaded(true);
-          loadedRef.current = true;
-          autoStart = performance.now() / 1000 + 1.4;
-        }, wait);
+        const wait = () => {
+          const have = engine!.loadedRatio(["c0", "c1"]);
+          setProgress(0.6 + have * 0.4);
+          if ((have > 0.97 && performance.now() - t0 > 600) || performance.now() - t0 > 9000) setReady(true);
+          else if (alive) setTimeout(wait, 120);
+        };
+        wait();
       })
-      .catch(() => {
-        setLoaded(true);
-        loadedRef.current = true;
-      });
+      .catch(() => setReady(true));
 
-    const failsafe = window.setTimeout(() => {
-      setLoaded(true);
-      loadedRef.current = true;
-      if (autoStart < 0) autoStart = performance.now() / 1000;
-    }, 8000);
-
-    shown = position();
     raf = requestAnimationFrame(tick);
     return () => {
       alive = false;
       cancelAnimationFrame(raf);
-      clearTimeout(failsafe);
       window.removeEventListener("resize", resize);
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick, true);
-      lenis?.destroy();
+      lenis.destroy();
       engine?.destroy();
       soundRef.current?.destroy();
     };
   }, []);
 
+  const enter = async (withSound: boolean) => {
+    setEntered(true);
+    if (withSound) {
+      soundRef.current = soundRef.current ?? new Soundscape();
+      await soundRef.current.toggle(true);
+      setSound(true);
+    }
+    const map: Record<string, number> = { services: 1, web: 2, how: 4, originals: 5, contact: 6 };
+    const fromHash = map[window.location.hash.slice(1)];
+    if (fromHash) return setTimeout(() => goRef.current(fromHash, true), 300);
+    setTimeout(() => {
+      const el = stageRef.current?.querySelector<HTMLElement>('[data-scene="hero"]');
+      if (el) { el.classList.add("on"); el.style.opacity = "1"; el.style.visibility = "visible"; el.style.pointerEvents = "auto"; }
+    }, 900);
+  };
+
   const toggleSound = async () => {
-    if (!soundRef.current) soundRef.current = new Soundscape();
+    soundRef.current = soundRef.current ?? new Soundscape();
     const next = !sound;
     await soundRef.current.toggle(next);
     setSound(next);
   };
 
   const { hero, services, how, originals, close, studio } = content;
-  const anchor = (id: string, scene: SceneId, off = 0.05) => (
-    <span id={id} className="absolute left-0" style={{ top: `calc((100% - 100svh) * ${(sceneStart(scene) + off) / TOTAL})` }} />
-  );
+  const enterCopy = (content as unknown as { enter: { cta: string; quiet: string; hint: string } }).enter;
+  const sceneStyle = { opacity: 0, visibility: "hidden" as const, transition: "opacity 900ms cubic-bezier(0.22,0.61,0.36,1), visibility 900ms" };
 
   return (
-    <div ref={trackRef} className="relative" style={{ height: `${(TOTAL + 1) * 100}svh` }}>
-      <span id="top" className="absolute left-0 top-0" />
-      {anchor("services", "services")}
-      {anchor("web", "web")}
-      {anchor("how", "how")}
-      {anchor("originals", "originals", 0.15)}
-      {anchor("contact", "close", 0.15)}
-
-      <div ref={stageRef} className="sticky top-0 h-svh w-full overflow-hidden bg-ink">
+    <div id="top" className="relative h-svh">
+      <div ref={stageRef} className="relative h-svh w-full overflow-hidden bg-ink" style={{ touchAction: "pan-x" }}>
         <picture>
-          <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1-m.webp")} />
+          <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1n-m.webp")} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/film/stills/s1-d.webp")} alt="A glass penthouse studio above a city at golden hour" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[60%_55%]" />
+          <img src={asset("/film/stills/s1n-d.webp")} alt="A glass penthouse studio above a city at night" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[60%_55%]" />
         </picture>
-        <canvas ref={canvasRef} aria-hidden className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ${canvasOn ? "opacity-100" : "opacity-0"}`} />
+        <canvas ref={canvasRef} aria-hidden className={`absolute inset-0 h-full w-full transition-opacity duration-1000 ${ready ? "opacity-100" : "opacity-0"}`} />
 
         {/* ---------------- Scenes ---------------- */}
-
-        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[104px] md:pb-[12svh]" style={{ opacity: 0 }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.82)_0%,rgb(10_10_11/0.35)_38%,transparent_62%)] md:[background:linear-gradient(20deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.45)_42%,transparent_66%)]" />
-          <p className="rise t-small muted mb-5 flex items-center gap-2.5" style={{ ["--d" as string]: "200ms" }}>
-            <span className="mark" /> {hero.eyebrow}
-          </p>
-          <h1 className="t-display max-w-[11ch]"><Words text={hero.headline} delay={300} /></h1>
-          <p className="rise t-body muted mt-5 max-w-[36ch]" style={{ ["--d" as string]: "900ms" }}>{hero.line}</p>
-          <div className="rise mt-8 flex flex-wrap items-center gap-6" style={{ ["--d" as string]: "1100ms" }}>
+        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[108px] md:pb-[13svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.4)_40%,transparent_65%)] md:[background:linear-gradient(20deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.45)_42%,transparent_66%)]" />
+          <h1 className="t-display max-w-[11ch]"><Words text={hero.headline} delay={100} /></h1>
+          <p className="rise t-body mt-5 max-w-[36ch] text-paper/80" style={{ ["--d" as string]: "700ms" }}>{hero.line}</p>
+          <div className="rise mt-8 flex flex-wrap items-center gap-6" style={{ ["--d" as string]: "900ms" }}>
             <BookCall>{hero.primary}</BookCall>
             <ArrowLink href="#originals">{hero.secondary}</ArrowLink>
           </div>
         </section>
 
-        <section data-scene="services" aria-label={services.intro} className="reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(75%_60%_at_50%_50%,rgb(10_10_11/0.72),rgb(10_10_11/0.25)_70%,transparent_100%)]" />
-          <p className="rise t-small muted mb-6">{services.intro}</p>
-          <h2 className="t-mono max-w-[14ch]">
-            <span className="dim"><Words text={services.headline[0]} /></span>{" "}
-            <Words text={services.headline[1]} delay={250} />{" "}
-            <span className="dim"><Words text={services.headline[2]} delay={350} /></span>
+        <section data-scene="services" aria-label={services.intro} className="reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_65%_at_50%_50%,rgb(10_10_11/0.78),rgb(10_10_11/0.35)_70%,rgb(10_10_11/0.15)_100%)]" />
+          <p className="rise t-small mb-6 text-paper/70">{services.intro}</p>
+          <h2 className="t-mono max-w-[16ch] text-[clamp(44px,7.4vw,112px)]">
+            <Words text={services.headline[0]} />
+            <br />
+            <span className="text-paper/60"><Words text={services.headline[1]} delay={350} /></span>
           </h2>
         </section>
 
         {(["web", "mobile"] as const).map((k) => {
           const s = services[k];
           return (
-            <section key={k} data-scene={k} aria-label={s.title} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={{ opacity: 0, visibility: "hidden" }}>
-              <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.4)_35%,transparent_60%)]" />
-              <div className="max-w-[420px]">
+            <section key={k} data-scene={k} aria-label={s.title} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[100px] md:pb-[13svh]" style={sceneStyle}>
+              <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.88)_0%,rgb(10_10_11/0.45)_38%,transparent_62%)]" />
+              <div className="max-w-[440px]">
                 <p className="rise index mb-4">{s.index}</p>
                 <h2 className="t-title"><Words text={s.title} /></h2>
-                <p className="rise t-body muted mt-4" style={{ ["--d" as string]: "400ms" }}>{s.line}</p>
+                <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "400ms" }}>{s.line}</p>
                 <ul className="rise mt-6 flex flex-wrap gap-1.5" style={{ ["--d" as string]: "600ms" }}>
                   {s.tags.map((t) => <li key={t} className="pill">{t}</li>)}
                 </ul>
-                {k === "mobile" && (
-                  <div className="rise mt-8" style={{ ["--d" as string]: "800ms" }}><BookCall size="sm">{services.cta}</BookCall></div>
-                )}
               </div>
             </section>
           );
         })}
 
-        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[11svh]" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.9)_0%,rgb(10_10_11/0.5)_38%,transparent_68%)]" />
+        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[100px] md:pb-[12svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.92)_0%,rgb(10_10_11/0.55)_40%,transparent_70%)]" />
           <h2 className="t-title mb-10 md:mb-14"><Words text={how.heading} /></h2>
           <div className="relative">
             <div className="absolute inset-x-0 top-0 h-px bg-white/15" />
-            <div data-stepbar className="absolute inset-x-0 top-0 h-px origin-left bg-paper" style={{ transform: "scaleX(0)" }} />
+            <div className="steps-bar absolute inset-x-0 top-0 h-px origin-left bg-paper" />
             <ol className="grid grid-cols-2 gap-x-6 gap-y-8 pt-6 md:grid-cols-4 md:gap-[34px]">
               {how.steps.map((s, i) => (
-                <li key={s.title} data-step={i} data-state="off" className="transition-opacity duration-700 data-[state=off]:opacity-30">
+                <li key={s.title} className="rise" style={{ ["--d" as string]: `${400 + i * 450}ms` }}>
                   <p className="index mb-3">0{i + 1}</p>
                   <p className="t-head">{s.title}</p>
-                  <p className="t-body muted mt-2 max-w-[26ch] text-[15px]">{s.line}</p>
+                  <p className="t-body mt-2 max-w-[26ch] text-[15px] text-paper/75">{s.line}</p>
                 </li>
               ))}
             </ol>
           </div>
         </section>
 
-        <section data-scene="originals" aria-label={originals.eyebrow} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[88px] md:justify-center md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.9),rgb(10_10_11/0.45)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(10_10_11/0.85)_0%,rgb(10_10_11/0.55)_35%,transparent_60%)]" />
-          <div className="max-w-[440px]">
-            <p className="rise t-small mb-5 flex items-center gap-2.5"><span className="mark" />{originals.eyebrow}</p>
+        <section data-scene="originals" aria-label={originals.eyebrow} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(10_10_11/0.92),rgb(10_10_11/0.5)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(10_10_11/0.9)_0%,rgb(10_10_11/0.6)_38%,transparent_62%)]" />
+          <div className="max-w-[460px]">
+            <p className="rise t-small mb-6 flex items-center gap-3 text-paper/70">
+              <span>{originals.eyebrow}</span>
+              <span className="h-px w-6 bg-white/30" />
+              <span className="tabular-nums tracking-[0.08em]" data-scramble={(originals as unknown as { code: string }).code}>{(originals as unknown as { code: string }).code}</span>
+            </p>
             <h2 className="t-title"><Words text={originals.heading} /></h2>
-            <p className="rise t-body muted mt-4" style={{ ["--d" as string]: "400ms" }}>{originals.line}</p>
-            <div className="rise mt-8" style={{ ["--d" as string]: "550ms" }}><StatusTrack /></div>
-            <div className="rise mt-8" style={{ ["--d" as string]: "700ms" }}><WaitlistForm source="film" /></div>
+            <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "500ms" }}>{originals.line}</p>
+            <div className="rise mt-8" style={{ ["--d" as string]: "700ms" }}><StatusTrack /></div>
+            <div className="rise mt-8" style={{ ["--d" as string]: "850ms" }}><WaitlistForm source="film" /></div>
           </div>
         </section>
 
-        <section data-scene="close" aria-label={close.heading} className="reveal absolute inset-0 isolate flex flex-col items-center justify-start px-[var(--gutter)] pt-[20svh] text-center md:pt-[16svh]" style={{ opacity: 0, visibility: "hidden" }}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_60%_at_50%_30%,rgb(10_10_11/0.72),rgb(10_10_11/0.2)_70%,transparent_100%)]" />
-          <h2 className="t-mono">
+        <section data-scene="close" aria-label={close.heading} className="reveal absolute inset-0 isolate flex flex-col items-center justify-start px-[var(--gutter)] pt-[20svh] text-center md:pt-[16svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(85%_60%_at_50%_30%,rgb(10_10_11/0.75),rgb(10_10_11/0.2)_75%,transparent_100%)]" />
+          <h2 className="t-mono text-[clamp(44px,7.4vw,112px)]">
             <Words text={close.heading} />
             <br />
-            <span className="dim"><Words text={close.sub} delay={300} /></span>
+            <span className="text-paper/60"><Words text={close.sub} delay={300} /></span>
           </h2>
           <div className="rise mt-10 flex flex-col items-center gap-5" style={{ ["--d" as string]: "800ms" }}>
             <BookCall>{close.cta}</BookCall>
-            <span className="t-small muted select-all">{studio.email}</span>
+            <span className="t-small select-all text-paper/60">{studio.email}</span>
           </div>
         </section>
 
         {/* ---------------- Quiet controls ---------------- */}
-        <div ref={cueRef} aria-hidden className="pointer-events-none absolute bottom-6 left-[var(--gutter)] flex h-10 w-[18px] items-center justify-center rounded-full bg-white/10" style={{ opacity: 0, transition: "opacity 600ms ease" }}>
-          <svg width="7" height="9" viewBox="0 0 7 9" className="animate-[cue_2.4s_ease-in-out_infinite]"><path d="M3.5 0.5v7M1 5l2.5 2.5L6 5" fill="none" stroke="#f2f2f4" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" /></svg>
-        </div>
-        <button
-          type="button"
-          onClick={toggleSound}
-          aria-pressed={sound}
-          aria-label={sound ? "Turn sound off" : "Turn sound on"}
-          className="link absolute bottom-6 right-[var(--gutter)] z-10 flex h-10 items-center gap-2.5 text-[13px] text-paper/70"
-        >
-          <span aria-hidden className="flex h-2.5 items-end gap-[2px]">
-            {[0, 1, 2].map((i) => (
-              <span key={i} className="w-px bg-current" style={{ height: sound ? undefined : "3px", animation: sound ? `eq 1.${i + 2}s ease-in-out ${i * 0.15}s infinite alternate` : "none" }} />
+        <div className={`pointer-events-none absolute inset-x-[var(--gutter)] bottom-6 z-10 flex items-center justify-between transition-opacity duration-700 ${entered ? "opacity-100" : "opacity-0"}`}>
+          <div className="pointer-events-auto flex items-center gap-3">
+            {SCENES.map((s, i) => (
+              <button key={s.key} type="button" aria-label={`Go to ${s.key}`} onClick={() => goRef.current(i, Math.abs(i - scene) > 1)} className="group flex h-6 items-center">
+                <span className={`block h-px transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === scene ? "w-8 bg-paper" : "w-3 bg-white/30 group-hover:bg-white/60"}`} />
+              </button>
             ))}
-          </span>
-          Sound {sound ? "on" : "off"}
-        </button>
+          </div>
+          <button type="button" onClick={toggleSound} aria-pressed={sound} className="link pointer-events-auto flex h-8 items-center gap-2.5 text-[13px] text-paper/70">
+            <span aria-hidden className="flex h-2.5 items-end gap-[2px]">
+              {[0, 1, 2].map((i) => (
+                <span key={i} className="w-px bg-current" style={{ height: sound ? undefined : "3px", animation: sound ? `eq 1.${i + 2}s ease-in-out ${i * 0.15}s infinite alternate` : "none" }} />
+              ))}
+            </span>
+            Sound {sound ? "on" : "off"}
+          </button>
+        </div>
 
-        {/* ---------------- Loader: the city slowly surfacing from the dark ---------------- */}
-        <div aria-hidden={loaded} className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[opacity,visibility] duration-[1800ms] [transition-timing-function:var(--ease-film)] ${loaded ? "invisible opacity-0" : "opacity-100"}`}>
+        {/* ---------------- Loader → Enter ---------------- */}
+        <div className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[opacity,visibility] duration-[1600ms] [transition-timing-function:var(--ease-film)] ${entered ? "invisible opacity-0" : "opacity-100"}`}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src={asset("/film/stills/s1-m.webp")}
+            src={asset("/film/stills/s1n-m.webp")}
             alt=""
             className="absolute inset-0 h-full w-full object-cover object-[60%_55%] transition-[opacity,filter,transform] duration-[1600ms] [transition-timing-function:var(--ease-film)]"
-            style={{ opacity: 0.08 + progress * 0.32, filter: `blur(${18 - progress * 12}px) saturate(${0.4 + progress * 0.5})`, transform: `scale(${1.14 - progress * 0.06})` }}
+            style={{ opacity: 0.1 + progress * 0.35, filter: `blur(${16 - progress * 10}px)`, transform: `scale(${1.12 - progress * 0.06})` }}
           />
-          <div className="absolute inset-0 [background:radial-gradient(80%_70%_at_50%_50%,transparent,rgb(10_10_11/0.9))]" />
+          <div className="absolute inset-0 [background:radial-gradient(80%_70%_at_50%_50%,rgb(10_10_11/0.2),rgb(10_10_11/0.92))]" />
           <div className="absolute inset-0 flex flex-col items-center justify-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={asset("/brand/logo.svg")} alt="" width={120} height={47} className="h-auto w-[120px] opacity-80" />
-            <div className="mt-8 h-px w-[140px] overflow-hidden bg-white/15">
-              <div className="h-full origin-left bg-paper/80 transition-transform duration-700 [transition-timing-function:var(--ease-out)]" style={{ transform: `scaleX(${progress})` }} />
+            <img src={asset("/brand/logo.svg")} alt="Studio Innové" width={72} height={28} className="h-auto w-[72px] opacity-85" />
+            <div className="relative mt-10 flex h-10 items-center justify-center">
+              <div className={`h-px w-[120px] overflow-hidden bg-white/15 transition-opacity duration-700 ${ready ? "opacity-0" : "opacity-100"}`}>
+                <div className="h-full origin-left bg-paper/80 transition-transform duration-500" style={{ transform: `scaleX(${progress})` }} />
+              </div>
+              <div className={`absolute flex flex-col items-center gap-4 transition-[opacity,transform] duration-1000 [transition-timing-function:var(--ease-film)] ${ready ? "translate-y-0 opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}>
+                <button type="button" onClick={() => enter(true)} className="btn btn-ghost min-w-[120px]">{enterCopy.cta}</button>
+                <button type="button" onClick={() => enter(false)} className="link t-small text-paper/50">{enterCopy.quiet}</button>
+              </div>
             </div>
           </div>
-          <div className="absolute inset-x-[var(--gutter)] bottom-6 flex items-end justify-between t-small text-paper/45">
-            <span>Web and mobile apps</span>
+          <div className="absolute inset-x-[var(--gutter)] bottom-6 flex items-end justify-between t-small text-paper/40">
+            <span>{enterCopy.hint}</span>
             <span className="tabular-nums">{String(Math.round(progress * 100)).padStart(3, "0")}</span>
           </div>
         </div>
 
-        {/* curtain for nav jumps */}
         <div ref={curtainRef} aria-hidden className="pointer-events-none absolute inset-0 z-30 bg-ink" style={{ opacity: 0 }} />
       </div>
       <style>{`
-        @keyframes cue { 0%, 100% { transform: translateY(-3px); opacity: .4; } 50% { transform: translateY(3px); opacity: 1; } }
         @keyframes eq { from { height: 3px; } to { height: 10px; } }
+        .steps-bar { transform: scaleX(0); transition: transform 2400ms cubic-bezier(0.22,0.61,0.36,1) 300ms; }
+        .on .steps-bar { transform: scaleX(1); }
       `}</style>
     </div>
   );

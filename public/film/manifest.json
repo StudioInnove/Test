@@ -108,6 +108,18 @@
         "path": "/film/c5/m/",
         "frames": 61
       }
+    },
+    "c6": {
+      "from": "s6",
+      "to": "s1n",
+      "d": {
+        "path": "/film/c6/d/",
+        "frames": 61
+      },
+      "m": {
+        "path": "/film/c6/m/",
+        "frames": 61
+      }
     }
   }
 }

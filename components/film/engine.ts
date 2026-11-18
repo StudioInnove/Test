@@ -7,9 +7,11 @@ export type Manifest = {
   clips: Partial<Record<ClipId, { from: StillId; to: StillId; d?: { path: string; frames: number }; m?: { path: string; frames: number } }>>;
 };
 
-export type Shot =
+export type Single =
   | { kind: "hold"; still: StillId; rest: number }
   | { kind: "clip"; clip: ClipId; from: StillId; to: StillId; t: number };
+/** A crossfade between two single shots (each drawn from its nearest frame). */
+export type Shot = Single | { kind: "mix"; a: Single; b: Single; mix: number };
 
 type Bitmap = ImageBitmap | HTMLImageElement;
 
@@ -259,6 +261,24 @@ export class FilmEngine {
     return null;
   }
 
+  /** One bitmap for a single shot: the nearest decoded frame, or the still. */
+  private single(shot: Single): { bm: Bitmap; key: string; focus: [number, number] } | null {
+    if (shot.kind === "hold") {
+      const bm = this.stills.get(shot.still);
+      return bm ? { bm, key: "still:" + shot.still, focus: FOCUS[shot.still] } : null;
+    }
+    const n = this.frames(shot.clip);
+    const fa = FOCUS[shot.from], fb = FOCUS[shot.to];
+    const focus: [number, number] = [fa[0] + (fb[0] - fa[0]) * shot.t, fa[1] + (fb[1] - fa[1]) * shot.t];
+    if (n > 1) {
+      const f = this.nearestFrame(shot.clip, Math.round(shot.t * (n - 1)), n);
+      if (f) return { bm: f.bm, key: f.url, focus };
+    }
+    const still = shot.t < 0.5 ? shot.from : shot.to;
+    const bm = this.stills.get(still);
+    return bm ? { bm, key: "still:" + still, focus: FOCUS[still] } : null;
+  }
+
   // ---------- Painting ----------
   private coverScale(img: Bitmap | undefined): [number, number] {
     const iw = img ? ("width" in img ? img.width : 16) : 16;
@@ -281,7 +301,14 @@ export class FilmEngine {
     let focusA: [number, number] = [0.5, 0.5], focusB: [number, number] = [0.5, 0.5];
     let depthKey = "";
 
-    if (shot.kind === "hold") {
+    if (shot.kind === "mix") {
+      const a = this.single(shot.a), b = this.single(shot.b);
+      if (!a && !b) return;
+      const ra = a ?? b!, rb = b ?? a!;
+      A = ra.bm; aKey = ra.key; B = rb.bm; bKey = rb.key;
+      mix = Math.min(1, Math.max(0, shot.mix));
+      focusA = ra.focus; focusB = rb.focus;
+    } else if (shot.kind === "hold") {
       A = this.stills.get(shot.still);
       aKey = "still:" + shot.still;
       B = A;

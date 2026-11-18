@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
 import "@fontsource-variable/inter/opsz.css";
+import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -26,7 +27,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0a0b0d",
+  themeColor: "#070a12",
   colorScheme: "dark",
   width: "device-width",
   initialScale: 1,

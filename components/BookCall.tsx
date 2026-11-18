@@ -14,7 +14,7 @@ function initCal() {
         theme: "dark",
         hideEventTypeDetails: false,
         layout: "month_view",
-        cssVarsPerTheme: { dark: { "cal-brand": "#F2F2F4" }, light: { "cal-brand": "#0A0A0B" } },
+        cssVarsPerTheme: { dark: { "cal-brand": "#efe9e0" }, light: { "cal-brand": "#070a12" } },
       });
       return cal;
     });

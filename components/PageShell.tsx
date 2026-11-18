@@ -16,7 +16,7 @@ export function PageShell({ still, alt, eyebrow, title, intro, children }: { sti
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset(`/film/stills/${still}-d.webp`)} alt={alt} fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
         </picture>
-        <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#0a0a0b_0%,rgb(10_10_11/0.55)_40%,rgb(10_10_11/0.15)_75%)]" />
+        <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.55)_40%,rgb(7_10_18/0.15)_75%)]" />
         <InView className="relative w-full px-[var(--gutter)] pb-[12svh]" threshold={0}>
           <p className="rise t-small muted mb-5 flex items-center gap-2.5"><span className="mark" />{eyebrow}</p>
           <h1 className="t-display max-w-[13ch]"><Words text={title} delay={150} /></h1>

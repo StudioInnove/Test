@@ -46,7 +46,7 @@
   },
   "hero": {
     "eyebrow": "Studio Innové",
-    "headline": "Ideas, made into apps.",
+    "headline": "Ideas, *made* into apps.",
     "line": "An independent studio designing and building web and mobile apps, from first sketch to launch day.",
     "primary": "Book a call",
     "secondary": "Studio Originals",
@@ -56,7 +56,7 @@
     "intro": "What we do",
     "headline": [
       "We design and build",
-      "web and mobile apps."
+      "web and mobile *apps.*"
     ],
     "web": {
       "index": "1.0",
@@ -103,7 +103,7 @@
   },
   "originals": {
     "eyebrow": "Studio Originals",
-    "heading": "Something of our own is coming.",
+    "heading": "Something of our *own* is coming.",
     "statusLabel": "Status",
     "stages": [
       "Idea",
@@ -123,7 +123,7 @@
   },
   "close": {
     "heading": "Have an idea?",
-    "sub": "Let's talk about it.",
+    "sub": "Let's *talk* about it.",
     "cta": "Book a call"
   },
   "faq": {
@@ -220,10 +220,5 @@
       "Analytics. We use Vercel Analytics to count visits. It uses no cookies and does not identify you.",
       "Contact. Questions about your data: contact.studioinnove@gmail.com."
     ]
-  },
-  "enter": {
-    "cta": "Enter",
-    "quiet": "Enter without sound",
-    "hint": "Best with sound on"
   }
 }

@@ -60,6 +60,54 @@
         "path": "/film/c1/m/",
         "frames": 61
       }
+    },
+    "c2": {
+      "from": "s2",
+      "to": "s3",
+      "d": {
+        "path": "/film/c2/d/",
+        "frames": 61
+      },
+      "m": {
+        "path": "/film/c2/m/",
+        "frames": 61
+      }
+    },
+    "c3": {
+      "from": "s3",
+      "to": "s4",
+      "d": {
+        "path": "/film/c3/d/",
+        "frames": 61
+      },
+      "m": {
+        "path": "/film/c3/m/",
+        "frames": 61
+      }
+    },
+    "c4": {
+      "from": "s4",
+      "to": "s5",
+      "d": {
+        "path": "/film/c4/d/",
+        "frames": 61
+      },
+      "m": {
+        "path": "/film/c4/m/",
+        "frames": 61
+      }
+    },
+    "c5": {
+      "from": "s5",
+      "to": "s6",
+      "d": {
+        "path": "/film/c5/d/",
+        "frames": 61
+      },
+      "m": {
+        "path": "/film/c5/m/",
+        "frames": 61
+      }
     }
   }
 }

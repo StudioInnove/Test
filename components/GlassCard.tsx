@@ -28,7 +28,7 @@ export function GlassCard({
   blur = 16,
   rim = 10,
   refraction = 22,
-  tint = "rgb(14 12 10 / 0.32)",
+  tint = "rgb(14 12 10 / 0.46)",
 }: {
   children: ReactNode;
   className?: string;

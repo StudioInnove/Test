@@ -1,0 +1,152 @@
+{
+  "_howToEdit": "Change any text between quotes and commit. Vercel republishes the site in about a minute. Keep the quotes and commas.",
+
+  "studio": {
+    "name": "Studio Innové",
+    "email": "contact.studioinnove@gmail.com",
+    "replyPromise": "We reply within one working day.",
+    "calLink": "studioinnove-3fpzme/30min",
+    "calUrl": "https://cal.com/studioinnove-3fpzme/30min",
+    "waitlistEndpoint": "https://formspree.io/f/xqpqbyqw",
+    "linkedin": "https://www.linkedin.com/in/naseembouakkaz/",
+    "youtube": "https://www.youtube.com/@NaseemBouakkaz",
+    "year": "2026"
+  },
+
+  "seo": {
+    "title": "Studio Innové — Web and mobile app design and development",
+    "description": "Studio Innové designs and builds web and mobile apps for founders and businesses worldwide. From first idea to launch. Book a call.",
+    "keywords": ["app development agency", "custom web app development", "mobile app developers", "MVP development", "hire app developers", "iPhone and Android app development"]
+  },
+
+  "nav": {
+    "links": [
+      { "label": "Services", "href": "/#services" },
+      { "label": "Originals", "href": "/#originals" },
+      { "label": "FAQ", "href": "/#faq" }
+    ],
+    "cta": "Book a call"
+  },
+
+  "hero": {
+    "headline": "Web and mobile apps. Designed and built for you.",
+    "line": "From first idea to launch.",
+    "primary": "Book a call",
+    "secondary": "See Studio Originals",
+    "scrollCue": "Scroll"
+  },
+
+  "services": {
+    "heading": "Web and mobile apps.",
+    "web": {
+      "title": "Web apps.",
+      "line": "Platforms, dashboards and tools that run in the browser.",
+      "tags": ["Platforms", "Dashboards", "Tools"]
+    },
+    "mobile": {
+      "title": "Mobile apps.",
+      "line": "For iPhone and Android.",
+      "tags": ["iPhone", "Android", "Tablet"]
+    },
+    "cta": "Book a call"
+  },
+
+  "how": {
+    "heading": "How it works.",
+    "steps": [
+      { "title": "Call.", "line": "Tell us your idea. Thirty minutes." },
+      { "title": "Design.", "line": "See your app before it's built." },
+      { "title": "Build.", "line": "Clear progress, every step of the way." },
+      { "title": "Launch.", "line": "Live on the web or the App Store, and supported after." }
+    ]
+  },
+
+  "originals": {
+    "eyebrow": "Studio Originals",
+    "heading": "Apps we make for ourselves.",
+    "statusLabel": "Status",
+    "stages": ["Idea", "Designing", "Building", "Beta", "Launch"],
+    "current": 2,
+    "cta": "Get early access",
+    "placeholder": "Your email",
+    "success": "You're on the list. We'll be in touch.",
+    "error": "Something went wrong. Please try again.",
+    "privacy": "We'll only email you about this app. Unsubscribe anytime.",
+    "logHeading": "Build log",
+    "log": [
+      { "date": "2026-11", "entry": "Build begins." },
+      { "date": "2026-11", "entry": "Defining the idea and who it's for." }
+    ]
+  },
+
+  "close": {
+    "heading": "Have an idea? Let's talk.",
+    "cta": "Book a call"
+  },
+
+  "faq": {
+    "heading": "Questions, answered.",
+    "items": [
+      { "q": "How much does an app cost?", "a": "Every app is different, so every project is quoted after a call." },
+      { "q": "How long does it take?", "a": "It depends on scope. You get a timeline before we start." },
+      { "q": "Do I own the code?", "a": "Yes. Once the project is paid, it's yours." },
+      { "q": "What happens after launch?", "a": "We stay on for updates and support if you want us to." },
+      { "q": "Who do you work with?", "a": "Founders, businesses and anyone with an idea for an app, anywhere in the world. We work in English." }
+    ]
+  },
+
+  "contact": {
+    "heading": "Prefer email?",
+    "line": "Write to us any time."
+  },
+
+  "footer": {
+    "tagline": "Web and mobile apps. Designed and built for you.",
+    "privacy": "Privacy"
+  },
+
+  "pages": {
+    "web": {
+      "title": "Web app development",
+      "metaTitle": "Custom web app development — Studio Innové",
+      "metaDescription": "Custom web apps, platforms, dashboards and internal tools, designed and built by Studio Innové. From first idea to launch. Book a call.",
+      "headline": "Web apps, designed and built for you.",
+      "intro": "Platforms, dashboards and tools that run in the browser. Fast, secure and made to grow with you.",
+      "points": [
+        { "title": "Platforms.", "line": "Products your customers sign in to and use every day." },
+        { "title": "Dashboards.", "line": "Your numbers, clear at a glance." },
+        { "title": "Tools.", "line": "Internal software that saves your team hours." }
+      ]
+    },
+    "mobile": {
+      "title": "Mobile app development",
+      "metaTitle": "iPhone and Android app development — Studio Innové",
+      "metaDescription": "Mobile apps for iPhone and Android, designed and built by Studio Innové. From first idea to the App Store. Book a call.",
+      "headline": "Mobile apps, designed and built for you.",
+      "intro": "For iPhone and Android. Smooth, native-feeling apps your customers keep on their home screen.",
+      "points": [
+        { "title": "iPhone and Android.", "line": "One app, both stores." },
+        { "title": "Designed first.", "line": "See every screen before a line of code." },
+        { "title": "Store ready.", "line": "We handle the App Store and Google Play launch." }
+      ]
+    },
+    "originalsPage": {
+      "title": "Studio Originals",
+      "metaTitle": "Studio Originals — apps by Studio Innové",
+      "metaDescription": "Studio Originals are the apps Studio Innové makes for itself. Follow the build and get early access.",
+      "intro": "The apps we design, build and run ourselves. The first one is in the works."
+    }
+  },
+
+  "privacyPage": {
+    "title": "Privacy",
+    "updated": "18 November 2026",
+    "body": [
+      "This site is run by Studio Innové. We keep what we collect to a minimum.",
+      "Waitlist. If you join a Studio Originals waitlist we store your email address with our form provider, Formspree, and use it only to email you about that app. Reply to any email or write to us to be removed, and we delete it.",
+      "Calls. Booking a call happens on Cal.com, which handles the details you enter there under its own privacy policy.",
+      "Analytics. We use Vercel Analytics to count visits. It uses no cookies and does not identify you.",
+      "Contact. Questions about your data: contact.studioinnove@gmail.com."
+    ]
+  }
+}

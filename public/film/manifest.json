@@ -1,0 +1,34 @@
+{
+  "fps": 12,
+  "stills": {
+    "s1": {
+      "d": "/film/stills/s1-d.webp",
+      "m": "/film/stills/s1-m.webp"
+    },
+    "s1n": {
+      "d": "/film/stills/s1n-d.webp",
+      "m": "/film/stills/s1n-m.webp"
+    },
+    "s2": {
+      "d": "/film/stills/s2-d.webp",
+      "m": "/film/stills/s2-m.webp"
+    },
+    "s3": {
+      "d": "/film/stills/s3-d.webp",
+      "m": "/film/stills/s3-m.webp"
+    },
+    "s4": {
+      "d": "/film/stills/s4-d.webp",
+      "m": "/film/stills/s4-m.webp"
+    },
+    "s5": {
+      "d": "/film/stills/s5-d.webp",
+      "m": "/film/stills/s5-m.webp"
+    },
+    "s6": {
+      "d": "/film/stills/s6-d.webp",
+      "m": "/film/stills/s6-m.webp"
+    }
+  },
+  "clips": {}
+}

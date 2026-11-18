@@ -79,7 +79,7 @@ export function WaitlistForm({ source = "home" }: { source?: string }) {
           placeholder={o.placeholder}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="field min-w-0 flex-1"
+          className="field w-full min-w-0 sm:flex-1"
         />
         <button type="submit" disabled={state === "sending"} className="btn btn-amber disabled:opacity-70">
           {state === "sending" ? "Joining…" : o.cta}

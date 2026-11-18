@@ -88,7 +88,7 @@ export function Nav() {
             ))}
           </ul>
 
-          <BookCall size="sm" arrow={false} className="hidden md:inline-flex">
+          <BookCall size="sm" arrow={false} className="ml-auto md:ml-0">
             {cta}
           </BookCall>
 

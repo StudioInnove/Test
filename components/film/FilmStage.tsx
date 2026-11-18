@@ -283,7 +283,7 @@ export function FilmStage() {
           <h2 className="display legible text-[clamp(44px,8vw,132px)]"><Words text={services.heading} /></h2>
         </section>
 
-        <section data-scene="web" aria-label={services.web.title} className="absolute inset-0 flex items-end px-4 pb-6 sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
+        <section data-scene="web" aria-label={services.web.title} className="absolute inset-0 flex items-end px-3 pb-[76px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="rise w-full md:w-[440px]">
             <GlassCard>
               <p className="eyebrow mb-3">01 — Services</p>
@@ -298,7 +298,7 @@ export function FilmStage() {
           </div>
         </section>
 
-        <section data-scene="mobile" aria-label={services.mobile.title} className="absolute inset-0 flex items-end px-4 pb-6 sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
+        <section data-scene="mobile" aria-label={services.mobile.title} className="absolute inset-0 flex items-end px-3 pb-[76px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="rise w-full md:w-[440px]">
             <GlassCard>
               <p className="eyebrow mb-3">02 — Services</p>
@@ -330,7 +330,7 @@ export function FilmStage() {
           </ol>
         </section>
 
-        <section data-scene="originals" aria-label={originals.eyebrow} className="absolute inset-0 flex items-end px-4 pb-5 sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
+        <section data-scene="originals" aria-label={originals.eyebrow} className="absolute inset-0 flex items-end px-3 pb-[72px] sm:px-10 md:items-center md:px-[6vw] md:pb-0" style={{ opacity: 0, visibility: "hidden" }}>
           <div className="rise w-full md:w-[480px]">
             <GlassCard tint="rgb(10 9 8 / 0.42)">
               <p className="eyebrow mb-3 text-amber/90">{originals.eyebrow}</p>

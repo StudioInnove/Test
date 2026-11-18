@@ -1,8 +1,9 @@
 import { FOCUS, type ClipId, type StillId } from "./timeline";
+import { asset } from "@/lib/content";
 
 export type Manifest = {
   fps: number;
-  stills: Partial<Record<StillId, { d: string; m: string; depth?: string }>>;
+  stills: Partial<Record<StillId, { d: string; m?: string; depth?: string }>>;
   clips: Partial<Record<ClipId, { from: StillId; to: StillId; d?: { path: string; frames: number }; m?: { path: string; frames: number } }>>;
 };
 
@@ -168,7 +169,7 @@ export class FilmEngine {
       const s = this.manifest.stills[id];
       if (!s) return;
       try {
-        this.stills.set(id, await this.fetchImage(s[this.mode]));
+        this.stills.set(id, await this.fetchImage(asset(s[this.mode] ?? s.d)));
       } catch {}
       done++;
       this.onProgress?.(done / total);
@@ -179,7 +180,7 @@ export class FilmEngine {
     // depth maps are small; fetch quietly
     for (const id of ids) {
       const dp = this.manifest.stills[id]?.depth;
-      if (dp) this.fetchImage(dp).then((b) => this.depths.set(id, b)).catch(() => {});
+      if (dp) this.fetchImage(asset(dp)).then((b) => this.depths.set(id, b)).catch(() => {});
     }
   }
 
@@ -187,14 +188,19 @@ export class FilmEngine {
     return this.stills.has(id);
   }
 
+  private clipSet(clip: ClipId) {
+    const c = this.manifest.clips[clip];
+    return c?.[this.mode] ?? c?.d ?? c?.m;
+  }
+
   private frameUrl(clip: ClipId, i: number) {
-    const c = this.manifest.clips[clip]?.[this.mode];
+    const c = this.clipSet(clip);
     if (!c) return "";
-    return `${c.path}${String(i + 1).padStart(3, "0")}.webp`;
+    return asset(`${c.path}${String(i + 1).padStart(3, "0")}.webp`);
   }
 
   frames(clip: ClipId) {
-    return this.manifest.clips[clip]?.[this.mode]?.frames ?? 0;
+    return this.clipSet(clip)?.frames ?? 0;
   }
 
   /** Queue clip frames, nearest clips first, coarse-to-fine inside each clip. */

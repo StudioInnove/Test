@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
+import { GeistSans } from "geist/font/sans";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -34,7 +35,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="en" className={GeistSans.variable}>
       <head>
         <link rel="preconnect" href="https://api.fontshare.com" crossOrigin="" />
         <link rel="preconnect" href="https://cdn.fontshare.com" crossOrigin="" />

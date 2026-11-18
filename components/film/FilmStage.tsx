@@ -2,7 +2,7 @@
 
 import Lenis from "lenis";
 import { useEffect, useRef, useState } from "react";
-import { content } from "@/lib/content";
+import { asset, content } from "@/lib/content";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
 import { GlassCard } from "../GlassCard";
@@ -175,7 +175,7 @@ export function FilmStage() {
 
     const loadedRef = { current: false };
 
-    fetch("/film/manifest.json")
+    fetch(asset("/film/manifest.json"))
       .then((r) => r.json())
       .then(async (m: Manifest) => {
         if (!alive) return;
@@ -247,10 +247,10 @@ export function FilmStage() {
       <div ref={stageRef} className="sticky top-0 h-svh w-full overflow-hidden bg-ink">
         {/* First paint: the golden-hour still, before any script runs */}
         <picture>
-          <source media="(max-width: 899px)" srcSet="/film/stills/s1-m.webp" />
+          <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1-m.webp")} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/film/stills/s1-d.webp"
+            src={asset("/film/stills/s1-d.webp")}
             alt="A glass penthouse studio above a city at golden hour"
             fetchPriority="high"
             className="absolute inset-0 h-full w-full object-cover object-[60%_50%]"
@@ -400,7 +400,7 @@ export function FilmStage() {
               <circle cx="50" cy="50" r="46" fill="none" strokeWidth="1.5" pathLength={100} strokeDasharray="100" strokeDashoffset={100 - progress * 100} strokeLinecap="round" className="ring-fill" />
             </svg>
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/wordmark.png" alt="" width={62} height={26} className="h-[26px] w-auto opacity-90" />
+            <img src={asset("/brand/wordmark.png")} alt="" width={62} height={26} className="h-[26px] w-auto opacity-90" />
           </div>
           <p className="mt-6 text-[11px] uppercase tracking-[0.3em] text-paper/45 tabular-nums">{Math.round(progress * 100)}%</p>
         </div>

@@ -20,7 +20,7 @@ CLIPS = {  # clip -> (from still, to still)
     "c0": ("s1", "s1n"), "c1": ("s1n", "s2"), "c2": ("s2", "s3"), "c3": ("s3", "s4"),
     "c4": ("s4", "s5"), "c5": ("s5", "s6"), "c6": ("s6", "s1n"),
 }
-SIZES = {"d": 1920, "m": 1280}   # desktop, mobile widths
+SIZES = {"d": 1600, "m": 1080}   # desktop, mobile widths
 FPS = 12                          # frames are blended in the shader, so 12 fps scrubs smoothly
 
 
@@ -38,7 +38,7 @@ def main(src):
             continue
         im = Image.open(p)
         entry = {}
-        for k, w in SIZES.items():
+        for k, w in {"d": 2400, "m": 1280}.items():
             rel = f"stills/{s}-{k}.webp"
             os.makedirs(os.path.join(OUT, "stills"), exist_ok=True)
             save_webp(im, os.path.join(OUT, rel), w, 80 if k == "d" else 76)
@@ -58,7 +58,7 @@ def main(src):
             d = os.path.join(OUT, c, k)
             shutil.rmtree(d, ignore_errors=True)
             os.makedirs(d)
-            q = 72 if k == "d" else 68
+            q = 70 if k == "d" else 66
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", p,
                             "-vf", f"fps={FPS},scale={w}:-2:flags=lanczos",
                             "-c:v", "libwebp", "-quality", str(q), "-compression_level", "6",

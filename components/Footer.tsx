@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRef } from "react";
-import { content } from "@/lib/content";
+import { content, href } from "@/lib/content";
 import { BookCall } from "./BookCall";
 
 /** Closing footer: a slow beam of light and a cursor glow pass behind a giant wordmark. */
@@ -33,10 +33,10 @@ export function Footer() {
           <p className="eyebrow mb-4">Studio</p>
           <ul className="space-y-2.5 text-[15px] text-paper/75">
             {nav.links.map((l) => (
-              <li key={l.href}><a href={l.href} className="transition-colors hover:text-paper">{l.label}</a></li>
+              <li key={l.href}><a href={href(l.href)} className="transition-colors hover:text-paper">{l.label}</a></li>
             ))}
-            <li><Link href="/web-app-development" className="transition-colors hover:text-paper">Web app development</Link></li>
-            <li><Link href="/mobile-app-development" className="transition-colors hover:text-paper">Mobile app development</Link></li>
+            <li><Link href={href("/web-app-development")} className="transition-colors hover:text-paper">Web app development</Link></li>
+            <li><Link href={href("/mobile-app-development")} className="transition-colors hover:text-paper">Mobile app development</Link></li>
           </ul>
         </div>
         <div>
@@ -51,7 +51,7 @@ export function Footer() {
 
       <div className="mx-auto mt-20 flex max-w-[1200px] flex-wrap items-center justify-between gap-4 border-t border-white/10 px-6 py-6 text-[13px] text-paper/45 sm:px-10">
         <span>© {studio.year} {studio.name}</span>
-        <Link href="/privacy" className="transition-colors hover:text-paper">{footer.privacy}</Link>
+        <Link href={href("/privacy")} className="transition-colors hover:text-paper">{footer.privacy}</Link>
       </div>
 
       <div aria-hidden className="pointer-events-none select-none overflow-hidden">

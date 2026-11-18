@@ -8,7 +8,7 @@
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useId, useRef, useState } from "react";
 import Link from "next/link";
-import { content } from "@/lib/content";
+import { asset, content, href } from "@/lib/content";
 import { BookCall } from "./BookCall";
 
 const SPRING = { type: "spring", stiffness: 420, damping: 34, mass: 0.8 } as const;
@@ -62,16 +62,16 @@ export function Nav() {
           }}
         >
           <span aria-hidden className="pointer-events-none absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
-          <Link href="/" aria-label="Studio Innové, home" className="flex items-center rounded-full py-1 outline-none focus-visible:ring-2 focus-visible:ring-amber">
+          <Link href={href("/")} aria-label="Studio Innové, home" className="flex items-center rounded-full py-1 outline-none focus-visible:ring-2 focus-visible:ring-amber">
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/brand/wordmark.png" alt="Studio Innové" width={67} height={28} className="h-7 w-auto select-none" draggable={false} />
+            <img src={asset("/brand/wordmark.png")} alt="Studio Innové" width={67} height={28} className="h-7 w-auto select-none" draggable={false} />
           </Link>
 
           <ul className="hidden items-center gap-0.5 md:flex" onPointerLeave={() => setHovered(null)}>
             {links.map((l) => (
               <li key={l.href}>
                 <a
-                  href={l.href}
+                  href={href(l.href)}
                   onPointerEnter={(e) => e.pointerType === "mouse" && setHovered(l.href)}
                   onFocus={() => setHovered(l.href)}
                   onBlur={() => setHovered(null)}
@@ -119,7 +119,7 @@ export function Nav() {
               <ul className="flex flex-col">
                 {links.map((l) => (
                   <li key={l.href}>
-                    <a href={l.href} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3.5 text-[17px] font-medium text-paper/90 active:bg-white/10">
+                    <a href={href(l.href)} onClick={() => setOpen(false)} className="block rounded-2xl px-4 py-3.5 text-[17px] font-medium text-paper/90 active:bg-white/10">
                       {l.label}
                     </a>
                   </li>

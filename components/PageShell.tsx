@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { Nav } from "./Nav";
 import { Footer } from "./Footer";
+import { asset } from "@/lib/content";
 
 /** Light, fast pages: one still from the film, then plain readable sections. */
 export function PageShell({ still, alt, eyebrow, title, intro, children }: { still: string; alt: string; eyebrow: string; title: string; intro: string; children: ReactNode }) {
@@ -9,9 +10,9 @@ export function PageShell({ still, alt, eyebrow, title, intro, children }: { sti
       <Nav />
       <header className="relative flex min-h-[78svh] items-end overflow-hidden">
         <picture>
-          <source media="(max-width: 899px)" srcSet={`/film/stills/${still}-m.webp`} />
+          <source media="(max-width: 899px)" srcSet={asset(`/film/stills/${still}-m.webp`)} />
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={`/film/stills/${still}-d.webp`} alt={alt} fetchPriority="high" className="absolute inset-0 h-full w-full scale-[1.02] object-cover" />
+          <img src={asset(`/film/stills/${still}-d.webp`)} alt={alt} fetchPriority="high" className="absolute inset-0 h-full w-full scale-[1.02] object-cover" />
         </picture>
         <div aria-hidden className="absolute inset-0 bg-gradient-to-t from-ink via-ink/55 to-ink/10" />
         <div className="relative mx-auto w-full max-w-[1200px] px-6 pb-16 sm:px-10 md:pb-20">

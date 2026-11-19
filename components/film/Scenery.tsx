@@ -60,7 +60,10 @@ export function usePhone() {
   return phone;
 }
 
-export function Scenery({ bg, phone, interactive = false, glowOn = false, enter = true, className = "absolute inset-0" }: { bg: Bg; phone: boolean; interactive?: boolean; glowOn?: boolean; enter?: boolean; className?: string; children?: ReactNode }) {
+/** Where the camera looks inside the picture: zoom z around the point u, v (of the full picture). */
+export type Cam = { z: number; u: number; v: number };
+
+export function Scenery({ bg, phone, interactive = false, glowOn = false, enter = true, cam, className = "absolute inset-0" }: { bg: Bg; phone: boolean; interactive?: boolean; glowOn?: boolean; enter?: boolean; cam?: Cam; className?: string; children?: ReactNode }) {
   const boxRef = useRef<HTMLDivElement>(null);
   const moveRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -168,6 +171,8 @@ export function Scenery({ bg, phone, interactive = false, glowOn = false, enter 
       <div ref={boxRef} className="absolute inset-y-0" style={{ left: `${-shift * 100}%`, width: `${(1 + shift) * 100}%` }}>
         <motion.div className="absolute inset-0" initial={enter ? { opacity: 0, scale: 1.06 } : false} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, transition: { duration: 0.45 } }} transition={{ duration: 1.5, ease: film }}>
           <div ref={moveRef} className="absolute inset-0 will-change-transform">
+           {/* the camera: glides slowly to whatever the story is about */}
+           <div className="absolute inset-0 transition-transform duration-[1800ms] [transition-timing-function:cubic-bezier(0.65,0,0.35,1)]" style={cam && box ? { transform: `scale(${cam.z})`, transformOrigin: `${toBox(cam.u, cam.v)[0]}px ${toBox(cam.u, cam.v)[1]}px` } : undefined}>
             <div className="absolute inset-0" style={z && origin ? { transform: `scale(${z.s})`, transformOrigin: `${origin[0]}px ${origin[1]}px` } : undefined}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={asset(phone ? bg.m : bg.d)} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: `50% ${fy * 100}%` }} />
@@ -175,6 +180,7 @@ export function Scenery({ bg, phone, interactive = false, glowOn = false, enter 
             {glow}
             {screen}
             <canvas ref={canvasRef} aria-hidden className="pointer-events-none absolute inset-0 h-full w-full" />
+           </div>
           </div>
         </motion.div>
         {bg.dim ? <div aria-hidden className="pointer-events-none absolute inset-0 bg-ink" style={{ opacity: bg.dim }} /> : null}

@@ -47,8 +47,7 @@
   "hero": {
     "headline": "Ideas, *made* into apps.",
     "line": "An independent studio designing and building web and mobile apps, from first sketch to launch day.",
-    "primary": "Book a call",
-    "secondary": "See Studio Originals"
+    "primary": "Book a call"
   },
   "services": {
     "intro": "What we do",
@@ -214,6 +213,20 @@
           "title": "Tools.",
           "line": "Internal software that saves your team hours."
         }
+      ],
+      "showcase": [
+        {
+          "title": "Platforms",
+          "line": "Products your customers sign in to and use every day."
+        },
+        {
+          "title": "Dashboards",
+          "line": "Your numbers, clear at a glance."
+        },
+        {
+          "title": "Tools",
+          "line": "Internal software that saves your team hours."
+        }
       ]
     },
     "mobile": {
@@ -234,6 +247,20 @@
         {
           "title": "Store ready.",
           "line": "We handle the App Store and Google Play launch."
+        }
+      ],
+      "showcase": [
+        {
+          "title": "Apps for your customers",
+          "line": "Events, tickets and memberships, right in their pocket."
+        },
+        {
+          "title": "Bookings in a tap",
+          "line": "Tables, classes and appointments, booked in seconds."
+        },
+        {
+          "title": "Something to play",
+          "line": "Games and playful moments that bring people back."
         }
       ]
     },
@@ -289,7 +316,21 @@
         "The one on the screen is real. Try it."
       ],
       "link": "Explore web apps",
-      "href": "/web-app-development"
+      "href": "/web-app-development",
+      "chapters": [
+        {
+          "title": "Software that runs the business.",
+          "line": "Client portals, booking systems and dashboards your team opens every morning."
+        },
+        {
+          "title": "Try it.",
+          "line": "The screen is real. Switch the view, follow the chart."
+        },
+        {
+          "title": "Built to grow with you.",
+          "line": "Fast, secure and designed screen by screen, before a line of code."
+        }
+      ]
     },
     "mobile": {
       "title": "Apps people keep.",
@@ -299,18 +340,64 @@
         "Swipe through three we made for this room."
       ],
       "link": "Explore mobile apps",
-      "href": "/mobile-app-development"
+      "href": "/mobile-app-development",
+      "chapters": [
+        {
+          "title": "Apps people keep.",
+          "line": "For iPhone and Android, from a single build."
+        },
+        {
+          "title": "Swipe through three.",
+          "line": "An events app, a table booking and a little game, made for this room."
+        },
+        {
+          "title": "Ready for both stores.",
+          "line": "We design every screen, build it once and launch it on the App Store and Google Play."
+        }
+      ]
     },
     "how": {
       "title": "From idea to launch.",
       "line": "Every screen is sketched, tested and agreed on this wall before a line of code is written.",
       "link": "How we work",
-      "href": "/process"
+      "href": "/process",
+      "chapters": [
+        {
+          "title": "Call",
+          "line": "Thirty minutes on your idea, your users and what success looks like."
+        },
+        {
+          "title": "Design",
+          "line": "You see and approve every screen before any code is written."
+        },
+        {
+          "title": "Build",
+          "line": "Steady progress you can see and try as it takes shape."
+        },
+        {
+          "title": "Launch",
+          "line": "We ship it, then stay on for updates and support if you want us to."
+        }
+      ]
     },
     "originals": {
       "title": "Something is being built in here.",
       "line": "Our first Studio Original is in the build. That's all we can say for now.",
-      "joined": "You're on the list. We'll open the door for you first."
+      "joined": "You're on the list. We'll open the door for you first.",
+      "chapters": [
+        {
+          "title": "Something is being built in here.",
+          "line": "Our first Studio Original. That's all we can say for now."
+        },
+        {
+          "title": "It's in the build.",
+          "line": "The idea and the design are done. Next comes a private beta."
+        },
+        {
+          "title": "Be the first through the door.",
+          "line": "Join the list and we'll let you in before anyone else."
+        }
+      ]
     },
     "think": {
       "title": "How we think.",
@@ -318,18 +405,41 @@
         "Fewer features, made well.",
         "You see it before we build it.",
         "Fast is a feature."
+      ],
+      "chapters": [
+        {
+          "title": "Fewer features, made well.",
+          "line": "Five things done beautifully beat twenty done badly."
+        },
+        {
+          "title": "You see it before we build it.",
+          "line": "Every screen is designed and clicked through before any code."
+        },
+        {
+          "title": "Fast is a feature.",
+          "line": "Apps that open instantly and never make you wait."
+        }
       ]
     },
     "world": {
       "title": "Wherever you are.",
-      "line": "We work with founders and teams in every time zone. Calls are booked at a time that suits you."
+      "line": "We work with founders and teams in every time zone. Calls are booked at a time that suits you.",
+      "chapters": [
+        {
+          "title": "Wherever you are.",
+          "line": "We work with founders and teams in every time zone."
+        },
+        {
+          "title": "Any time that suits you.",
+          "line": "Calls are booked at a time that works where you are."
+        }
+      ]
     },
-    "backHome": "Back to the studio"
+    "backHome": "Back to the studio",
+    "next": "Scroll to continue"
   },
   "entrance": {
-    "line": "An independent app studio, working worldwide.",
-    "sound": "Enter with sound",
-    "quiet": "Enter quietly"
+    "enter": "Enter"
   },
   "rooms": [
     "Outside",

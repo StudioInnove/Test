@@ -54,7 +54,7 @@ export function Footer() {
       {/* the lights, with the name cut out of them */}
       <CityLights text={studio.name} />
 
-      <div className="flex items-center justify-between gap-4 whitespace-nowrap px-[var(--gutter)] py-5 text-[12px] text-paper/40">
+      <div className="flex items-center justify-between gap-4 whitespace-nowrap px-[var(--gutter)] py-5 text-[13px] text-paper/40">
         <span>© {studio.year}<span className="max-sm:hidden"> {studio.name}</span></span>
         <div className="flex items-center gap-4 sm:gap-6">
           <a href={href("/privacy")} className="transition-colors hover:text-paper">{footer.privacy}</a>

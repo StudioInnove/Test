@@ -2,28 +2,41 @@
 
 /*
  * Stepping into something in a room. The camera has already pushed in; a warm light blooms and you land
- * in a full-screen close-up that is alive. The words are set exactly like the film's scenes (title, lead,
- * actions) and arrive the same way. "Back to the room", Esc or a fresh scroll takes you back out.
+ * in a full-screen close-up that is alive. It tells its story in a few short chapters: scroll (or swipe,
+ * or use the arrow keys) and the camera glides to the next thing while the words change. The words are
+ * set exactly like the film's scenes: a title, one line, and something to do. Scrolling past the last
+ * chapter, or "Back to the room", or Esc, takes you back out.
  */
 import { AnimatePresence, motion } from "motion/react";
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
 import { content, href } from "@/lib/content";
 import { PhoneApps } from "../apps/PhoneApps";
 import { BookCall } from "../BookCall";
 import { LaunchTrack, WaitlistForm } from "../Originals";
 import { WorldClocks } from "../ui/WorldClocks";
 import { Words } from "../Words";
-import { BG, Scenery, usePhone } from "./Scenery";
+import { BG, Scenery, usePhone, type Cam } from "./Scenery";
 import type { WorldId } from "./timeline";
 
 const ease = [0.23, 1, 0.32, 1] as const;
 const film = [0.22, 0.61, 0.36, 1] as const;
+const W = content.worlds;
 
-/** The words of a close-up, arriving like a scene's: the title word by word, then each block rising in turn. */
+/** Where the camera looks in each chapter. */
+const CAMS: Record<WorldId, Cam[]> = {
+  web: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.18, u: 0.72, v: 0.62 }, { z: 1.04, u: 0.72, v: 0.55 }],
+  mobile: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.06, u: 0.6, v: 0.45 }, { z: 1.02, u: 0.5, v: 0.5 }],
+  how: [{ z: 1.25, u: 0.15, v: 0.35 }, { z: 1.25, u: 0.36, v: 0.32 }, { z: 1.25, u: 0.58, v: 0.48 }, { z: 1.25, u: 0.92, v: 0.8 }],
+  think: [{ z: 1, u: 0.5, v: 0.32 }, { z: 1.08, u: 0.5, v: 0.32 }, { z: 1.16, u: 0.5, v: 0.32 }],
+  world: [{ z: 1, u: 0.45, v: 0.32 }, { z: 1.12, u: 0.45, v: 0.32 }],
+  originals: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.1, u: 0.5, v: 0.6 }, { z: 1.04, u: 0.5, v: 0.5 }],
+};
+
+/** The words of one chapter, arriving like a scene's: the title word by word, then the line, then the rest. */
 function Story({ children }: { children: ReactNode }) {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const t = window.setTimeout(() => ref.current?.classList.add("on"), 450);
+    const t = window.setTimeout(() => ref.current?.classList.add("on"), 120);
     return () => clearTimeout(t);
   }, []);
   return (
@@ -37,37 +50,78 @@ const d = (ms: number) => ({ ["--d" as string]: `${ms}ms` });
 export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () => void; cue?: (k: "tap") => void }) {
   const phone = usePhone();
   const [joined, setJoined] = useState(false);
+  const [chap, setChap] = useState(0);
   const closeRef = useRef<HTMLButtonElement>(null);
   const lastWheel = useRef(0);
-  const opened = useRef(0);
+  const busyUntil = useRef(0);
+  const touchY = useRef<number | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    opened.current = performance.now();
+    busyUntil.current = performance.now() + 1100;
     setJoined(false);
+    setChap(0);
     const t = window.setTimeout(() => closeRef.current?.focus({ preventScroll: true }), 900);
     return () => clearTimeout(t);
   }, [id]);
 
+  const chapters = id ? W[id].chapters : [];
+  const last = chapters.length - 1;
+
+  /** Move one chapter on (+1) or back (-1); past either end steps out of the close-up. */
+  const step = useCallback(
+    (dir: number) => {
+      const now = performance.now();
+      if (now < busyUntil.current) return;
+      busyUntil.current = now + 1000;
+      const next = chap + dir;
+      if (next < 0 || next > last) return onClose();
+      setChap(next);
+    },
+    [chap, last, onClose],
+  );
+
+  useEffect(() => {
+    if (!id) return;
+    const key = (e: KeyboardEvent) => {
+      if ((e.target as HTMLElement)?.closest?.("input, textarea")) return;
+      if (["ArrowDown", "PageDown", " "].includes(e.key)) { e.preventDefault(); step(1); }
+      if (["ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); step(-1); }
+    };
+    window.addEventListener("keydown", key);
+    return () => window.removeEventListener("keydown", key);
+  }, [id, step]);
+
   // the floating phone's size: as large as fits
   const [ps, setPs] = useState(0.7);
   useEffect(() => {
-    const f = () => setPs(phone ? Math.min(0.52, (window.innerHeight * 0.46) / 844) : Math.min(0.8, (window.innerHeight * 0.74) / 844));
+    const f = () => setPs(phone ? Math.min(0.5, (window.innerHeight * 0.44) / 844) : Math.min(0.8, (window.innerHeight * 0.74) / 844));
     f();
     window.addEventListener("resize", f);
     return () => window.removeEventListener("resize", f);
   }, [phone]);
 
-  const W = content.worlds;
   const bg = id ? BG[id] : null;
+  // a form keeps its own scroll and keys; elsewhere (even over a screen) one scroll is one chapter
+  const inForm = (t: EventTarget | null) => !!(t as HTMLElement)?.closest?.("form");
+  const inside = (t: EventTarget | null) => !!(t as HTMLElement)?.closest?.("[data-app], form");
 
-  // a fresh scroll (not the tail of the one that brought you here) steps back out
+  // one fresh scroll = one chapter
   const onWheel = (e: React.WheelEvent) => {
     const now = performance.now();
     const fresh = now - lastWheel.current > 220;
     lastWheel.current = now;
-    if (phone || (e.target as HTMLElement).closest("[data-app], form")) return;
-    if (fresh && now - opened.current > 900 && Math.abs(e.deltaY) > 4) onClose();
+    if (inForm(e.target) || !fresh || Math.abs(e.deltaY) < 4) return;
+    step(Math.sign(e.deltaY));
+  };
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchY.current = inside(e.target) ? null : e.touches[0].clientY;
+  };
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchY.current === null) return;
+    const dy = touchY.current - e.changedTouches[0].clientY;
+    touchY.current = null;
+    if (Math.abs(dy) > 40) step(Math.sign(dy));
   };
 
   const actions = (ms: number, link?: { link: string; href: string }) => (
@@ -77,75 +131,37 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
     </div>
   );
 
-  let body: ReactNode = null;
-  const right = id === "web" && !phone;
-  if (id === "web" || id === "mobile") {
-    const w = W[id];
-    body = (
-      <Story>
-        <h2 className="t-title"><Words text={w.title} /></h2>
-        <p className="rise t-lead" style={d(250)}>{w.lines.join(" ")}</p>
-        {actions(380, w)}
-      </Story>
-    );
-  } else if (id === "how") {
-    body = (
-      <Story>
-        <h2 className="t-title"><Words text={W.how.title} /></h2>
-        <p className="rise t-lead" style={d(250)}>{W.how.line}</p>
-        <ol className="rise mt-8 w-full border-t border-paper/15" style={d(380)}>
-          {content.how.steps.map((s) => (
-            <li key={s.title} className="grid grid-cols-[92px_1fr] gap-4 border-b border-paper/15 py-4">
-              <span className="t-body !text-paper">{s.title}</span>
-              <span className="t-body">{s.line}</span>
-            </li>
-          ))}
-        </ol>
-        {actions(500, W.how)}
-      </Story>
-    );
-  } else if (id === "think") {
-    body = (
-      <Story>
-        <h2 className="t-title"><Words text={W.think.title} /></h2>
-        <ul className="rise mt-8 w-full border-t border-paper/15" style={d(250)}>
-          {W.think.lines.map((l) => (
-            <li key={l} className="t-lead border-b border-paper/15 py-4">{l}</li>
-          ))}
-        </ul>
-        {actions(380)}
-      </Story>
-    );
-  } else if (id === "world") {
-    body = (
-      <Story>
-        <h2 className="t-title"><Words text={W.world.title} /></h2>
-        <p className="rise t-lead" style={d(250)}>{W.world.line}</p>
-        <div className="rise mt-8 w-full" style={d(380)}><WorldClocks /></div>
-        {actions(500)}
-      </Story>
-    );
-  } else if (id === "originals") {
-    body = (
-      <Story>
-        <h2 className="t-title"><Words text={W.originals.title} /></h2>
-        <p className="rise t-lead" style={d(250)}>{joined ? W.originals.joined : W.originals.line}</p>
-        <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack /></div>
-        <div className="rise mt-8 w-full" style={d(500)}><WaitlistForm source="originals-room" onJoined={() => setJoined(true)} /></div>
-      </Story>
-    );
+  // what each chapter adds under its title and line
+  let extra: ReactNode = null;
+  if (id && chap === last && id !== "originals") {
+    const link = id === "web" || id === "mobile" || id === "how" ? W[id] : undefined;
+    extra = actions(380, link);
   }
+  if (id === "world" && chap === 1) extra = (
+    <>
+      <div className="rise mt-8 w-full" style={d(330)}><WorldClocks /></div>
+      {actions(460)}
+    </>
+  );
+  if (id === "originals" && chap === 1) extra = <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack /></div>;
+  if (id === "originals" && chap === 2) extra = <div className="rise mt-8 w-full" style={d(380)}><WaitlistForm source="originals-room" onJoined={() => setJoined(true)} /></div>;
+
+  const c = chapters[chap];
+  const right = id === "web" && !phone;
+  const line = id === "originals" && chap === 2 && joined ? W.originals.joined : c?.line;
 
   return (
     <AnimatePresence>
-      {id && bg && (
+      {id && bg && c && (
         <motion.div
           key={id}
           role="dialog"
           aria-modal="true"
-          aria-label={W[id].title}
+          aria-label={chapters[0].title}
           data-panel
           onWheel={onWheel}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
           className="world fixed inset-0 z-[55] overflow-hidden bg-ink"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -154,14 +170,14 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
         >
           {/* the picture: full screen on a computer, the top of the screen on a phone */}
           <div className={`absolute inset-x-0 top-0 ${phone ? "h-[56svh]" : "h-full"}`}>
-            <Scenery bg={bg} phone={phone} interactive glowOn={joined} />
+            <Scenery bg={bg} phone={phone} interactive glowOn={joined} cam={CAMS[id][chap]} />
             {/* shade where the words sit: the same as the scenes */}
             <div aria-hidden className={`pointer-events-none absolute inset-0 ${phone ? "[background:linear-gradient(180deg,rgb(7_10_18/0.45)_0%,transparent_20%,transparent_62%,#070a12_100%)]" : right ? "[background:linear-gradient(270deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.7)_22%,transparent_38%)]" : id === "originals" ? "[background:linear-gradient(90deg,rgb(7_10_18/0.96)_0%,rgb(7_10_18/0.88)_34%,rgb(7_10_18/0.35)_56%,transparent_72%)]" : "[background:linear-gradient(90deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.6)_36%,transparent_60%)]"}`} />
           </div>
 
-          {/* the floating phone you can use */}
+          {/* the floating phone you can use; it comes forward in the chapter about it */}
           {id === "mobile" && (
-            <motion.div data-app className={`absolute z-10 ${phone ? "left-1/2 top-[max(64px,6svh)]" : "right-[12vw] top-1/2"}`} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 1.2, ease, delay: 0.55 }}>
+            <motion.div data-app className={`absolute z-10 ${phone ? "left-1/2 top-[max(64px,6svh)]" : "right-[12vw] top-1/2"}`} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0, scale: chap === 1 ? 1.04 : 1 }} transition={{ duration: 1.2, ease, delay: chap === 0 ? 0.55 : 0 }}>
               <div
                 className="overflow-hidden rounded-[52px] shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8),0_0_0_10px_#15161b,0_0_0_11px_rgb(255_255_255/0.12)]"
                 style={{ transform: phone ? `translateX(-50%) scale(${ps})` : `translateY(-50%) scale(${ps})`, transformOrigin: phone ? "top center" : "center right" }}
@@ -172,12 +188,25 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           )}
 
           {/* the words: placed like a scene's, bottom-left on a computer, below the picture on a phone */}
-          <div
-            className={`pointer-events-none relative z-[5] flex h-full flex-col overflow-y-auto overscroll-contain px-[var(--gutter)] max-md:pointer-events-auto ${
-              phone ? `pb-[max(32px,env(safe-area-inset-bottom))] ${id === "mobile" ? "pt-[58svh]" : "pt-[48svh]"}` : `justify-end pb-[12svh] ${right ? "items-end" : ""}`
-            }`}
-          >
-            <div className={`pointer-events-auto w-full ${right ? "max-w-[400px] mr-[2vw]" : "max-w-[460px]"}`}>{body}</div>
+          <div className={`pointer-events-none relative z-[5] flex h-full flex-col px-[var(--gutter)] ${phone ? `justify-end pb-[max(28px,env(safe-area-inset-bottom))]` : `justify-end pb-[12svh] ${right ? "items-end" : ""}`}`}>
+            <div className={`pointer-events-auto w-full ${right ? "max-w-[400px] mr-[2vw]" : "max-w-[460px]"}`}>
+              <Story key={chap}>
+                <h2 className="t-title"><Words text={c.title} /></h2>
+                {line && <p className="rise t-lead" style={d(250)}>{line}</p>}
+                {extra}
+              </Story>
+              {/* where you are in the story, and how to go on */}
+              <div className="mt-10 flex items-center gap-4">
+                <div className="flex items-center">
+                  {chapters.map((_, i) => (
+                    <button key={i} type="button" aria-label={`Part ${i + 1} of ${chapters.length}`} aria-current={i === chap ? "step" : undefined} onClick={() => { busyUntil.current = 0; setChap(i); }} className="flex h-8 items-center pr-2">
+                      <span className={`block h-[2px] rounded-full transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === chap ? "w-8 bg-paper" : "w-3 bg-paper/30"}`} />
+                    </button>
+                  ))}
+                </div>
+                <span className={`t-label transition-opacity duration-500 ${chap < last ? "opacity-100" : "opacity-0"}`}>{phone ? "Swipe up to continue" : W.next}</span>
+              </div>
+            </div>
           </div>
 
           {/* back to the room */}

@@ -166,7 +166,7 @@ export function Nav() {
               transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.3 }}
               className="space-y-6"
             >
-              <BookCall className="!h-12 w-full !rounded-full text-[15px]" onOpen={() => setOpen(false)}>{cta}</BookCall>
+              <BookCall className="!h-12 w-full !rounded-full text-[14px]" onOpen={() => setOpen(false)}>{cta}</BookCall>
               <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 text-[14px] text-paper/60">
                 <span className="select-all">{studio.email}</span>
                 <span className="flex gap-5">

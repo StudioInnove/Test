@@ -28,9 +28,28 @@ function path(pts: number[], w: number, h: number) {
   return { d, xy };
 }
 
-export function Dashboard({ interactive = false }: { interactive?: boolean }) {
+const BOOKINGS = [
+  ["18:00", "Amara Okafor", 2, "Seated"],
+  ["18:30", "The Lindqvist party", 6, "Confirmed"],
+  ["19:00", "Kenji Watanabe", 4, "Confirmed"],
+  ["19:15", "Sofia Marchetti", 2, "Waiting"],
+  ["19:45", "Daniel Reyes", 3, "Confirmed"],
+  ["20:30", "Priya Nair", 2, "New"],
+] as const;
+const GUESTS = [
+  ["Amara Okafor", "12 visits", "#f6c27a,#f19a62"],
+  ["Kenji Watanabe", "8 visits", "#a8b8ef,#7f95dd"],
+  ["Sofia Marchetti", "5 visits", "#f3a28d,#ea7d6e"],
+  ["Daniel Reyes", "3 visits", "#bfe0e2,#8798e0"],
+  ["Priya Nair", "First visit", "#f8c98a,#ec8576"],
+  ["Lena Fischer", "21 visits", "#c9b8f0,#9a86dd"],
+] as const;
+const REPORT = [38, 52, 47, 61, 58, 72, 80, 76, 88, 84, 93, 99];
+
+export function Dashboard({ interactive = false, view: controlled }: { interactive?: boolean; view?: number }) {
   const [tab, setTab] = useState<keyof typeof SERIES>("Year");
-  const [view, setView] = useState(0);
+  const [own, setView] = useState(0);
+  const view = controlled ?? own;
   const [hover, setHover] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
   const [seated, setSeated] = useState(14);
@@ -82,6 +101,7 @@ export function Dashboard({ interactive = false }: { interactive?: boolean }) {
         ))}
       </div>
 
+      {view === 0 && (<>
       {/* three figures */}
       <div className="absolute left-[262px] top-[48px] flex gap-[22px]">
         {stats.map((st, i) => (
@@ -155,6 +175,48 @@ export function Dashboard({ interactive = false }: { interactive?: boolean }) {
         <p className="text-[30px] font-[500] leading-tight tracking-[-0.02em]">18:30 · Party of 6</p>
         <p className="mt-2 text-[14px] text-white/80">Window table, anniversary</p>
       </div>
+      </>)}
+
+      {/* bookings: tonight's list */}
+      {view === 1 && (
+        <div key="b" className="dash-view absolute bottom-[50px] left-[262px] right-[44px] top-[48px] rounded-[24px] bg-white/80 p-7 shadow-[0_8px_30px_rgb(120_80_50/0.08)]">
+          <div className="flex items-center justify-between"><p className="text-[17px] font-[500]">Tonight</p><p className="text-[13px] text-[#2b2522]/50">6 bookings · 19 guests</p></div>
+          <div className="mt-5 divide-y divide-[#2b2522]/[0.07]">
+            {BOOKINGS.map(([t, n, p, st]) => (
+              <div key={n} className="grid grid-cols-[90px_1fr_90px_120px] items-center py-[15px] text-[15px]">
+                <span className="tabular-nums text-[#2b2522]/55">{t}</span>
+                <span>{n}</span>
+                <span className="text-[#2b2522]/55">{p} guests</span>
+                <span className={`w-max rounded-full px-3 py-1 text-[13px] ${st === "Seated" ? "bg-[#6aa77f]/15 text-[#3f7d55]" : st === "Waiting" ? "bg-[#f0a36b]/20 text-[#b8662f]" : st === "New" ? "bg-[#7f95dd]/15 text-[#4d63b5]" : "bg-[#2b2522]/[0.06] text-[#2b2522]/70"}`}>{st}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* guests: the regulars */}
+      {view === 2 && (
+        <div key="g" className="dash-view absolute bottom-[50px] left-[262px] right-[44px] top-[48px] grid grid-cols-3 gap-[22px]">
+          {GUESTS.map(([n, v, g]) => (
+            <div key={n} className="flex flex-col justify-between rounded-[22px] bg-white/80 p-6 shadow-[0_6px_24px_rgb(120_80_50/0.08)]">
+              <div className="h-14 w-14 rounded-full" style={{ background: `linear-gradient(135deg,${g})` }} />
+              <div><p className="text-[18px] font-[500]">{n}</p><p className="text-[14px] text-[#2b2522]/50">{v}</p></div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* reports: the year in bars */}
+      {view === 3 && (
+        <div key="r" className="dash-view absolute bottom-[50px] left-[262px] right-[44px] top-[48px] rounded-[24px] bg-white/80 p-7 shadow-[0_8px_30px_rgb(120_80_50/0.08)]">
+          <div className="flex items-center justify-between"><p className="text-[17px] font-[500]">Revenue by month</p><p className="text-[13px] text-[#2b2522]/50">Up 31% on last year</p></div>
+          <div className="mt-8 flex h-[460px] items-end gap-4">
+            {REPORT.map((v, i) => (
+              <div key={i} className="dash-bar flex-1 rounded-t-[10px] bg-gradient-to-t from-[#f3a28d] to-[#f8c98a]" style={{ height: `${v}%`, animationDelay: `${i * 40}ms` }} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

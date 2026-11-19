@@ -3,6 +3,8 @@ import fs from "node:fs";
 import path from "node:path";
 
 const OUT = path.resolve("out");
+// a version for this build: links carry it so browsers never show an old copy of a page
+const V = Date.now().toString(36);
 const walk = (d) => fs.readdirSync(d, { withFileTypes: true }).flatMap((e) => (e.isDirectory() ? walk(path.join(d, e.name)) : [path.join(d, e.name)]));
 for (const f of walk(OUT)) {
   const ext = path.extname(f);
@@ -12,6 +14,7 @@ for (const f of walk(OUT)) {
   if (ext === ".css") {
     s = s.replaceAll("/_next/static/media/", "../media/");
   } else if (ext === ".html" || ext === ".txt") {
+    if (ext === ".html") s = s.replace("<head>", `<head><script>window.__V=${JSON.stringify(V)}</script>`);
     const depth = path.relative(OUT, path.dirname(f)).split(path.sep).filter(Boolean).length;
     const up = depth ? "../".repeat(depth) : "./";
     s = s.replaceAll('"/_next/', `"${up}_next/`).replaceAll("'/_next/", `'${up}_next/`);
@@ -26,6 +29,11 @@ for (const f of walk(OUT)) {
     // webpack runtime public path
     s = s.replaceAll('"/_next/"', '"./_next/"').replaceAll("\uFFFD", "\\uFFFD");
   }
+  if (ext === ".html") {
+    // links to pages of the site: the newest version, and "you came from inside" (no entrance again)
+    s = s.replaceAll('?in=1"', `?in=1&v=${V}"`).replaceAll("?in=1#", `?in=1&v=${V}#`);
+    s = s.replace(/href="((?:\.\.\/|\.\/)+)([a-z0-9-]*\/?)(#[^"]*)?"/g, (m, up, page, hash) => `href="${up}${page}?in=1&v=${V}${hash || ""}"`);
+  }
   if (s !== before) fs.writeFileSync(f, s);
 }
-console.log("preview ready");
+console.log("preview ready", V);

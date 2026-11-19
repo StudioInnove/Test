@@ -59,7 +59,6 @@ export function FilmStage() {
   const [loaded, setLoaded] = useState(false);
   const [ready, setReady] = useState(false);
   const [scene, setScene] = useState(0);
-  const [audible, setAudible] = useState(false);
   const [canSwipe, setCanSwipe] = useState(false);
 
   useEffect(() => {
@@ -205,7 +204,6 @@ export function FilmStage() {
       add(SCENES[i].enter);
       add(SCENES[i].loop);
       for (let r = 2; r < SCENES.length; r++) add(SCENES[i + r]?.enter);
-      add("cl");
       engine.prioritise(want);
     };
 
@@ -764,7 +762,7 @@ export function FilmStage() {
         try { localStorage.setItem("si-sound", pref); } catch {}
       }
       const s = (soundRef.current = new Soundscape());
-      s.onChange = setAudible;
+      s.onChange = () => {};
       if (pref !== "off") {
         s.start(true);
         if (gesture) s.unlock();
@@ -777,7 +775,7 @@ export function FilmStage() {
     };
     // the entrance: once a visit, you choose to come in with sound or quietly
     // (remembered for the visit: in the tab, and when you come back from another page of the site)
-    let entered = /si-entered/.test(window.name);
+    let entered = /si-entered/.test(window.name) || /[?&]in=1/.test(location.search);
     try { entered = entered || sessionStorage.getItem("si-entered") === "1"; } catch {}
     try { if (document.referrer && new URL(document.referrer).origin === location.origin) entered = true; } catch {}
     enterRef.current = (sound: boolean) => {
@@ -860,14 +858,6 @@ export function FilmStage() {
     window.dispatchEvent(new CustomEvent("film:scene", { detail: SCENES[scene].key }));
   }, [scene]);
 
-  const toggleSound = async () => {
-    const s = (soundRef.current = soundRef.current ?? new Soundscape());
-    s.onChange = setAudible;
-    const next = !s.audible;
-    try { localStorage.setItem("si-sound", next ? "on" : "off"); } catch {}
-    await s.start(next);
-    if (next) s.unlock();
-  };
 
   const { hero, services, how, originals, close, studio, entrance } = content;
   const rooms = content.rooms;
@@ -910,7 +900,6 @@ export function FilmStage() {
             <p className="rise t-lead max-w-[38ch]" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
             <div className="rise actions" style={{ ["--d" as string]: "420ms" }}>
               <BookCall>{hero.primary}</BookCall>
-              <a href="#originals" data-fly className="more">{hero.secondary}</a>
             </div>
           </div>
         </section>
@@ -1021,14 +1010,7 @@ export function FilmStage() {
               </button>
             ))}
           </div>
-          <button type="button" data-sound-toggle onClick={toggleSound} aria-pressed={audible} className="link pointer-events-auto flex h-10 items-center gap-2.5 text-[13px] text-paper/70">
-            <span aria-hidden className="flex h-2.5 items-end gap-[2px]">
-              {[0, 1, 2].map((i) => (
-                <span key={i} className="w-px bg-current" style={{ height: audible ? undefined : "3px", animation: audible ? `eq 1.${i + 2}s ease-in-out ${i * 0.15}s infinite alternate` : "none" }} />
-              ))}
-            </span>
-            {audible ? "Sound on" : "Sound off"}
-          </button>
+
         </div>
 
         {/* ---------------- Entrance: the city surfaces, the world's clocks tick, then you come in ---------------- */}
@@ -1045,15 +1027,13 @@ export function FilmStage() {
           <div className="entrance absolute inset-0 flex flex-col items-center justify-center px-[var(--gutter)] text-center">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />
-            <p className="t-lead mt-6 max-w-[34ch]">{entrance.line}</p>
             <WorldClocks className="mt-12 w-full max-w-[680px] text-left" />
             <div className="relative mt-14 h-12 w-full max-w-[420px]">
               <div className={`absolute inset-x-0 top-1/2 mx-auto h-px w-[120px] overflow-hidden bg-white/15 transition-opacity duration-500 ${loaded ? "opacity-0" : "opacity-100"}`}>
                 <div className="h-full origin-left bg-paper/80 transition-transform duration-500" style={{ transform: `scaleX(${progress})` }} />
               </div>
               <div className={`actions absolute inset-0 justify-center transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)] ${loaded ? "opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}>
-                <button type="button" tabIndex={loaded && !ready ? 0 : -1} onClick={() => enterRef.current(true)} className="btn btn-primary">{entrance.sound}</button>
-                <button type="button" tabIndex={loaded && !ready ? 0 : -1} onClick={() => enterRef.current(false)} className="more">{entrance.quiet}</button>
+                <button type="button" tabIndex={loaded && !ready ? 0 : -1} onClick={() => enterRef.current(true)} className="btn btn-primary">{entrance.enter}</button>
               </div>
             </div>
           </div>

@@ -158,8 +158,9 @@ function Lights({ live, active }: { live: boolean; active: boolean }) {
 
 const APPS = ["Tonight", "Table", "Lights"] as const;
 
-export function PhoneApps({ interactive = false, notify = false }: { interactive?: boolean; notify?: boolean }) {
-  const [page, setPage] = useState(0);
+export function PhoneApps({ interactive = false, notify = false, page: controlled }: { interactive?: boolean; notify?: boolean; page?: number }) {
+  const [own, setPage] = useState(0);
+  const page = controlled ?? own;
   const [ping, setPing] = useState(false);
   const drag = useRef<{ x: number; dx: number } | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);

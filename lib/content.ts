@@ -20,7 +20,11 @@ export const href = (h: string) => {
   if (BASE === "/") return h;
   const up = base();
   const pre = up === "./" ? "./" : up;
-  if (h === "/") return pre;
-  if (h.startsWith("/#")) return (up === "./" ? "" : up) + h.slice(1);
-  return pre + h.replace(/^\//, "") + (h.includes("#") ? "" : "/");
+  // in the preview, page links say "you came from inside" and carry the build, so nothing old is shown
+  const v = typeof window !== "undefined" ? (window as unknown as { __V?: string }).__V : "";
+  const q = `?in=1${v ? `&v=${v}` : ""}`;
+  if (h === "/") return pre + q;
+  if (h.startsWith("/#")) return up === "./" ? h.slice(1) : up + q + h.slice(1);
+  const [path, hash] = h.split("#");
+  return pre + path.replace(/^\//, "") + "/" + q + (hash ? "#" + hash : "");
 };

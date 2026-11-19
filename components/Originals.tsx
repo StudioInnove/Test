@@ -30,7 +30,7 @@ export function LaunchTrack({ size = "md" }: { size?: "md" | "lg" }) {
               <li
                 key={s}
                 aria-current={i === current ? "step" : undefined}
-                className={`absolute top-0 whitespace-nowrap text-[12px] tracking-[-0.005em] ${i === current ? "text-paper" : i < current ? "text-paper/55" : "text-paper/30"} ${i === 0 ? "" : i === stages.length - 1 ? "-translate-x-full" : "-translate-x-1/2"} ${size === "md" && i !== 0 && i !== current && i !== stages.length - 1 ? "max-sm:hidden" : ""}`}
+                className={`absolute top-0 whitespace-nowrap text-[13px] tracking-[-0.005em] ${i === current ? "text-paper" : i < current ? "text-paper/55" : "text-paper/30"} ${i === 0 ? "" : i === stages.length - 1 ? "-translate-x-full" : "-translate-x-1/2"} ${size === "md" && i !== 0 && i !== current && i !== stages.length - 1 ? "max-sm:hidden" : ""}`}
                 style={{ left: `${x * 100}%` }}
               >
                 {s}

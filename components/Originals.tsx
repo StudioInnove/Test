@@ -65,6 +65,7 @@ export const StatusTrack = LaunchTrack;
 
 /* ---------------------------------------------------------------- waitlist */
 
+/** An email line and a button. Side by side on a computer, stacked on a phone. */
 export function WaitlistForm({ source = "home", size = "md" }: { source?: string; size?: "md" | "lg" }) {
   const o = content.originals;
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
@@ -88,66 +89,49 @@ export function WaitlistForm({ source = "home", size = "md" }: { source?: string
   }
 
   const done = state === "done";
-  const h = size === "lg" ? "h-[60px]" : "h-[54px]";
 
   return (
-    <form onSubmit={submit} className="w-full max-w-[460px]">
-      <motion.div layout={!reduce} transition={{ duration: 0.6, ease }} className={`glass waitlist ${h} flex items-center rounded-full p-[5px] ${done ? "is-done" : ""}`}>
-        <AnimatePresence initial={false} mode="popLayout">
-          {!done && (
-            <motion.div key="field" layout={!reduce} exit={{ opacity: 0, filter: "blur(4px)", transition: { duration: 0.25 } }} className="flex min-w-0 flex-1 items-center">
-              <label className="sr-only" htmlFor={`wl-${source}`}>{o.placeholder}</label>
-              <input
-                id={`wl-${source}`}
-                type="email"
-                required
-                autoComplete="email"
-                inputMode="email"
-                placeholder={o.placeholder}
-                value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value);
-                  if (state === "error") setState("idle");
-                }}
-                className="h-full min-w-0 flex-1 bg-transparent pl-5 pr-3 text-[16px] tracking-[-0.01em] text-paper outline-none placeholder:text-paper/45"
-              />
-            </motion.div>
-          )}
-        </AnimatePresence>
-        <motion.button
-          layout={!reduce}
-          type="submit"
-          disabled={state === "sending" || done}
-          transition={{ duration: 0.6, ease }}
-          className={`btn btn-primary relative h-full shrink-0 overflow-hidden !rounded-full !px-5 text-[14px] ${done ? "flex-1 !cursor-default" : ""}`}
-        >
-          <AnimatePresence mode="wait" initial={false}>
-            {done ? (
-              <motion.span key="done" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45, ease, delay: 0.15 }} className="flex items-center gap-2.5" role="status">
-                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden>
-                  <motion.path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease, delay: 0.3 }} />
-                </svg>
-                {o.success}
-              </motion.span>
-            ) : state === "sending" ? (
-              <motion.span key="sending" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-1" aria-label="Joining">
-                {[0, 1, 2].map((i) => (
-                  <span key={i} className="h-1 w-1 animate-[dot_1s_ease-in-out_infinite] rounded-full bg-current" style={{ animationDelay: `${i * 0.15}s` }} />
-                ))}
-              </motion.span>
-            ) : (
-              <motion.span key="idle" initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 6 }} transition={{ duration: 0.25 }} className="flex items-center gap-2">
-                {o.cta}
-                <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className="max-sm:hidden">
-                  <path d="M2 6h7.5M6.5 3l3 3-3 3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-                </svg>
-              </motion.span>
-            )}
-          </AnimatePresence>
-        </motion.button>
-      </motion.div>
-      <p className={`t-small mt-3 pl-5 ${state === "error" ? "text-signal" : "text-paper/40"}`} role={state === "error" ? "alert" : undefined}>
-        {state === "error" ? o.error : done ? " " : o.privacy}
+    <form onSubmit={submit} className={`w-full ${size === "lg" ? "max-w-[520px]" : "max-w-[440px]"}`}>
+      <AnimatePresence mode="wait" initial={false}>
+        {done ? (
+          <motion.p
+            key="done"
+            role="status"
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease }}
+            className="flex h-12 items-center gap-3 border-b border-signal/60 text-[16px]"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden className="text-signal">
+              <motion.path d="M3 8.5l3 3 7-7.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease, delay: 0.2 }} />
+            </svg>
+            {o.success}
+          </motion.p>
+        ) : (
+          <motion.div key="form" exit={{ opacity: 0, transition: { duration: 0.2 } }} className="flex flex-col gap-3 sm:flex-row sm:items-end sm:gap-4">
+            <label className="sr-only" htmlFor={`wl-${source}`}>{o.placeholder}</label>
+            <input
+              id={`wl-${source}`}
+              type="email"
+              required
+              autoComplete="email"
+              inputMode="email"
+              placeholder={o.placeholder}
+              value={email}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                if (state === "error") setState("idle");
+              }}
+              className="h-12 min-w-0 flex-1 rounded-none border-b border-paper/25 bg-transparent px-0 text-[16px] tracking-[-0.01em] text-paper outline-none transition-colors duration-300 placeholder:text-paper/40 focus:border-paper/70"
+            />
+            <button type="submit" disabled={state === "sending"} className="btn btn-primary h-12 shrink-0 max-sm:w-full disabled:opacity-60">
+              {state === "sending" ? "Joining…" : o.cta}
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      <p className={`mt-3 text-[13px] ${state === "error" ? "text-signal" : "text-paper/40"}`} role={state === "error" ? "alert" : undefined}>
+        {state === "error" ? o.error : done ? "\u00a0" : o.privacy}
       </p>
     </form>
   );

@@ -61,18 +61,18 @@ export function Nav() {
   const lit = hover ?? active;
 
   return (
-    <header className="pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center px-3 pt-[max(12px,env(safe-area-inset-top))] sm:pt-5">
+    <header className="nav-shade pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-[max(14px,env(safe-area-inset-top))] max-md:px-[var(--gutter)] md:px-3 md:pt-5">
       <motion.div
         ref={rootRef}
         initial={reduce ? false : { opacity: 0, y: -12, filter: "blur(6px)" }}
         animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
         transition={{ duration: 1.2, ease: [0.22, 0.61, 0.36, 1], delay: 0.5 }}
-        className="pointer-events-auto relative w-full max-w-[560px] md:w-auto md:max-w-none"
+        className="pointer-events-auto relative w-full md:w-auto"
       >
         <nav
           aria-label="Main"
           data-compact={compact}
-          className="glass glass-pill flex items-center gap-2 rounded-full pl-5 pr-[5px] transition-[height,background-color] duration-500 [transition-timing-function:var(--ease-out)] data-[compact=true]:h-[46px] data-[compact=false]:h-[50px]"
+          className="nav-bar glass glass-pill flex h-11 items-center gap-2 transition-[height,background-color] duration-500 [transition-timing-function:var(--ease-out)] md:rounded-full md:pl-5 md:pr-[5px] md:data-[compact=true]:h-[46px] md:data-[compact=false]:h-[50px]"
         >
           <a href={href("/")} aria-label={`${studio.name}, home`} className="link mr-3 shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -104,18 +104,17 @@ export function Nav() {
             })}
           </ul>
           <div className="ml-auto flex items-center gap-1 md:ml-3">
-            <BookCall size="sm" className="!rounded-full !px-4">{cta}</BookCall>
+            <BookCall size="sm" className="max-md:hidden">{cta}</BookCall>
             <button
               type="button"
               onClick={() => setOpen((o) => !o)}
               aria-expanded={open}
               aria-controls="menu-sheet"
-              aria-label={open ? "Close menu" : "Open menu"}
-              className="flex h-[38px] w-[38px] items-center justify-center rounded-full text-paper active:scale-95 md:hidden"
+              className="-mr-2 flex h-11 items-center gap-2.5 px-2 text-[14px] text-paper active:opacity-60 md:hidden"
             >
-              <span aria-hidden className="relative block h-2.5 w-4">
-                <span className={`absolute left-0 block h-px w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] rotate-45" : "top-0.5"}`} />
-                <span className={`absolute left-0 block h-px w-4 bg-current transition-transform duration-300 ${open ? "top-[5px] -rotate-45" : "top-2"}`} />
+              <span className="relative block h-4 overflow-hidden">
+                <span className={`block transition-transform duration-500 [transition-timing-function:var(--ease-out)] ${open ? "-translate-y-4" : ""}`}>Menu</span>
+                <span className={`absolute left-0 top-4 block transition-transform duration-500 [transition-timing-function:var(--ease-out)] ${open ? "-translate-y-4" : ""}`}>Close</span>
               </span>
             </button>
           </div>

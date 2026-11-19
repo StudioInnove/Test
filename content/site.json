@@ -59,24 +59,48 @@
       "web and mobile *apps.*"
     ],
     "web": {
-      "index": "1.0",
       "title": "Web apps",
       "line": "Platforms, dashboards and internal tools that run in any browser. Fast, secure and built to grow with you.",
       "tags": [
         "Platforms",
         "Dashboards",
         "Internal tools"
-      ]
+      ],
+      "more": {
+        "spot": "Look closer",
+        "title": "Web apps",
+        "line": "Anything that runs in a browser, from a simple portal to a full product.",
+        "items": [
+          "Client portals",
+          "Booking and ordering",
+          "Dashboards and internal tools",
+          "SaaS products"
+        ],
+        "link": "More on web apps",
+        "href": "/web-app-development"
+      }
     },
     "mobile": {
-      "index": "2.0",
       "title": "Mobile apps",
       "line": "Apps for iPhone and Android, designed screen by screen and shipped to the App Store and Google Play.",
       "tags": [
         "iPhone",
         "Android",
         "Tablet"
-      ]
+      ],
+      "more": {
+        "spot": "Look closer",
+        "title": "Mobile apps",
+        "line": "Native-feeling apps for iPhone and Android, built once for both.",
+        "items": [
+          "Apps for your customers",
+          "Booking, loyalty and memberships",
+          "Companion apps for your business",
+          "Apps for your team"
+        ],
+        "link": "More on mobile apps",
+        "href": "/mobile-app-development"
+      }
     },
     "cta": "Book a call"
   },
@@ -99,7 +123,8 @@
         "title": "Launch",
         "line": "We ship it, then stay on for updates and support if you want us to."
       }
-    ]
+    ],
+    "drag": "Drag to see each step"
   },
   "originals": {
     "eyebrow": "Studio Originals",

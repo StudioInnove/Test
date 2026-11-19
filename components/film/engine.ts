@@ -1,4 +1,4 @@
-import { FOCUS, type ClipId, type StillId } from "./timeline";
+import { FOCUS, MFOCUS, type ClipId, type StillId } from "./timeline";
 import { asset } from "@/lib/content";
 
 type FrameSet = { path: string; frames: number; w?: number; h?: number };
@@ -61,6 +61,8 @@ export class FilmEngine {
   private size = { w: 1, h: 1 };
   mode: "d" | "m";
   ready = false;
+  /** goes up whenever a new frame or still becomes drawable, so the stage knows to repaint */
+  version = 0;
   onProgress?: (p: number) => void;
 
   constructor(private canvas: HTMLCanvasElement, private manifest: Manifest, mode: "d" | "m") {
@@ -158,6 +160,7 @@ export class FilmEngine {
       if (!s) return;
       try {
         this.stills.set(id, await this.fetchImage(asset(s[this.mode] ?? s.d)));
+        this.version++;
       } catch {}
       done++;
       this.onProgress?.(done / total);
@@ -273,6 +276,7 @@ export class FilmEngine {
           if (this.decoded.has(key)) continue;
           const bm = per > 1 ? await createImageBitmap(all, 0, j * h, all.width, h) : all;
           this.decoded.set(key, bm);
+          this.version++;
         }
         if (per > 1) all.close();
         while (this.decoded.size > keep) {
@@ -335,13 +339,30 @@ export class FilmEngine {
     return ca > ia ? [1, ia / ca] : [ca / ia, 1];
   }
 
-  private center(scale: [number, number], f: [number, number]): [number, number] {
-    const cx = Math.min(1 - scale[0] / 2, Math.max(scale[0] / 2, f[0]));
-    const cy = Math.min(1 - scale[1] / 2, Math.max(scale[1] / 2, f[1]));
+  private center(scale: [number, number], f: [number, number], zoom = 1): [number, number] {
+    const hx = scale[0] / (2 * zoom), hy = scale[1] / (2 * zoom);
+    const cx = Math.min(1 - hx, Math.max(hx, f[0]));
+    const cy = Math.min(1 - hy, Math.max(hy, f[1]));
     return [cx, cy];
   }
 
-  paint(shot: Shot, opts: { time: number; mouse: [number, number]; pointer: [number, number]; motion: number }) {
+  /** A point on a still (0..1 of the full 16:9 picture) in the frame being drawn (phones use a crop). */
+  stillPoint(still: StillId, u: number, v: number): [number, number] {
+    if (!this.cropped) return [u, v];
+    const full = 16 / 9;
+    const cw = (this.manifest.mAspect ?? 0.72) / full; // crop width as a share of the full width
+    const x0 = Math.min(Math.max(0, (MFOCUS[still] ?? 0.5) - cw / 2), 1 - cw);
+    return [(u - x0) / cw, v];
+  }
+
+  /** Where a frame point lands on screen (0..1), for the picture drawn last. */
+  private proj = { s: [1, 1] as [number, number], c: [0.5, 0.5] as [number, number], z: 1 };
+  toScreen(p: [number, number]): [number, number] {
+    const { s, c, z } = this.proj;
+    return [((p[0] - c[0]) * z) / s[0] + 0.5, ((p[1] - c[1]) * z) / s[1] + 0.5];
+  }
+
+  paint(shot: Shot, opts: { time: number; mouse: [number, number]; pointer: [number, number]; motion: number; peek?: { z: number; f: [number, number] } }) {
     let A: Bitmap | undefined, B: Bitmap | undefined;
     let aKey = "", bKey = "";
     let mix = 0, zoomA = 1, zoomB = 1, rest = 0;
@@ -398,6 +419,16 @@ export class FilmEngine {
       }
     }
 
+    // stepping closer to something in the room
+    const pk = opts.peek;
+    if (pk && pk.z > 0) {
+      const z = pk.z;
+      zoomA *= 1 + 0.42 * z;
+      zoomB *= 1 + 0.42 * z;
+      focusA = [focusA[0] + (pk.f[0] - focusA[0]) * z, focusA[1] + (pk.f[1] - focusA[1]) * z];
+      focusB = [focusB[0] + (pk.f[0] - focusB[0]) * z, focusB[1] + (pk.f[1] - focusB[1]) * z];
+    }
+
     if (this.gl) this.paintGL({ A, B, aKey, bKey, mix, zoomA, zoomB, rest, focusA, focusB, depthKey }, opts);
     else this.paint2D({ A, B, mix, zoomA, zoomB, focusA, focusB });
   }
@@ -442,8 +473,9 @@ export class FilmEngine {
     } else gl.bindTexture(gl.TEXTURE_2D, this.texD);
     const scA = this.coverScale(s.A);
     const scB = this.coverScale(s.B);
-    const cA = this.center(scA, s.focusA);
-    const cB = this.center(scB, s.focusB);
+    const cA = this.center(scA, s.focusA, s.zoomA);
+    const cB = this.center(scB, s.focusB, s.zoomB);
+    this.proj = { s: scA, c: cA, z: s.zoomA };
     gl.uniform1f(L.uMix, s.mix);
     gl.uniform1f(L.uZoomA, s.zoomA);
     gl.uniform1f(L.uZoomB, s.zoomB);

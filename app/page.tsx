@@ -47,12 +47,11 @@ export default function Home() {
         <div aria-hidden className="pointer-events-none absolute -left-[20%] top-0 h-[70%] w-[70%] [background:radial-gradient(closest-side,rgb(232_161_90/0.07),transparent)]" />
         <InView className="relative grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
           <div className="md:col-span-2 md:pt-6">
-            <p className="rise t-small mb-5 flex items-center gap-2.5 text-paper/55"><span className="mark" />{faq.eyebrow}</p>
             <h2 className="t-title"><Words text={faq.heading} /></h2>
             <p className="rise t-body mt-4 max-w-[30ch] text-paper/60" style={{ ["--d" as string]: "300ms" }}>
               {faq.line} {studio.replyPromise}
             </p>
-            <div className="rise mt-8" style={{ ["--d" as string]: "450ms" }}>
+            <div className="rise mt-10" style={{ ["--d" as string]: "450ms" }}>
               <EmailPill email={studio.email} />
             </div>
           </div>

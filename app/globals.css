@@ -93,19 +93,20 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
   /* ---------- Controls: small, exact, quiet ---------- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    height: 40px; padding: 0 18px; border-radius: 999px;
-    font-size: 14px; font-weight: 500; letter-spacing: -0.012em; white-space: nowrap;
+    height: 44px; padding: 0 22px; border-radius: 999px;
+    font-size: 14px; font-weight: 450; letter-spacing: -0.01em; white-space: nowrap; line-height: 1;
     transition: background-color 200ms ease, color 200ms ease, transform 160ms var(--ease-out);
     -webkit-tap-highlight-color: transparent; user-select: none;
   }
   .btn:active { transform: scale(0.97); }
   .btn:focus-visible, .link:focus-visible { outline: 1px dashed rgb(239 233 224 / 0.8); outline-offset: 3px; }
-  .btn-primary { background: #efe9e0; color: #070a12; box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.12), 0 1px 2px rgb(0 0 0 / 0.25); }
-  .btn-ghost { background: rgb(255 255 255 / 0.06); color: #efe9e0; box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.1), inset 0 0 0 0.5px rgb(255 255 255 / 0.18); backdrop-filter: blur(16px) saturate(140%); -webkit-backdrop-filter: blur(16px) saturate(140%); }
-  .btn-sm { height: 34px; padding: 0 15px; font-size: 13px; border-radius: 999px; }
+  /* two buttons only: solid ivory, and a fine outline. Same height, same padding, everywhere. */
+  .btn-primary { background: #efe9e0; color: #070a12; font-weight: 500; }
+  .btn-ghost { background: transparent; color: #efe9e0; box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.32); }
+  .btn-sm { height: 36px; padding: 0 16px; font-size: 13px; }
   @media (hover: hover) and (pointer: fine) {
     .btn-primary:hover { background: #ffffff; }
-    .btn-ghost:hover { background: rgb(255 255 255 / 0.11); }
+    .btn-ghost:hover { background: rgb(239 233 224 / 0.08); box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.55); }
     .link:hover { opacity: 0.6; }
     .link:hover .cap { transform: translateX(2px); }
   }
@@ -153,6 +154,38 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
 
 button, a { -webkit-tap-highlight-color: transparent; }
 
+/* sub-page hero: the still settles in slowly; step lines draw across */
+.page-still { animation: settle 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) both; }
+@keyframes settle { from { transform: scale(1.08); opacity: 0.4; } to { transform: none; opacity: 1; } }
+.steps-line { transform: scaleX(0); transition: transform 1400ms var(--ease-film); }
+.on .steps-line { transform: scaleX(1); }
+@media (prefers-reduced-motion: reduce) { .page-still { animation: none; } }
+
+/* ---------- Look closer ---------- */
+.spot { opacity: 0; transition: opacity 600ms ease; will-change: transform; }
+.spot.on { opacity: 1; }
+.spot:not(.on) { pointer-events: none; }
+.spot-dot { box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 18px 2px rgb(239 233 224 / 0.35); }
+.spot-dot::after { content: ""; position: absolute; inset: -9px; border-radius: 99px; border: 1px solid rgb(239 233 224 / 0.55); animation: spot-ring 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
+@keyframes spot-ring { from { transform: scale(0.5); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
+.spot-label { opacity: 0; transform: translateX(-4px); transition: opacity 400ms ease, transform 400ms var(--ease-out); text-shadow: 0 1px 12px rgb(7 10 18 / 0.8); }
+.spot:hover .spot-label, .spot:focus-visible .spot-label { opacity: 1; transform: none; }
+@media (hover: none) { .spot.on .spot-label { opacity: 1; transform: none; transition-delay: 600ms; } }
+/* while looking closer, the scene's words step aside */
+.peeking .scene-text { opacity: 0 !important; transition: opacity 400ms ease !important; }
+.hstrip { cursor: grab; }
+
+/* the large email: a faint underline that fills in on hover */
+.email-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0% 1px no-repeat, linear-gradient(rgb(239 233 224 / 0.22), rgb(239 233 224 / 0.22)) 0 100% / 100% 1px no-repeat; padding-bottom: 4px; transition: background-size 600ms var(--ease-out); }
+@media (hover: hover) { .email-link:hover { background-size: 100% 1px, 100% 1px; } }
+
+/* phones: the nav is just the logo and "Menu", sitting on a soft shade instead of a capsule */
+@media (max-width: 767px) {
+  .nav-bar { background: none !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+  .nav-bar::before { display: none; }
+  .nav-shade::before { content: ""; position: absolute; inset: 0 0 -36px; background: linear-gradient(180deg, rgb(7 10 18 / 0.94) 0%, rgb(7 10 18 / 0.75) 55%, transparent); pointer-events: none; }
+}
+
 /* ---------- Launch track: the lit part sweeps in when the block appears ---------- */
 .launch-fill, .launch-line { width: calc(8px + (100% - 16px) * var(--at)); transform-origin: left; transform: scaleX(0); transition: transform 1600ms var(--ease-film) 250ms; }
 .launch-mark { left: calc(8px + (100% - 16px) * var(--at)); opacity: 0; transition: opacity 700ms ease 1500ms; }
@@ -163,8 +196,11 @@ button, a { -webkit-tap-highlight-color: transparent; }
 /* the waitlist pill brightens a touch while you type */
 .waitlist:focus-within { box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.26), inset 0 0 0 0.5px rgb(239 233 224 / 0.45), 0 0 0 4px rgb(239 233 224 / 0.05), 0 12px 32px -14px rgb(0 0 0 / 0.55); }
 
-/* touch screens: the same reveal without the per-word blur, which phones struggle to draw */
+/* touch screens: no live blur over the moving film (it is redrawn every frame and makes phones stutter),
+   and the same reveal without the per-word blur */
 @media (hover: none) and (pointer: coarse) {
+  .glass { -webkit-backdrop-filter: none; backdrop-filter: none; background: rgb(12 16 28 / 0.86); }
+  .glass::before { display: none; }
   .reveal .w { filter: none; transition-property: opacity, transform; }
   .reveal.on .w { filter: none; }
 }

@@ -2,11 +2,10 @@
 
 /*
  * A compact footer over a field of tiny warm lights, like the city at night seen from very high up.
- * The studio's name isn't drawn: it is the gap in the lights. On a computer the lights brighten
- * around the cursor. The field drifts slowly.
+ * The studio's name isn't drawn: it is the gap in the lights. Still, like the view at night.
  * Adapted from the 21st.dev "Dithered Footer" (otatechie), set in our palette and made quieter.
  */
-import { useRef, type CSSProperties, type MouseEvent, type PointerEvent } from "react";
+import { type CSSProperties, type MouseEvent } from "react";
 import { asset, content, href } from "@/lib/content";
 
 // Stochastic dither: noise thresholded to on/off, sparse at the top and dense at the bottom.
@@ -33,10 +32,6 @@ const STYLES = `
   background: radial-gradient(circle 160px at var(--lf-x, 50%) var(--lf-y, 50%), rgb(232 161 90 / .9), transparent 70%);
   -webkit-mask-image: ${GRID}; mask-image: ${GRID}; -webkit-mask-size: 4px 4px; mask-size: 4px 4px; }
 .lf-lit ~ .lf-glow, .lf-band:hover .lf-glow { opacity: .55; }
-@media (prefers-reduced-motion: no-preference) {
-  .lf-dots { animation: lf-drift 60s linear infinite; }
-}
-@keyframes lf-drift { to { translate: -360px 0; } }
 `;
 
 const Icon = ({ d }: { d: string }) => (
@@ -47,32 +42,12 @@ const YOUTUBE = "M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5
 
 export function Footer() {
   const { studio, footer, nav } = content;
-  const field = useRef<HTMLDivElement>(null);
-  const frame = useRef(0);
 
   const links = [
     ...nav.links.map((l) => ({ label: l.label, href: href(l.href) })),
     { label: "Web apps", href: href("/web-app-development") },
     { label: "Mobile apps", href: href("/mobile-app-development") },
   ];
-
-  const onMove = (e: PointerEvent<HTMLDivElement>) => {
-    if (e.pointerType !== "mouse" || !field.current) return;
-    const el = field.current;
-    const band = el.parentElement!;
-    const r = el.getBoundingClientRect();
-    const x = e.clientX - r.left, y = e.clientY - r.top;
-    cancelAnimationFrame(frame.current);
-    frame.current = requestAnimationFrame(() => {
-      band.style.setProperty("--lf-x", `${x}px`);
-      band.style.setProperty("--lf-y", `${y}px`);
-      el.classList.add("lf-lit");
-    });
-  };
-  const onLeave = () => {
-    cancelAnimationFrame(frame.current);
-    field.current?.classList.remove("lf-lit");
-  };
 
   const toTop = (e: MouseEvent) => {
     // on the home page the film flies you back to the start; elsewhere it's a link home
@@ -102,27 +77,23 @@ export function Footer() {
       </div>
 
       {/* the lights, with the name cut out of them */}
-      <div aria-hidden className="lf-band relative h-[clamp(72px,12vw,176px)] overflow-hidden" onPointerMove={onMove} onPointerLeave={onLeave}>
-        <div ref={field} className="lf-field">
+      <div aria-hidden className="lf-band relative h-[clamp(72px,12vw,176px)] overflow-hidden">
+        <div className="lf-field">
           <div className="lf-dots" />
         </div>
-        <div className="lf-glow" />
         <p className="pointer-events-none absolute -bottom-[0.06em] left-[calc(var(--gutter)-0.06em)] select-none whitespace-nowrap text-[clamp(60px,15.6vw,250px)] font-[600] leading-[0.8] tracking-[-0.055em] text-[var(--lf-bg)]">
           {studio.name}
         </p>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3 px-[var(--gutter)] py-5 text-[12px] text-paper/40">
-        <div className="flex items-center gap-5">
-          <span>© {studio.year} {studio.name}</span>
+      <div className="flex items-center justify-between gap-4 whitespace-nowrap px-[var(--gutter)] py-5 text-[12px] text-paper/40">
+        <span>© {studio.year}<span className="max-sm:hidden"> {studio.name}</span></span>
+        <div className="flex items-center gap-4 sm:gap-6">
           <a href={href("/privacy")} className="transition-colors hover:text-paper">{footer.privacy}</a>
-        </div>
-        <div className="flex items-center gap-1">
-          <a href={studio.linkedin} target="_blank" rel="noopener" aria-label="LinkedIn" className="grid h-8 w-8 place-items-center rounded-full transition-colors hover:bg-white/[0.06] hover:text-paper"><Icon d={LINKEDIN} /></a>
-          <a href={studio.youtube} target="_blank" rel="noopener" aria-label="YouTube" className="grid h-8 w-8 place-items-center rounded-full transition-colors hover:bg-white/[0.06] hover:text-paper"><Icon d={YOUTUBE} /></a>
-          <span aria-hidden className="mx-2 h-3.5 w-px bg-white/12" />
-          <a href={href("/")} onClick={toTop} className="group inline-flex items-center gap-1.5 transition-colors hover:text-paper">
-            {footer.top}
+          <a href={studio.linkedin} target="_blank" rel="noopener" aria-label="LinkedIn" className="transition-colors hover:text-paper"><Icon d={LINKEDIN} /></a>
+          <a href={studio.youtube} target="_blank" rel="noopener" aria-label="YouTube" className="transition-colors hover:text-paper"><Icon d={YOUTUBE} /></a>
+          <a href={href("/")} onClick={toTop} aria-label={footer.top} className="group inline-flex items-center gap-1.5 transition-colors hover:text-paper">
+            <span className="max-sm:hidden">{footer.top}</span>
             <svg viewBox="0 0 24 24" className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
           </a>
         </div>

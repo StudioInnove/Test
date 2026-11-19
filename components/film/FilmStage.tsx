@@ -1,15 +1,16 @@
 "use client";
 
 import Lenis from "lenis";
+import { AnimatePresence, motion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { asset, content, href } from "@/lib/content";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
 import { LaunchTrack, WaitlistForm } from "../Originals";
 import { Words } from "../Words";
-import { FilmEngine, type Manifest, type Single } from "./engine";
+import { FilmEngine, type Manifest, type Shot, type Single } from "./engine";
 import { SCENES, sceneIndex, type SceneKey } from "./scenes";
-import type { ClipId } from "./timeline";
+import { SPOTS, type ClipId } from "./timeline";
 
 /*
  * How the film moves
@@ -37,12 +38,16 @@ export function FilmStage() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
   const lineRef = useRef<HTMLDivElement>(null);
+  const spotRef = useRef<HTMLButtonElement>(null);
+  const peekRef = useRef<(open: boolean) => void>(() => {});
+  const [panel, setPanel] = useState<"web" | "mobile" | null>(null);
   const soundRef = useRef<Soundscape | null>(null);
   const cutRef = useRef<(i: number) => void>(() => {});
   const [progress, setProgress] = useState(0);
   const [ready, setReady] = useState(false);
   const [scene, setScene] = useState(0);
   const [audible, setAudible] = useState(false);
+  const [soundPref, setSoundPref] = useState(true);
 
   useEffect(() => {
     const stage = stageRef.current!;
@@ -102,13 +107,19 @@ export function FilmStage() {
 
     const overlays = Array.from(stage.querySelectorAll<HTMLElement>("[data-scene]"));
     let lastW = 0, lastH = 0;
+    let lastKey = "";
+    // stepping closer to something in a room (the monitor, the phone)
+    let peekTarget = 0;
+    let peekZ = 0;
+    let spotShown = false;
     const resize = () => {
       const w = canvas.clientWidth, h = canvas.clientHeight;
       // the phone's address bar sliding in and out changes only the height a little: ignore it
       if (touchUI && w === lastW && Math.abs(h - lastH) < 140 && lastH) return;
       lastW = w;
       lastH = h;
-      engine?.resize(w, h, Math.min(window.devicePixelRatio || 1, 2));
+      engine?.resize(w, h, Math.min(window.devicePixelRatio || 1, touchUI ? 1.5 : 2));
+      lastKey = "";
     };
     window.addEventListener("resize", resize);
 
@@ -139,7 +150,7 @@ export function FilmStage() {
 
     const hasLoop = (i: number) => {
       const l = SCENES[i]?.loop;
-      return !!(l && engine && engine.frames(l) > 1 && !reduce);
+      return !!(l && engine && engine.frames(l) > 1 && !reduce && engine.loadedRatio([l]) >= 1);
     };
 
     const preload = (i: number) => {
@@ -156,7 +167,9 @@ export function FilmStage() {
 
     const restShot = (i: number, now: number): Single => {
       if (hasLoop(i)) {
-        const t = ((((now - arrivedAt) / LOOP_S) % 1) + 1) % 1;
+        let t = ((((now - arrivedAt) / LOOP_S) % 1) + 1) % 1;
+        // phones: 30 steps a second is plenty for a slow city loop, and halves the work
+        if (touchUI) t = Math.floor(t * LOOP_S * 30) / (LOOP_S * 30);
         return { kind: "clip", clip: SCENES[i].loop!, from: SCENES[i].still, to: SCENES[i].still, t };
       }
       return { kind: "hold", still: SCENES[i].still, rest: 1 };
@@ -170,6 +183,7 @@ export function FilmStage() {
     // Start gliding towards scene i.
     const head = (i: number) => {
       i = Math.max(0, Math.min(LAST, i));
+      if (peekTarget) setPeek(false);
       if (i === target && moving) return;
       if (!moving) {
         departShot = lastShot;
@@ -183,6 +197,7 @@ export function FilmStage() {
 
     // Jump straight to scene i under a soft curtain (nav links, long jumps).
     const cut = (i: number) => {
+      if (peekTarget) setPeek(false);
       curtain.style.transition = "opacity 480ms cubic-bezier(0.77,0,0.175,1)";
       curtain.style.opacity = "1";
       showText(null);
@@ -236,9 +251,23 @@ export function FilmStage() {
       else if (i !== current || moving) cut(i);
     };
 
+    const setPeek = (open: boolean) => {
+      const spot = SPOTS[SCENES[current].still];
+      if (open && (!spot || moving)) return;
+      peekTarget = open ? 1 : 0;
+      stage.classList.toggle("peeking", open);
+      setPanel(open && spot ? (spot.id as "web" | "mobile") : null);
+    };
+    peekRef.current = setPeek;
+
     /** One unit of scroll intent. dy in pixels (+ = forward); fresh = the start of a new gesture. */
     const input = (dy: number, fresh: boolean) => {
       if (!started || !dy) return;
+      // looking closer at something: the first scroll steps back out
+      if (peekTarget) {
+        if (fresh) setPeek(false);
+        return;
+      }
       const now = performance.now() / 1000;
       const dir = Math.sign(dy);
       if (!moving && held) {
@@ -273,13 +302,19 @@ export function FilmStage() {
         }
         return;
       }
+      if (Math.abs(e.deltaX) > Math.abs(e.deltaY) && (e.target as HTMLElement)?.closest?.("[data-hscroll]")) return;
+      if ((e.target as HTMLElement)?.closest?.("[data-panel]")) return;
       e.preventDefault();
       if (Math.abs(dy) < 1) return;
       input(dy, fresh);
     };
     // On a touch screen one swipe is one scene: the swipe's speed sets how briskly the film glides.
+    let touchX0 = 0;
+    let sideways = false;
     const onTouchStart = (e: TouchEvent) => {
       touchY0 = e.touches[0].clientY;
+      touchX0 = e.touches[0].clientX;
+      sideways = false;
       touchT0 = performance.now();
       swiped = false;
     };
@@ -294,6 +329,13 @@ export function FilmStage() {
         }
         return;
       }
+      if ((e.target as HTMLElement)?.closest?.("[data-panel]")) return;
+      // a sideways drag inside the process strip scrolls the strip, not the film
+      const dx = touchX0 - e.touches[0].clientX;
+      if (sideways || (Math.abs(dx) > Math.abs(d) && Math.abs(dx) > 6 && (e.target as HTMLElement)?.closest?.("[data-hscroll]"))) {
+        sideways = true;
+        return;
+      }
       e.preventDefault();
       if (swiped || Math.abs(d) < 34) return;
       swiped = true;
@@ -304,6 +346,7 @@ export function FilmStage() {
       touchY0 = null;
     };
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && peekTarget) return setPeek(false);
       if (!filmMode || ["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
       if (["ArrowDown", "PageDown", " "].includes(e.key)) { e.preventDefault(); input(300, true); }
       if (["ArrowUp", "PageUp"].includes(e.key)) { e.preventDefault(); input(-300, true); }
@@ -350,6 +393,30 @@ export function FilmStage() {
     };
     window.addEventListener("film:goto", onGoto);
 
+    // with a mouse, the process strip can be dragged sideways
+    const strip = stage.querySelector<HTMLElement>("[data-hscroll]");
+    let dragX: number | null = null;
+    const sDown = (e: PointerEvent) => {
+      if (e.pointerType !== "mouse" || !strip) return;
+      dragX = e.clientX;
+      strip.style.scrollSnapType = "none";
+      strip.style.cursor = "grabbing";
+    };
+    const sMove = (e: PointerEvent) => {
+      if (dragX === null || !strip) return;
+      strip.scrollLeft -= e.clientX - dragX;
+      dragX = e.clientX;
+    };
+    const sUp = () => {
+      if (dragX === null || !strip) return;
+      dragX = null;
+      strip.style.cursor = "";
+      strip.style.scrollSnapType = "";
+    };
+    strip?.addEventListener("pointerdown", sDown);
+    window.addEventListener("pointermove", sMove);
+    window.addEventListener("pointerup", sUp);
+
     const opts = { mouse: [0, 0] as [number, number], pointer: [0.5, 0.5] as [number, number], motion: 0 };
 
     const tick = (nowMs: number) => {
@@ -359,6 +426,8 @@ export function FilmStage() {
       const dt = Math.min(0.05, (nowMs - lastTick) / 1000);
       lastTick = nowMs;
       boost *= Math.exp(-dt / 0.45);
+      peekZ += (peekTarget - peekZ) * Math.min(1, dt * (peekTarget ? 2.6 : 3.4));
+      if (Math.abs(peekTarget - peekZ) < 0.001) peekZ = peekTarget;
 
       if (moving) {
         const d = target - pos;
@@ -383,23 +452,49 @@ export function FilmStage() {
         }
       }
 
-      if (engine?.ready) {
+      // below the film (FAQ, footer) there's nothing to draw: leave the GPU free for scrolling
+      const visible = filmMode || window.scrollY < stage.clientHeight;
+      if (engine?.ready && visible) {
         let shot: Single;
+        // paint only when the picture would actually change
+        const keyOf = (s: Single) => (s.kind === "hold" ? `h${s.still}` : `c${s.clip}${s.t.toFixed(4)}`);
+        const spot = !moving ? SPOTS[SCENES[current].still] : undefined;
+        const spotAt = spot ? engine.stillPoint(SCENES[current].still, spot.u, spot.v) : null;
+        const pz = smooth(peekZ);
+        const draw = (s: Shot) => {
+          const k = (s.kind === "mix" ? `m${keyOf(s.a)}${keyOf(s.b)}${s.mix.toFixed(3)}` : keyOf(s)) + "v" + engine!.version + "p" + pz.toFixed(3);
+          if (k === lastKey) return;
+          lastKey = k;
+          engine!.paint(s, { time: now, ...opts, peek: spotAt && pz > 0 ? { z: pz, f: spotAt } : undefined });
+        };
         if (!moving) {
           shot = restShot(current, now);
           const f = arriveShot ? smooth(clamp((now - arrivedAt) / 0.8)) : 1;
-          if (f < 1) engine.paint({ kind: "mix", a: arriveShot!, b: shot, mix: f }, { time: now, ...opts });
+          if (f < 1) draw({ kind: "mix", a: arriveShot!, b: shot, mix: f });
           else {
             arriveShot = null;
-            engine.paint(shot, { time: now, ...opts });
+            draw(shot);
           }
         } else {
           shot = clipShot(pos);
           const f = departShot ? smooth(clamp(Math.abs(pos - departPos) / 0.07)) : 1;
-          if (f < 1) engine.paint({ kind: "mix", a: departShot!, b: shot, mix: f }, { time: now, ...opts });
-          else engine.paint(shot, { time: now, ...opts });
+          if (f < 1) draw({ kind: "mix", a: departShot!, b: shot, mix: f });
+          else draw(shot);
         }
         lastShot = shot;
+        // the "look closer" marker sits on the object, once the scene has settled
+        const mark = spotRef.current;
+        if (mark) {
+          const show = !!spotAt && !moving && shown === current && peekTarget === 0 && now - arrivedAt > 0.9;
+          if (show) {
+            const p = engine.toScreen(spotAt!);
+            mark.style.transform = `translate3d(${p[0] * canvas.clientWidth}px, ${p[1] * canvas.clientHeight}px, 0)`;
+          }
+          if (show !== spotShown) {
+            spotShown = show;
+            mark.classList.toggle("on", show);
+          }
+        }
         // the thin line along the bottom: how far through the film we are
         const at = Math.round((pos / LAST) * 1000) / 1000;
         if (line && at !== lineAt) {
@@ -422,6 +517,7 @@ export function FilmStage() {
       try { pref = localStorage.getItem("si-sound") || "on"; } catch {}
       const s = (soundRef.current = new Soundscape());
       s.onChange = setAudible;
+      setSoundPref(pref !== "off");
       if (pref !== "off") s.start(true);
       const hash = window.location.hash.slice(1);
       const map: Record<string, number> = { services: 1, web: 2, mobile: 3, how: 4, originals: 5, contact: 6 };
@@ -441,12 +537,14 @@ export function FilmStage() {
         preload(0);
         // in as soon as the hero and the first transition can play
         const t0 = performance.now();
-        const need: ClipId[] = engine.frames("cl") > 1 ? ["c1", "cl"] : ["c1"];
+        // in as soon as the first move can play (its frames load coarse-to-fine); the night loop
+        // streams in behind and takes over from the still when it's complete
+        const need: ClipId[] = ["c1"];
         const wait = () => {
           if (!alive) return;
-          const have = engine!.loadedRatio(need);
+          const have = Math.min(1, engine!.loadedRatio(need) / 0.6);
           setProgress(0.5 + have * 0.5);
-          if ((have > 0.97 && performance.now() - t0 > 500) || performance.now() - t0 > 8000) begin();
+          if ((have >= 1 && performance.now() - t0 > 500) || performance.now() - t0 > 7000) begin();
           else setTimeout(wait, 100);
         };
         wait();
@@ -473,6 +571,9 @@ export function FilmStage() {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("film:goto", onGoto);
+      strip?.removeEventListener("pointerdown", sDown);
+      window.removeEventListener("pointermove", sMove);
+      window.removeEventListener("pointerup", sUp);
       gestures.forEach((ev) => window.removeEventListener(ev, unlockSound, { capture: true }));
       lenis?.destroy();
       root.classList.remove("film-lock");
@@ -491,6 +592,7 @@ export function FilmStage() {
     s.onChange = setAudible;
     const next = !s.audible;
     try { localStorage.setItem("si-sound", next ? "on" : "off"); } catch {}
+    setSoundPref(next);
     await s.start(next);
     if (next) s.unlock();
   };
@@ -512,13 +614,17 @@ export function FilmStage() {
         </div>
 
         {/* ---------------- Scenes ---------------- */}
-        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[108px] md:pb-[13svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.85)_0%,rgb(7_10_18/0.4)_40%,transparent_65%)] md:[background:linear-gradient(20deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.62)_38%,transparent_64%)]" />
-          <h1 className="t-display max-w-[11ch]"><Words text={hero.headline} /></h1>
-          <p className="rise t-body mt-5 max-w-[36ch] text-paper/80" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
-          <div className="rise mt-8 flex flex-wrap items-center gap-6" style={{ ["--d" as string]: "450ms" }}>
-            <BookCall>{hero.primary}</BookCall>
-            <a href="#originals" className="btn btn-ghost">{hero.secondary}</a>
+        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:pb-[11svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.5)_38%,transparent_62%)]" />
+          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12">
+            <h1 className="max-w-[10ch] text-[clamp(52px,8.6vw,148px)] font-[320] leading-[0.94] tracking-[-0.045em] [text-wrap:balance]"><Words text={hero.headline} /></h1>
+            <div className="md:max-w-[340px] md:pb-[0.6vw]">
+              <p className="rise text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
+              <div className="rise mt-7 flex flex-wrap items-center gap-3" style={{ ["--d" as string]: "450ms" }}>
+                <BookCall>{hero.primary}</BookCall>
+                <a href="#originals" className="btn btn-ghost">{hero.secondary}</a>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -532,34 +638,44 @@ export function FilmStage() {
           </h2>
         </section>
 
-        {(["web", "mobile"] as const).map((k) => {
-          const s = services[k];
-          return (
-            <section key={k} data-scene={k} aria-label={s.title} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[100px] md:pb-[13svh]" style={sceneStyle}>
-              <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.88)_0%,rgb(7_10_18/0.45)_38%,transparent_62%)]" />
-              <div className="max-w-[440px]">
-                <h2 className="t-title"><Words text={s.title} /></h2>
-                <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "200ms" }}>{s.line}</p>
-                <ul className="rise mt-6 flex flex-wrap gap-1.5" style={{ ["--d" as string]: "320ms" }}>
-                  {s.tags.map((t) => <li key={t} className="pill">{t}</li>)}
-                </ul>
-              </div>
-            </section>
-          );
-        })}
+        {/* Web: the title along the bottom, the words to the right */}
+        <section data-scene="web" aria-label={services.web.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:pb-[11svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.45)_34%,transparent_58%)]" />
+          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-12">
+            <h2 className="text-[clamp(52px,8vw,136px)] font-[320] leading-[0.92] tracking-[-0.045em]"><Words text={services.web.title} /></h2>
+            <div className="md:max-w-[360px] md:pb-[0.5vw]">
+              <p className="rise text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "200ms" }}>{services.web.line}</p>
+              <p className="rise mt-4 text-[14px] text-paper/50" style={{ ["--d" as string]: "320ms" }}>{services.web.tags.join("  ·  ")}</p>
+            </div>
+          </div>
+        </section>
 
-        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[100px] md:pb-[12svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.55)_40%,transparent_70%)]" />
-          <h2 className="t-title mb-10 md:mb-14"><Words text={how.heading} /></h2>
-          <div className="relative">
-            <div className="absolute inset-x-0 top-0 h-px bg-white/15" />
-            <div className="steps-bar absolute inset-x-0 top-0 h-px origin-left bg-paper" />
-            <ol className="grid grid-cols-2 gap-x-6 gap-y-8 pt-6 md:grid-cols-4 md:gap-[34px]">
-              {how.steps.map((s, i) => (
-                <li key={s.title} className="rise" style={{ ["--d" as string]: `${150 + i * 160}ms` }}>
-                  <p className="index mb-3">0{i + 1}</p>
-                  <p className="t-head">{s.title}</p>
-                  <p className="t-body mt-2 max-w-[26ch] text-[15px] text-paper/75">{s.line}</p>
+        {/* Mobile: the title up top, the words beneath it, the phone free below */}
+        <section data-scene="mobile" aria-label={services.mobile.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-start md:pb-0 md:pt-[17svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.4)_34%,transparent_58%)] md:[background:linear-gradient(180deg,rgb(7_10_18/0.82)_0%,rgb(7_10_18/0.4)_34%,transparent_56%)]" />
+          <div className="max-w-[560px]">
+            <h2 className="text-[clamp(52px,8vw,136px)] font-[320] leading-[0.92] tracking-[-0.045em]"><Words text={services.mobile.title} /></h2>
+            <p className="rise mt-5 max-w-[40ch] text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "200ms" }}>{services.mobile.line}</p>
+            <p className="rise mt-4 text-[14px] text-paper/50" style={{ ["--d" as string]: "320ms" }}>{services.mobile.tags.join("  ·  ")}</p>
+          </div>
+        </section>
+
+        {/* Process: a strip of steps you drag sideways */}
+        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
+          <div className="mb-8 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-12">
+            <h2 className="text-[clamp(36px,4.4vw,64px)] font-[320] leading-[1] tracking-[-0.04em]"><Words text={how.heading} /></h2>
+            <p className="rise hidden text-[13px] text-paper/45 sm:block" style={{ ["--d" as string]: "500ms" }}>{how.drag} →</p>
+          </div>
+          <div data-hscroll className="hstrip relative overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ol className="flex w-max snap-x snap-mandatory gap-0 px-[var(--gutter)]">
+              {how.steps.map((st, i) => (
+                <li key={st.title} className="rise relative w-[78vw] max-w-[380px] shrink-0 snap-start pr-8 sm:w-[44vw] md:w-[30vw]" style={{ ["--d" as string]: `${150 + i * 140}ms` }}>
+                  <div className="mb-7 h-px w-full bg-paper/15">
+                    <div className="steps-bar h-px origin-left bg-paper" style={{ transitionDelay: `${300 + i * 260}ms` }} />
+                  </div>
+                  <p className="text-[clamp(34px,3.6vw,52px)] font-[320] leading-none tracking-[-0.04em]">{st.title}</p>
+                  <p className="mt-4 max-w-[30ch] text-[16px] leading-[1.5] text-paper/70">{st.line}</p>
                 </li>
               ))}
             </ol>
@@ -591,6 +707,48 @@ export function FilmStage() {
           </div>
         </section>
 
+        {/* ---------------- Look closer: a marker on the object, and the panel it opens ---------------- */}
+        <div className="film-frame pointer-events-none absolute inset-x-0 top-0 z-20">
+          <button ref={spotRef} type="button" onClick={() => peekRef.current(true)} aria-label="Look closer" className="spot pointer-events-auto absolute left-0 top-0 -ml-6 -mt-6 flex h-12 items-center gap-3 pl-6 pr-3">
+            <span aria-hidden className="spot-dot relative -ml-[5px] block h-2.5 w-2.5 rounded-full bg-paper" />
+            <span className="spot-label text-[13px] text-paper">{services.web.more.spot}</span>
+          </button>
+        </div>
+        <AnimatePresence>
+          {panel && (
+            <motion.aside
+              key={panel}
+              data-panel
+              role="dialog"
+              aria-label={services[panel].more.title}
+              initial={{ opacity: 0, x: 40 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: 30, transition: { duration: 0.3 } }}
+              transition={{ duration: 0.7, ease: [0.23, 1, 0.32, 1], delay: 0.25 }}
+              className="panel absolute z-40 flex flex-col bg-ink-2 max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[72%] max-md:rounded-t-[22px] max-md:border-t max-md:border-paper/10 md:inset-y-0 md:right-0 md:w-[min(460px,40vw)] md:border-l md:border-paper/10"
+            >
+              <div className="flex items-center justify-between px-7 pb-2 pt-6 md:px-10 md:pt-24">
+                <p className="text-[13px] text-paper/45">{services[panel].more.title}</p>
+                <button type="button" onClick={() => peekRef.current(false)} className="-mr-2 px-2 py-2 text-[13px] text-paper/70 underline decoration-paper/25 underline-offset-4 hover:text-paper">Close</button>
+              </div>
+              <div className="overflow-y-auto px-7 pb-[max(28px,env(safe-area-inset-bottom))] md:px-10">
+                <p className="mt-4 text-[clamp(24px,2.2vw,30px)] leading-[1.15] tracking-[-0.03em]">{services[panel].more.line}</p>
+                <ul className="mt-8 border-t border-paper/12">
+                  {services[panel].more.items.map((it, i) => (
+                    <motion.li key={it} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.45 + i * 0.07 }} className="border-b border-paper/12 py-4 text-[17px] text-paper/85">
+                      {it}
+                    </motion.li>
+                  ))}
+                </ul>
+                <div className="mt-9 flex flex-wrap items-center gap-3">
+                  <BookCall>{services.cta}</BookCall>
+                  <a href={href(services[panel].more.href)} className="btn btn-ghost">{services[panel].more.link}</a>
+                </div>
+              </div>
+            </motion.aside>
+          )}
+        </AnimatePresence>
+
         {/* ---------------- Quiet controls ---------------- */}
         <div className={`pointer-events-none absolute inset-x-[var(--gutter)] bottom-6 z-10 flex items-center justify-between transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
           <div className="pointer-events-auto flex items-center gap-3">
@@ -606,12 +764,13 @@ export function FilmStage() {
                 <span key={i} className="w-px bg-current" style={{ height: audible ? undefined : "3px", animation: audible ? `eq 1.${i + 2}s ease-in-out ${i * 0.15}s infinite alternate` : "none" }} />
               ))}
             </span>
-            Sound {audible ? "on" : "off"}
+            {audible ? "Sound on" : soundPref ? "Turn sound on" : "Sound off"}
           </button>
         </div>
 
         {/* ---------------- Loader: the city surfaces, then lets you straight in ---------------- */}
-        <div aria-hidden={ready} className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[opacity,visibility] duration-[1400ms] [transition-timing-function:var(--ease-film)] ${ready ? "invisible opacity-0" : "opacity-100"}`}>
+        {/* when ready it opens from the middle, like blinds parting on the city */}
+        <div aria-hidden={ready} className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[clip-path,visibility] duration-[1500ms] [transition-timing-function:cubic-bezier(0.77,0,0.175,1)] ${ready ? "invisible" : ""}`} style={{ clipPath: ready ? "inset(50% 0 50% 0)" : "inset(0 0 0 0)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset("/film/stills/s1n-m.webp")}

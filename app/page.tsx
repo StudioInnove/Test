@@ -47,7 +47,6 @@ export default function Home() {
         <div aria-hidden className="pointer-events-none absolute -left-[20%] top-0 h-[70%] w-[70%] [background:radial-gradient(closest-side,rgb(232_161_90/0.07),transparent)]" />
         <InView className="relative grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
           <div className="md:col-span-2">
-            <p className="rise t-label mb-4">FAQ</p>
             <h2 className="t-title"><Words text={faq.heading} /></h2>
             <p className="rise t-lead mt-4 max-w-[30ch]" style={{ ["--d" as string]: "300ms" }}>
               {faq.line} {studio.replyPromise}

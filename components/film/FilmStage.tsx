@@ -109,6 +109,14 @@ export function FilmStage() {
     let lastW = 0, lastH = 0;
     let lastKey = "";
     // stepping closer to something in a room (the monitor, the phone)
+    // desktop: the camera drifts a little toward the cursor, slowly
+    const look = { tx: 0, ty: 0, x: 0, y: 0 };
+    const lookOn = !touchUI && !reduce && window.matchMedia("(pointer: fine)").matches;
+    const onLook = (e: PointerEvent) => {
+      look.tx = (e.clientX / window.innerWidth) * 2 - 1;
+      look.ty = (e.clientY / window.innerHeight) * 2 - 1;
+    };
+    if (lookOn) window.addEventListener("pointermove", onLook, { passive: true });
     let peekTarget = 0;
     let peekZ = 0;
     let spotShown = false;
@@ -427,6 +435,11 @@ export function FilmStage() {
       lastTick = nowMs;
       boost *= Math.exp(-dt / 0.45);
       peekZ += (peekTarget - peekZ) * Math.min(1, dt * (peekTarget ? 2.6 : 3.4));
+      if (lookOn) {
+        const k = Math.min(1, dt * 1.6);
+        look.x += (look.tx - look.x) * k;
+        look.y += (look.ty - look.y) * k;
+      }
       if (Math.abs(peekTarget - peekZ) < 0.001) peekZ = peekTarget;
 
       if (moving) {
@@ -462,10 +475,11 @@ export function FilmStage() {
         const spotAt = spot ? engine.stillPoint(SCENES[current].still, spot.u, spot.v) : null;
         const pz = smooth(peekZ);
         const draw = (s: Shot) => {
-          const k = (s.kind === "mix" ? `m${keyOf(s.a)}${keyOf(s.b)}${s.mix.toFixed(3)}` : keyOf(s)) + "v" + engine!.version + "p" + pz.toFixed(3);
+          const dx = lookOn ? Math.round(look.x * 400) / 400 : 0, dy = lookOn ? Math.round(look.y * 400) / 400 : 0;
+          const k = (s.kind === "mix" ? `m${keyOf(s.a)}${keyOf(s.b)}${s.mix.toFixed(3)}` : keyOf(s)) + "v" + engine!.version + "p" + pz.toFixed(3) + "d" + dx + "," + dy;
           if (k === lastKey) return;
           lastKey = k;
-          engine!.paint(s, { time: now, ...opts, peek: spotAt && pz > 0 ? { z: pz, f: spotAt } : undefined });
+          engine!.paint(s, { time: now, ...opts, peek: spotAt && pz > 0 ? { z: pz, f: spotAt } : undefined, drift: lookOn ? [dx * (1 - pz), dy * (1 - pz)] : undefined });
         };
         if (!moving) {
           shot = restShot(current, now);
@@ -571,6 +585,7 @@ export function FilmStage() {
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick, true);
       window.removeEventListener("film:goto", onGoto);
+      window.removeEventListener("pointermove", onLook);
       strip?.removeEventListener("pointerdown", sDown);
       window.removeEventListener("pointermove", sMove);
       window.removeEventListener("pointerup", sUp);
@@ -620,7 +635,6 @@ export function FilmStage() {
         <section data-scene="hero" aria-label="Introduction" className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.5)_36%,transparent_60%)] md:[background:linear-gradient(15deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.55)_36%,transparent_62%)]" />
           <div className="stack max-w-[640px]">
-            <p className="rise t-label">{hero.label}</p>
             <h1 className="t-display"><Words text={hero.headline} /></h1>
             <p className="rise t-lead max-w-[38ch]" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
             <div className="rise actions" style={{ ["--d" as string]: "420ms" }}>
@@ -630,15 +644,14 @@ export function FilmStage() {
           </div>
         </section>
 
-        <section data-scene="services" aria-label={services.intro} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(70%_60%_at_50%_50%,rgb(7_10_18/0.8),rgb(7_10_18/0.35)_70%,rgb(7_10_18/0.1)_100%)]" />
-          <div className="stack center max-w-[18ch] md:max-w-none">
-            <p className="rise t-label">{services.intro}</p>
-            <h2 className="t-display">
-              <span className="wipe block"><Words text={services.headline[0]} /></span>
-              <span className="wipe block text-paper/55" style={{ ["--d" as string]: "250ms" }}><Words text={services.headline[1]} /></span>
-            </h2>
-          </div>
+        <section data-scene="services" aria-label={services.intro} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_65%_at_50%_50%,rgb(7_10_18/0.78),rgb(7_10_18/0.35)_70%,rgb(7_10_18/0.15)_100%)]" />
+          <p className="rise t-small mb-6 text-paper/70">{services.intro}</p>
+          <h2 className="t-mono max-w-[16ch] text-[clamp(44px,7.4vw,112px)]">
+            <Words text={services.headline[0]} />
+            <br />
+            <span className="text-paper/60"><Words text={services.headline[1]} delay={180} /></span>
+          </h2>
         </section>
 
         {(["web", "mobile"] as const).map((k, n) => {
@@ -647,7 +660,6 @@ export function FilmStage() {
             <section key={k} data-scene={k} aria-label={sv.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
               <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.45)_34%,transparent_58%)]" />
               <div className="stack">
-                <p className="rise t-label">{sv.label}</p>
                 <h2 className={`t-title ${n ? "wipe" : ""}`}><Words text={sv.title} /></h2>
                 <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{sv.line}</p>
                 <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
@@ -664,7 +676,6 @@ export function FilmStage() {
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
           <div className="mb-10 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-14">
             <div className="stack">
-              <p className="rise t-label">{how.label}</p>
               <h2 className="t-title"><Words text={how.heading} /></h2>
             </div>
             <p className="rise t-label hidden sm:block" style={{ ["--d" as string]: "500ms" }}>{how.drag} →</p>
@@ -676,7 +687,6 @@ export function FilmStage() {
                   <div className="mb-6 h-px w-full bg-paper/15">
                     <div className="steps-bar h-px origin-left bg-paper" style={{ transitionDelay: `${400 + i * 240}ms` }} />
                   </div>
-                  <p className="t-label mb-3">{String(i + 1).padStart(2, "0")}</p>
                   <h3 className="t-title">{st.title}</h3>
                   <p className="t-body mt-4 max-w-[30ch]">{st.line}</p>
                 </li>
@@ -688,7 +698,6 @@ export function FilmStage() {
         <section data-scene="originals" aria-label={originals.eyebrow} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.92),rgb(7_10_18/0.5)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.6)_38%,transparent_62%)]" />
           <div className="stack max-w-[460px]">
-            <p className="rise t-label">{originals.eyebrow}</p>
             <h2 className="t-title wipe"><Words text={originals.heading} /></h2>
             <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
             <div className="rise mt-10 w-full" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>

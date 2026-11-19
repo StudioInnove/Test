@@ -2,8 +2,8 @@
 
 /*
  * The foot of the page: a field of tiny city lights seen from very high up, with the studio's name
- * cut out of them across the full width. Now and then a window goes on or off, and every so often a
- * little train slides along the bottom. On a computer the lights near the cursor warm up a touch.
+ * cut out of them across the full width. Lights glitter, a shimmer runs up and down through them in a
+ * few places, and every so often a little train slides along the bottom. On a computer the lights near the cursor warm up a touch.
  * Drawn on a canvas at a calm frame rate, and only while it's on screen.
  */
 import { useEffect, useRef } from "react";
@@ -30,6 +30,16 @@ export function CityLights({ text }: { text: string }) {
     let raf = 0, last = 0;
     let train = { x: -1, speed: 0, next: performance.now() + 4000 };
     const mouse = { x: -1e4, y: -1e4 };
+    // places where the lights shimmer up and down for a while, then move elsewhere
+    type Shimmer = { x: number; w: number; speed: number; phase: number; from: number; until: number; fade: (t: number) => number };
+    const newShimmer = (t: number): Shimmer => {
+      const from = t, until = t + 6 + Math.random() * 8;
+      return {
+        x: Math.random() * (W || 1200), w: 40 + Math.random() * 110, speed: 0.6 + Math.random() * 0.7, phase: Math.random() * 6.28, from, until,
+        fade: (n: number) => Math.min(1, (n - from) / 1.5, (until - n) / 1.5),
+      };
+    };
+    const shimmers: Shimmer[] = [0, 1, 2].map(() => newShimmer(performance.now() / 1000 - Math.random() * 6));
 
     const inText = (x: number, y: number) => {
       if (!mask) return false;
@@ -82,24 +92,40 @@ export function CityLights({ text }: { text: string }) {
     const draw = (now: number) => {
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, W, H);
-      // a few windows change each frame: one goes bright, one goes dark
+      // glitter: a handful of lights sparkle up and settle each frame
       if (!reduce && dots.length) {
-        for (let k = 0; k < 2; k++) {
+        for (let k = 0; k < 6; k++) {
           const d = dots[(Math.random() * dots.length) | 0];
-          d.target = Math.random() < 0.5 ? Math.min(1, d.base + 0.5) : d.base * 0.3;
+          d.target = Math.random() < 0.75 ? 1 : d.base * 0.25;
         }
       }
+      // and in a few places a shimmer runs up and down through the lights
+      const t = now / 1000;
+      for (const sh of shimmers) {
+        if (t > sh.until) Object.assign(sh, newShimmer(t));
+      }
       for (const d of dots) {
-        d.level += (d.target - d.level) * 0.06;
-        if (Math.abs(d.target - d.level) < 0.01 && d.target !== d.base) d.target = d.base;
+        d.level += (d.target - d.level) * (d.target > d.level ? 0.22 : 0.05);
+        if (Math.abs(d.target - d.level) < 0.02 && d.target !== d.base) d.target = d.base;
         let a = d.level;
+        if (!reduce) {
+          for (const sh of shimmers) {
+            const dx = Math.abs(d.x - sh.x);
+            if (dx > sh.w) continue;
+            const wy = H * (0.5 + 0.5 * Math.sin(t * sh.speed + sh.phase));
+            const dy = (d.y - wy) / 14;
+            a += Math.exp(-dy * dy) * (1 - dx / sh.w) * 0.7 * sh.fade(t);
+          }
+        }
         if (fine) {
           const dx = d.x - mouse.x, dy = d.y - mouse.y;
           const near = 1 - Math.min(1, Math.sqrt(dx * dx + dy * dy) / 140);
-          a = Math.min(1, a + near * near * 0.45);
+          a += near * near * 0.45;
         }
-        ctx.fillStyle = d.warm ? `rgba(240,176,108,${a})` : `rgba(239,233,224,${a * 0.85})`;
-        ctx.fillRect(d.x, d.y, 1.6, 1.6);
+        a = Math.min(1, a);
+        const sz = a > 0.9 ? 2.2 : 1.6;
+        ctx.fillStyle = d.warm ? `rgba(240,176,108,${a})` : `rgba(239,233,224,${a * 0.9})`;
+        ctx.fillRect(d.x - (sz - 1.6) / 2, d.y - (sz - 1.6) / 2, sz, sz);
       }
       // the train: a short line of lit carriages along the bottom
       if (!reduce) {

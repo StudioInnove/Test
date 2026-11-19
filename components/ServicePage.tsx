@@ -14,7 +14,6 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
       {/* What we build: big words on fine rules */}
       <section className="bg-ink px-[var(--gutter)] py-24 md:py-36">
         <InView threshold={0.1}>
-          <p className="rise t-label mb-10 md:mb-14">What we build</p>
           <ul className="border-t border-paper/15">
             {p.points.map((pt, i) => (
               <li key={pt.title} className="rise grid gap-3 border-b border-paper/15 py-8 md:grid-cols-[1.2fr_1fr] md:items-baseline md:gap-12 md:py-12" style={{ ["--d" as string]: `${150 + i * 110}ms` }}>
@@ -29,7 +28,6 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
       {/* How it goes: four steps in a row */}
       <section className="bg-ink-2 px-[var(--gutter)] py-24 md:py-36">
         <InView threshold={0.1}>
-          <p className="rise t-label mb-4">Process</p>
           <h2 className="t-title mb-12 md:mb-16"><Words text={how.heading} /></h2>
           <ol className="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {how.steps.map((s, i) => (
@@ -37,7 +35,6 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
                 <div className="mb-7 h-px w-full bg-paper/15">
                   <div className="steps-line h-px origin-left bg-paper" style={{ transitionDelay: `${300 + i * 220}ms` }} />
                 </div>
-                <p className="t-label mb-3">{String(i + 1).padStart(2, "0")}</p>
                 <h3 className="t-title">{s.title}</h3>
                 <p className="t-body mt-4 max-w-[30ch]">{s.line}</p>
               </li>

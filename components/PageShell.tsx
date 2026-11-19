@@ -19,7 +19,6 @@ export function PageShell({ still, alt, eyebrow, title, intro, children }: { sti
         <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.6)_36%,rgb(7_10_18/0.1)_70%)]" />
         <InView className="relative w-full px-[var(--gutter)] pb-[10svh]" threshold={0}>
           <div className="stack max-w-[680px]">
-            <p className="rise t-label">{eyebrow}</p>
             <h1 className="t-display"><Words text={title} delay={150} /></h1>
             <p className="rise t-lead max-w-[40ch]" style={{ ["--d" as string]: "500ms" }}>{intro}</p>
           </div>

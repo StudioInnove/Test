@@ -362,7 +362,7 @@ export class FilmEngine {
     return [((p[0] - c[0]) * z) / s[0] + 0.5, ((p[1] - c[1]) * z) / s[1] + 0.5];
   }
 
-  paint(shot: Shot, opts: { time: number; mouse: [number, number]; pointer: [number, number]; motion: number; peek?: { z: number; f: [number, number] } }) {
+  paint(shot: Shot, opts: { time: number; mouse: [number, number]; pointer: [number, number]; motion: number; peek?: { z: number; f: [number, number] }; drift?: [number, number] }) {
     let A: Bitmap | undefined, B: Bitmap | undefined;
     let aKey = "", bKey = "";
     let mix = 0, zoomA = 1, zoomB = 1, rest = 0;
@@ -427,6 +427,15 @@ export class FilmEngine {
       zoomB *= 1 + 0.42 * z;
       focusA = [focusA[0] + (pk.f[0] - focusA[0]) * z, focusA[1] + (pk.f[1] - focusA[1]) * z];
       focusB = [focusB[0] + (pk.f[0] - focusB[0]) * z, focusB[1] + (pk.f[1] - focusB[1]) * z];
+    }
+
+    // looking around the room: a slow, slight drift with the cursor
+    const dr = opts.drift;
+    if (dr && (dr[0] || dr[1])) {
+      zoomA *= 1.035;
+      zoomB *= 1.035;
+      focusA = [focusA[0] + dr[0] * 0.014, focusA[1] + dr[1] * 0.01];
+      focusB = [focusB[0] + dr[0] * 0.014, focusB[1] + dr[1] * 0.01];
     }
 
     if (this.gl) this.paintGL({ A, B, aKey, bKey, mix, zoomA, zoomB, rest, focusA, focusB, depthKey }, opts);

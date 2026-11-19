@@ -79,7 +79,7 @@
         ],
         "link": "Web apps",
         "href": "/web-app-development",
-        "image": ""
+        "image": "/closeups/web.webp"
       },
       "label": "Services"
     },
@@ -103,7 +103,7 @@
         ],
         "link": "Mobile apps",
         "href": "/mobile-app-development",
-        "image": ""
+        "image": "/closeups/mobile.webp"
       },
       "label": "Services"
     },
@@ -143,7 +143,7 @@
       ],
       "link": "How we work",
       "href": "/web-app-development",
-      "image": ""
+      "image": "/closeups/how.webp"
     }
   },
   "originals": {

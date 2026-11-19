@@ -43,10 +43,10 @@ const SHOTS: Partial<Record<WorldId, (Shot | null)[]>> = {
 };
 
 /** Words on the right (r) or left (l), per chapter. */
-const SIDES: Partial<Record<WorldId, ("l" | "r")[]>> = { web: ["r", "r", "r"], how: ["r", "l", "l", "l"] };
+const SIDES: Partial<Record<WorldId, ("l" | "r")[]>> = { web: ["r", "r", "r"], how: ["l", "l", "l"] };
 
 /** The process close-up walks along the design wall: one step of the process per stop. */
-const WALL = { src: "/worlds/wall-d.webp", aspect: 3800 / 1612, k: 1.32, at: [0.11, 0.355, 0.61, 0.855] };
+const WALL = { src: "/worlds/wall-d.webp", aspect: 3800 / 1612, k: 1.32, at: [0.355, 0.61, 0.855] };
 function Wall({ chap, phone, right }: { chap: number; phone: boolean; right: boolean }) {
   const ref = useRef<HTMLDivElement>(null);
   const [box, setBox] = useState({ w: 1440, h: 900 });

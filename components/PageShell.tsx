@@ -22,7 +22,7 @@ export function PageShell({ still, alt, title, intro, children }: { still: Still
         <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.6)_36%,rgb(7_10_18/0.1)_70%)]" />
         <InView className="relative w-full px-[var(--gutter)] pb-[10svh]" threshold={0}>
           <div className="stack max-w-[680px]">
-            <MaskText as="h1" className="t-display" text={title} delay={300} />
+            <MaskText as="h1" className="scene-title" text={title} delay={300} />
             <p className="rise t-lead max-w-[40ch]" style={{ ["--d" as string]: "500ms" }}>{intro}</p>
           </div>
         </InView>

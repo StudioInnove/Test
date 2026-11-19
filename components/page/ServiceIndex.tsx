@@ -39,8 +39,11 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
     const move = (e: PointerEvent) => {
       const r = root.getBoundingClientRect();
       const x = e.clientX - r.left, y = e.clientY - r.top;
-      qx(x - fl.offsetWidth / 2);
-      qy(y - fl.offsetHeight / 2);
+      // it lives in the right-hand column, clear of the big words: it follows the cursor up and down
+      // and only drifts a little sideways with it
+      const home = r.width - fl.offsetWidth - parseFloat(getComputedStyle(root).paddingRight || "0");
+      qx(home + Math.max(-40, Math.min(24, (x - r.width * 0.6) * 0.06)));
+      qy(y - fl.offsetHeight * 0.5);
       // it leans a touch into the direction you move
       qr(Math.max(-3, Math.min(3, (e.clientX - lx) * 0.15)));
       lx = e.clientX;
@@ -75,10 +78,10 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
           return (
             <li key={it.title} className="rise border-b border-paper/12" style={{ ["--d" as string]: `${150 + i * 180}ms` }} onPointerEnter={() => fine && setHover(i)}>
               <div className="grid gap-6 py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)] md:items-end md:gap-10 md:py-12">
-                <h3 className="si-title transition-opacity duration-700" style={{ opacity: dim ? 0.22 : 1 }}>
+                <h3 className="si-title transition-opacity duration-700" style={{ opacity: dim ? 0.42 : 1 }}>
                   {it.title} <span className="si-phrase">{it.phrase}</span>
                 </h3>
-                <p className="t-body max-w-[32ch] pb-2 transition-opacity duration-700 md:justify-self-end" style={{ opacity: dim ? 0.3 : 1 }}>{it.line}</p>
+                <p className="t-body max-w-[32ch] pb-2 transition-opacity duration-700 md:justify-self-end" style={{ opacity: hover === i ? 0 : dim ? 0.45 : 1 }}>{it.line}</p>
               </div>
               {/* phones: the photograph sits under its line */}
               {!fine && (

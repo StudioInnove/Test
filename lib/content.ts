@@ -15,10 +15,12 @@ export const BASE = process.env.NEXT_PUBLIC_BASE || "/";
 const base = () => (typeof window !== "undefined" && (window as unknown as { __B?: string }).__B) || BASE;
 export const asset = (path: string) => base() + path.replace(/^\//, "");
 
-/** Internal links: absolute on the live site, relative in the preview. */
+/** Internal links: absolute on the live site, relative in the preview (from whichever folder the page is in). */
 export const href = (h: string) => {
   if (BASE === "/") return h;
-  if (h === "/") return "./";
-  if (h.startsWith("/#")) return h.slice(1);
-  return h.replace(/^\//, "") + (h.includes("#") ? "" : "/");
+  const up = base();
+  const pre = up === "./" ? "./" : up;
+  if (h === "/") return pre;
+  if (h.startsWith("/#")) return (up === "./" ? "" : up) + h.slice(1);
+  return pre + h.replace(/^\//, "") + (h.includes("#") ? "" : "/");
 };

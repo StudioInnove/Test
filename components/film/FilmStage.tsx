@@ -6,7 +6,6 @@ import { asset, content, href } from "@/lib/content";
 import { quadMatrix } from "@/lib/quad";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
-import { LaunchTrack, WaitlistForm } from "../Originals";
 import { Words } from "../Words";
 import { WorldClocks } from "../ui/WorldClocks";
 import { BuildScreen, BUILD_SIZE } from "../apps/BuildScreen";
@@ -33,7 +32,7 @@ const FLY_V = 2.4; // flying through several rooms at once
 const ACC = 0.85; // scenes per second², speeding up and braking
 const TEXT_AT = 0.16; // text starts to appear this far (in scenes) before arrival
 const LOOP_S = 5; // length of the seamless loop clip, seconds
-const DAWN_S = 5.5; // how long night takes to turn into sunrise
+const DAY_S = 40; // the hero: night slowly becomes sunrise and back, once every 40 seconds
 const LAST = SCENES.length - 1;
 const clamp = (v: number, a = 0, b = 1) => Math.min(b, Math.max(a, v));
 const smooth = (t: number) => t * t * (3 - 2 * t);
@@ -101,6 +100,7 @@ export function FilmStage() {
     let lastShot: Single | null = null;
     let lastTick = performance.now();
     let dawnCued = false;
+    let day = 0; // 0 night … 1 sunrise, on the hero
 
     // page state
     let filmMode = true;
@@ -615,29 +615,34 @@ export function FilmStage() {
         if (!moving) {
           shot = restShot(current, now);
           const f = arriveShot ? smooth(clamp((now - arrivedAt) / 0.8)) : 1;
-          // the last scene: night slowly turns into sunrise
-          const dawn = current === LAST && engine.hasStill("s1d") ? smooth(clamp((now - arrivedAt - 0.9) / (reduce ? 0.01 : DAWN_S))) : 0;
-          if (dawn > 0 && !dawnCued) {
+          // the hero: night slowly becomes sunrise and back again while you read
+          const since = now - arrivedAt - 2.5;
+          day = current === 0 && !reduce && engine.hasStill("s1d") && since > 0 ? smooth(0.5 - 0.5 * Math.cos((since / DAY_S) * Math.PI * 2)) : 0;
+          if (day > 0.35 && !dawnCued) {
             dawnCued = true;
             soundRef.current?.cue("dawn");
           }
           if (f < 1) draw({ kind: "mix", a: arriveShot!, b: shot, mix: f });
-          else if (dawn > 0) {
+          else if (day > 0.001) {
             arriveShot = null;
-            const day: Single = { kind: "hold", still: "s1d", rest: 1 };
-            draw(dawn < 1 ? { kind: "mix", a: shot, b: day, mix: dawn } : day);
-            if (dawn > 0.5) shot = day;
+            const sun: Single = { kind: "hold", still: "s1d", rest: 1 };
+            draw(day < 0.999 ? { kind: "mix", a: shot, b: sun, mix: day } : sun);
+            if (day > 0.5) shot = sun;
           } else {
             arriveShot = null;
             draw(shot);
           }
-          stage.classList.toggle("dawn", dawn > 0.4);
+          stage.classList.toggle("day", day > 0.4);
+          root.classList.toggle("hero-day", day > 0.4);
         } else {
           shot = clipShot(pos);
-          const f = departShot ? smooth(clamp(Math.abs(pos - departPos) / 0.07)) : 1;
+          const f = departShot ? smooth(clamp(Math.abs(pos - departPos) / (departShot.kind === "hold" && departShot.still === "s1d" ? 0.35 : 0.07))) : 1;
           if (f < 1) draw({ kind: "mix", a: departShot!, b: shot, mix: f });
           else draw(shot);
-          if (stage.classList.contains("dawn") && Math.abs(pos - LAST) > 0.3) stage.classList.remove("dawn");
+          if (stage.classList.contains("day") && pos > 0.3) {
+            stage.classList.remove("day");
+            root.classList.remove("hero-day");
+          }
         }
         lastShot = shot;
 
@@ -650,7 +655,7 @@ export function FilmStage() {
         // the room's living light, once we've arrived
         const settled = !moving && shown === current && now - arrivedAt > 0.35;
         if (living) {
-          living.setStill(settled || peekZ > 0 ? still : living.amount > 0.01 ? still : null);
+          living.setStill(settled || peekZ > 0 || living.amount > 0.01 ? (still === "s1n" && day > 0.5 ? "s1d" : still) : null);
           const want = settled ? 1 : 0;
           living.amount += (want - living.amount) * Math.min(1, dt * (want ? 0.9 : 6));
           if (living.amount < 0.004 && !want) living.amount = 0;
@@ -771,10 +776,13 @@ export function FilmStage() {
       setTimeout(() => showText(0), 550);
     };
     // the entrance: once a visit, you choose to come in with sound or quietly
-    let entered = false;
-    try { entered = sessionStorage.getItem("si-entered") === "1"; } catch {}
+    // (remembered for the visit: in the tab, and when you come back from another page of the site)
+    let entered = /si-entered/.test(window.name);
+    try { entered = entered || sessionStorage.getItem("si-entered") === "1"; } catch {}
+    try { if (document.referrer && new URL(document.referrer).origin === location.origin) entered = true; } catch {}
     enterRef.current = (sound: boolean) => {
       try { sessionStorage.setItem("si-entered", "1"); } catch {}
+      if (!/si-entered/.test(window.name)) window.name = (window.name ? window.name + " " : "") + "si-entered";
       begin(sound, true);
     };
 
@@ -862,7 +870,7 @@ export function FilmStage() {
   };
 
   const { hero, services, how, originals, close, studio, entrance } = content;
-  const rooms = content.map.rooms;
+  const rooms = content.rooms;
   const sceneStyle = { opacity: 0, visibility: "hidden" as const, transition: "opacity 600ms cubic-bezier(0.22,0.61,0.36,1), visibility 600ms" };
   const still = SCENES[scene].still;
   const spots = SPOTS[still] ?? [];
@@ -962,8 +970,10 @@ export function FilmStage() {
           <div className="stack max-w-[460px]">
             <h2 className="t-title wipe"><Words text={originals.heading} /></h2>
             <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
-            <div className="rise mt-10 w-full max-md:mt-7" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>
-            <div className="rise mt-8 w-full max-md:mt-6" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
+            <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
+              <button type="button" onClick={() => openRef.current(0)} className="btn btn-primary">{originals.cta}</button>
+              <button type="button" onClick={() => openRef.current(0)} className="more">{originals.inside}</button>
+            </div>
           </div>
         </section>
 

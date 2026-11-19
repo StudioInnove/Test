@@ -242,7 +242,6 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 
 /* the last scene: the shade under the words follows the light, night to sunrise */
 .close-shade { background: radial-gradient(70% 60% at 50% 50%, rgb(7 10 18 / 0.82), rgb(7 10 18 / 0.35) 72%, rgb(7 10 18 / 0.1) 100%); transition: opacity 3s ease; }
-.film-stage.dawn .close-shade { background: radial-gradient(60% 52% at 50% 52%, rgb(20 14 10 / 0.62), rgb(20 14 10 / 0.18) 70%, transparent 100%); }
 
 /* back to the room: the arrow points back */
 .world-back::after { content: none; }
@@ -300,19 +299,11 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
   .reveal .w, .rise { transition: opacity 400ms ease !important; filter: none !important; transform: none !important; }
 }
 
-/* ---------- The floor plan ---------- */
-.floor-plan text { font-size: 13px; fill: rgb(239 233 224 / 0.62); letter-spacing: -0.01em; font-family: var(--font-sans); pointer-events: none; transition: fill 300ms ease; }
-.floor-plan rect { fill: rgb(239 233 224 / 0); stroke: rgb(239 233 224 / 0.28); stroke-width: 1; transition: fill 400ms ease, stroke 400ms ease; }
-.floor-plan .plan-terrace { stroke-dasharray: 3 5; }
-.floor-plan .plan-hit { fill: transparent; stroke: none; }
-.floor-plan .plan-room { cursor: pointer; outline: none; }
-.floor-plan .plan-room:hover rect:not(.plan-hit), .floor-plan .plan-room:focus-visible rect:not(.plan-hit) { fill: rgb(239 233 224 / 0.05); stroke: rgb(239 233 224 / 0.6); }
-.floor-plan .plan-room:hover text, .floor-plan .plan-room:focus-visible text { fill: #efe9e0; }
-.floor-plan .plan-on { fill: rgb(232 161 90 / 0.07) !important; stroke: rgb(232 161 90 / 0.7) !important; }
-.floor-plan .plan-text-on { fill: #efe9e0; }
-.floor-plan .plan-dot { fill: var(--color-signal); filter: drop-shadow(0 0 6px rgb(232 161 90 / 0.8)); }
-.floor-plan .plan-city { fill: rgb(240 176 108 / 0.35); }
-.floor-plan .plan-sun { fill: none; stroke: rgb(240 176 108 / 0.7); }
-.floor-plan .plan-out:hover .plan-sun { fill: rgb(240 176 108 / 0.25); }
-@media (max-height: 620px) { .menu-map { display: none; } }
-.floor-plan.compact text { font-size: 22px; }
+
+/* the Originals screen: a slow glow, as if something is loading */
+.screen-breathe { opacity: 0; animation: screen-breathe 5s ease-in-out infinite; }
+@keyframes screen-breathe { 0%, 100% { opacity: 0; } 50% { opacity: 0.4; } }
+@media (prefers-reduced-motion: reduce) { .screen-breathe { animation: none; } }
+
+/* the hero in daylight: the nav's glass darkens a touch so its links stay readable */
+.hero-day .nav-bar { background: linear-gradient(180deg, rgb(20 24 36 / 0.55), rgb(10 14 25 / 0.45)); transition: background 1.2s ease; }

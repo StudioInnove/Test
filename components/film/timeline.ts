@@ -45,10 +45,3 @@ export const SCREENS: Partial<Record<StillId, { app: "dash" | "phone" | "build";
   s6: { app: "build", quad: [[0.3963, 0.431], [0.607, 0.431], [0.607, 0.6288], [0.3963, 0.6288]] },
 };
 
-/** Lamps and lights that breathe slowly: u, v, radius (share of the still's width), strength. */
-export const GLOWS: Partial<Record<StillId, [number, number, number, number][]>> = {
-  s3: [[0.5, 0.3, 0.12, 0.22], [0.5, 0.36, 0.3, 0.07]],
-  s4: [[0.92, 0.13, 0.13, 0.22]],
-  s5: [[0.11, 0.13, 0.12, 0.14], [0.3, 0.2, 0.12, 0.13], [0.45, 0.27, 0.1, 0.12]],
-  s6: [[0.5, 0.53, 0.2, 0.12]],
-};

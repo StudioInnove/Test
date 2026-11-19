@@ -150,7 +150,8 @@
     "privacy": "Only emails about this app. Unsubscribe anytime.",
     "line": "Alongside client work, we're building a product of our own. Join the list to see it first.",
     "joinLine": "Be the first through the door.",
-    "teaser": "Something is being built in here."
+    "teaser": "Something is being built in here.",
+    "inside": "Look inside"
   },
   "close": {
     "heading": "Have an idea?",
@@ -322,23 +323,21 @@
     "world": {
       "title": "Wherever you are.",
       "line": "We work with founders and teams in every time zone. Calls are booked at a time that suits you."
-    }
+    },
+    "backHome": "Back to the studio"
   },
   "entrance": {
     "line": "An independent app studio, working worldwide.",
     "sound": "Enter with sound",
     "quiet": "Enter quietly"
   },
-  "map": {
-    "label": "Map",
-    "rooms": [
-      "Outside",
-      "Terrace",
-      "Web apps",
-      "Mobile apps",
-      "Process",
-      "Originals",
-      "Sunrise"
-    ]
-  }
+  "rooms": [
+    "Outside",
+    "Terrace",
+    "Web apps",
+    "Mobile apps",
+    "Process",
+    "Originals",
+    "Have an idea?"
+  ]
 }

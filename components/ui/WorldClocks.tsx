@@ -36,7 +36,7 @@ export function nearestCity(now = new Date()) {
   return best;
 }
 
-export function WorldClocks({ size = "md", className = "" }: { size?: "md" | "lg"; className?: string }) {
+export function WorldClocks({ className = "" }: { className?: string }) {
   const [now, setNow] = useState<Date | null>(null);
   useEffect(() => {
     setNow(new Date());
@@ -47,15 +47,15 @@ export function WorldClocks({ size = "md", className = "" }: { size?: "md" | "lg
   const fmt = (tz: string) => (now ? new Intl.DateTimeFormat("en-GB", { timeZone: tz, hour: "2-digit", minute: "2-digit", hour12: false }).format(now) : "--:--");
   const blink = now ? now.getSeconds() % 2 === 0 : true;
   return (
-    <ul className={`clocks grid grid-cols-5 gap-x-4 gap-y-3 max-sm:grid-cols-3 ${className}`}>
+    <ul className={`clocks grid grid-cols-5 gap-x-6 gap-y-6 border-t border-paper/15 pt-5 max-sm:grid-cols-3 ${className}`}>
       {CITIES.map((c, i) => (
-        <li key={c.name} className={`transition-colors duration-700 ${i === here ? "text-paper" : "text-paper/45"}`}>
-          <span className={`block tabular-nums tracking-[-0.02em] ${size === "lg" ? "text-[clamp(26px,2.6vw,36px)] font-[320]" : "text-[20px] font-[340]"}`}>
+        <li key={c.name} className={`transition-colors duration-700 ${i === here ? "text-paper" : "text-paper/50"}`}>
+          <span className="t-head block tabular-nums">
             {fmt(c.tz).slice(0, 2)}
             <span style={{ opacity: blink ? 1 : 0.35 }} className="transition-opacity duration-300">:</span>
             {fmt(c.tz).slice(3)}
           </span>
-          <span className="mt-1 flex items-center gap-1.5 text-[13px]">
+          <span className="t-label mt-1 flex items-center gap-1.5 !text-current">
             {i === here && <i aria-hidden className="mark !h-[5px] !w-[5px] shadow-[0_0_8px_2px_rgb(232_161_90/0.6)]" />}
             {c.name}
           </span>

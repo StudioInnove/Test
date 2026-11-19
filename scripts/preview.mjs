@@ -19,6 +19,8 @@ for (const f of walk(OUT)) {
       // files from /public (film, brand) live at the root of the preview
       s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('"./worlds/', `"${up}worlds/`).replaceAll('"./closeups/', `"${up}closeups/`).replaceAll('srcSet="./', `srcSet="${up}`);
       s = s.replace("<head>", `<head><script>window.__B=${JSON.stringify(up)}</script>`);
+      // links between pages: from one folder down, "./x/" and "#faq" must go up first
+      s = s.replace(/href="(\.\/[^"]*|#[^"]*)"/g, (m, h) => `href="${h.startsWith("#") ? up + h : up + h.slice(2)}"`);
     }
   } else {
     // webpack runtime public path

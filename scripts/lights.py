@@ -11,11 +11,19 @@ REGIONS = {
     "s4": dict(win=[(0.19, 0.0, 0.70, 0.62)], skip=[(0.56, 0.0, 0.74, 0.1), (0.27, 0.04, 0.33, 0.42)], max=60, bokeh=True),
     "s5": dict(win=[(0.67, 0.2, 1.0, 0.74)], skip=[(0.71, 0.5, 0.96, 0.66)], max=110, bokeh=False),
     "s6": dict(win=[(0.10, 0.10, 0.89, 0.50)], skip=[(0.38, 0.41, 0.62, 0.66), (0.48, 0.1, 0.52, 0.45)], max=70, bokeh=True),
+    # the terrace: the city either side of the pavilion, and the string lights along the deck
+    "s2": dict(win=[(0.0, 0.28, 0.35, 0.62), (0.82, 0.33, 1.0, 0.6), (0.08, 0.66, 0.45, 0.82), (0.7, 0.8, 0.98, 0.97)], skip=[], max=120, bokeh=False),
+    # sunrise: the windows still lit in the towers
+    "s1d": dict(win=[(0.0, 0.45, 1.0, 1.0)], skip=[(0.86, 0.3, 1.0, 0.5)], max=90, bokeh=False, thr=0.5),
+    # the close-ups
+    "w-web": dict(win=[(0.0, 0.15, 0.25, 0.8), (0.72, 0.2, 0.87, 0.75)], skip=[(0.24, 0.4, 0.74, 0.86)], max=90, bokeh=False, src="public/worlds/web-d.webp"),
+    "w-mobile": dict(win=[(0.05, 0.3, 0.85, 0.6)], skip=[(0.33, 0.33, 0.86, 0.9), (0.0, 0.45, 0.4, 0.9)], max=40, bokeh=True, src="public/worlds/mobile-d.webp"),
+    "w-orig": dict(win=[(0.0, 0.0, 1.0, 0.24), (0.0, 0.0, 0.2, 0.6), (0.82, 0.0, 1.0, 0.6)], skip=[(0.42, 0.0, 0.52, 0.26), (0.3, 0.0, 0.37, 0.24)], max=50, bokeh=True, src="public/worlds/originals-d.webp"),
 }
 
 out = {}
 for still, cfg in REGIONS.items():
-    im = Image.open(f"public/film/stills/{still}-d.webp").convert("RGB")
+    im = Image.open(cfg.get("src", f"public/film/stills/{still}-d.webp")).convert("RGB")
     W, H = im.size
     a = np.asarray(im).astype(np.float32) / 255
     lum = a[..., 0] * 0.3 + a[..., 1] * 0.59 + a[..., 2] * 0.11
@@ -29,7 +37,7 @@ for still, cfg in REGIONS.items():
     local = ndimage.maximum_filter(blur, size=size)
     # a light: brighter than its surroundings, and bright in absolute terms
     bg = ndimage.uniform_filter(blur, size=size * 4)
-    peaks = (blur == local) & mask & (blur > 0.42) & (blur - bg > (0.08 if cfg["bokeh"] else 0.12))
+    peaks = (blur == local) & mask & (blur > cfg.get("thr", 0.42)) & (blur - bg > (0.08 if cfg["bokeh"] else 0.12))
     ys, xs = np.nonzero(peaks)
     score = (blur - bg)[ys, xs]
     order = np.argsort(-score)

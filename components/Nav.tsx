@@ -11,7 +11,6 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { useEffect, useRef, useState } from "react";
 import { asset, content, href } from "@/lib/content";
 import { BookCall } from "./BookCall";
-import { FloorPlan } from "./FloorPlan";
 
 const SCENE_LINK: Record<string, string> = {
   services: "/#services",
@@ -30,8 +29,6 @@ export function Nav() {
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
-  const [scene, setScene] = useState<string | null>(null);
-  const [mapOpen, setMapOpen] = useState(false);
   const [inWorld, setInWorld] = useState(false);
   const reduce = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -42,14 +39,12 @@ export function Nav() {
       const k = String((e as CustomEvent).detail);
       setActive(SCENE_LINK[k] ?? null);
       setCompact(k !== "hero");
-      setScene(k);
     };
     window.addEventListener("film:scene", onScene);
     // stepping into a room: the navigation steps aside
     const onWorld = (e: Event) => {
       setInWorld(Boolean((e as CustomEvent).detail));
       setOpen(false);
-      setMapOpen(false);
     };
     window.addEventListener("film:world", onWorld);
     const onScroll = () => {
@@ -64,15 +59,11 @@ export function Nav() {
   }, []);
 
   useEffect(() => {
-    if (!open && !mapOpen) return;
-    const key = (e: KeyboardEvent) => {
-      if (e.key !== "Escape") return;
-      setOpen(false);
-      setMapOpen(false);
-    };
+    if (!open) return;
+    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
     document.addEventListener("keydown", key);
     return () => document.removeEventListener("keydown", key);
-  }, [open, mapOpen]);
+  }, [open]);
 
   const lit = active;
 
@@ -119,10 +110,6 @@ export function Nav() {
             })}
           </ul>
           <div className="ml-auto flex items-center gap-1 md:ml-3">
-            <button type="button" onClick={() => setMapOpen(true)} aria-expanded={mapOpen} className="map-btn mr-1 hidden h-8 items-center gap-2 rounded-full px-3 text-[14px] text-paper/70 transition-colors duration-300 hover:text-paper md:flex">
-              <svg aria-hidden width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" strokeWidth="1.1"><rect x="1.5" y="2.5" width="11" height="9" rx="1" /><path d="M6 2.5v5.5M6 8h6.5" /></svg>
-              {content.map.label}
-            </button>
             <BookCall size="sm" className="max-md:hidden">{cta}</BookCall>
             <button
               type="button"
@@ -172,9 +159,6 @@ export function Nav() {
                 </motion.li>
               ))}
             </ul>
-            <motion.div initial={reduce ? false : { opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.25 }} className="menu-map mt-6">
-              <FloorPlan current={scene} compact onPick={() => setOpen(false)} />
-            </motion.div>
             </div>
             <motion.div
               initial={reduce ? false : { opacity: 0, y: 12 }}
@@ -195,30 +179,6 @@ export function Nav() {
         )}
       </AnimatePresence>
 
-      {/* Desktop map: the plan of the studio over a dimmed page */}
-      <AnimatePresence>
-        {mapOpen && (
-          <motion.div
-            role="dialog"
-            aria-modal="true"
-            aria-label="Map of the studio"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0, transition: { duration: 0.3 } }}
-            transition={{ duration: 0.5, ease: [0.23, 1, 0.32, 1] }}
-            className="pointer-events-auto fixed inset-0 z-[70] hidden items-center justify-center bg-ink/80 backdrop-blur-xl md:flex"
-            onClick={(e) => e.target === e.currentTarget && setMapOpen(false)}
-          >
-            <motion.div initial={reduce ? false : { opacity: 0, y: 16, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.8, ease: [0.23, 1, 0.32, 1], delay: 0.05 }} className="w-[min(760px,80vw)]">
-              <div className="mb-8 flex items-end justify-between">
-                <p className="t-title">The studio</p>
-                <button type="button" onClick={() => setMapOpen(false)} className="more">Close</button>
-              </div>
-              <FloorPlan current={scene} onPick={() => setMapOpen(false)} />
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </header>
   );
 }

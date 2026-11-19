@@ -7,11 +7,13 @@ import { MaskText } from "./ui/MaskText";
 import { content, href } from "@/lib/content";
 import { LivingStill } from "./LivingStill";
 import type { StillId } from "./film/timeline";
+import { SmoothScroll } from "./ui/SmoothScroll";
 
 /** Pages beyond the film: a full-screen still from it that settles in slowly, then the story. */
 export function PageShell({ still, alt, title, intro, children }: { still: StillId; alt: string; eyebrow?: string; title: string; intro: string; children: ReactNode }) {
   return (
     <main>
+      <SmoothScroll />
       <Nav />
       <header className="relative flex min-h-[100svh] items-end overflow-hidden bg-ink">
         <LivingStill still={still} alt={alt} />

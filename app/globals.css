@@ -92,29 +92,26 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
   .on .slide { opacity: 1; transform: none; }
   .reveal:not(.on) .slide { transition-duration: 300ms; transition-delay: 0ms; }
 
-  /* ---------- Reveal: calm, Apple-like; words and lines fade up a little ---------- */
+  /* ---------- Reveal: slow and soft; a heading surfaces as one, from a light blur ---------- */
   .reveal .w {
     display: inline-block;
     opacity: 0;
-    transform: translateY(0.35em);
-    transition: opacity 700ms var(--ease-film), transform 900ms var(--ease-out);
-    transition-delay: calc(var(--i) * 32ms + var(--d, 0ms));
+    transform: translateY(0.16em);
+    filter: blur(8px);
+    transition: opacity 1400ms var(--ease-film), transform 1700ms var(--ease-out), filter 1400ms var(--ease-film);
+    transition-delay: calc(var(--d, 0ms) + 200ms);
   }
-  .reveal.on .w { opacity: 1; transform: none; }
+  .reveal.on .w { opacity: 1; transform: none; filter: blur(0); }
   .reveal:not(.on) .w { transition-duration: 300ms; transition-delay: 0ms; }
   .rise {
     opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 700ms var(--ease-film), transform 900ms var(--ease-out);
-    transition-delay: var(--d, 0ms);
+    transform: translateY(10px);
+    transition: opacity 1200ms var(--ease-film), transform 1500ms var(--ease-out);
+    transition-delay: calc(var(--d, 0ms) + 250ms);
   }
   .on .rise, .rise.on { opacity: 1; transform: none; }
   .reveal:not(.on) .rise { transition-duration: 300ms; transition-delay: 0ms; }
-  /* a title that is uncovered from left to right */
-  .wipe { clip-path: inset(0 100% 0 0); transition: clip-path 1200ms var(--ease-out); transition-delay: var(--d, 0ms); }
-  .on .wipe { clip-path: inset(0 0 0 0); }
-  .reveal:not(.on) .wipe { transition-duration: 300ms; transition-delay: 0ms; }
-  .wipe .w { opacity: 1 !important; transform: none !important; }
+  /* (titles used to be uncovered left to right; now every title surfaces the same soft way) */
 
   /* the occasional italic serif word */
   .accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; line-height: 0.9; padding-inline-end: 0.05em; }
@@ -314,7 +311,10 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 @keyframes dash-bar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
 
 /* masked lines leave room for italic overhangs and descenders, so nothing is ever cropped */
-.mask-line { padding: 0.06em 0.22em 0.2em 0.12em; margin: -0.06em -0.22em -0.2em -0.12em; }
+.soft-line { display: block; opacity: 0; transform: translateY(0.18em); filter: blur(10px); transition: opacity 1500ms var(--ease-film), transform 1800ms var(--ease-out), filter 1500ms var(--ease-film); will-change: opacity, transform, filter; }
+.soft-line.on { opacity: 1; transform: none; filter: blur(0); }
+@media (hover: none) and (pointer: coarse) { .soft-line { filter: none; } }
+@media (prefers-reduced-motion: reduce) { .soft-line { transform: none; filter: none; transition: opacity 600ms ease; } }
 .journey-title { font-weight: 330; font-size: clamp(34px, 3.6vw, 56px); line-height: 1.04; letter-spacing: -0.042em; text-wrap: balance; }
 
 /* ---------- A finished phone (see PhoneFrame) ---------- */
@@ -338,4 +338,14 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 .pf-vol1 { left: -3px; top: 228px; height: 62px; }
 .pf-vol2 { left: -3px; top: 304px; height: 62px; }
 .pf-power { right: -3px; top: 262px; height: 98px; }
-.sc-title { font-weight: 330; font-size: clamp(36px, 4.4vw, 70px); line-height: 1.0; letter-spacing: -0.045em; text-wrap: balance; }
+
+/* a small line in the italic serif above a heading, like a chapter heading in a book */
+.kicker { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: clamp(18px, 1.45vw, 22px); line-height: 1.2; letter-spacing: 0; color: rgb(239 233 224 / 0.72); }
+.stack > .kicker { margin-bottom: 10px; }
+/* the film's chapter headings: larger than a title, in the same light weight */
+.scene-title { font-weight: 320; font-size: clamp(40px, 4.6vw, 72px); line-height: 1.0; letter-spacing: -0.04em; text-wrap: balance; }
+
+/* the services index: very large light lines, a few words in the italic serif */
+.si-title { font-weight: 300; font-size: clamp(52px, 8vw, 132px); line-height: 0.95; letter-spacing: -0.05em; }
+.si-phrase { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 0.4em; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.72); white-space: nowrap; margin-left: 0.15em; }
+@media (max-width: 767px) { .si-phrase { display: block; margin: 0.35em 0 0; font-size: 0.42em; white-space: normal; } }

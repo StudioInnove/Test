@@ -1,14 +1,12 @@
 "use client";
 
 /*
- * Headlines that rise line by line from behind a mask, like a title card. After the 21st.dev
- * "Text Reveal (Mask)" by soralabs, rebuilt for this site: words wrapped in *asterisks* are set in the
- * italic serif accent, lines are measured after the fonts load, and it plays when it scrolls into view
- * (or when `play` turns on, inside the close-ups).
+ * Headlines that surface slowly, line after line, from a soft blur: nothing slides or wipes, it simply
+ * comes into focus a moment after you arrive. Words wrapped in *asterisks* are set in the italic serif
+ * accent; lines are measured after the fonts load; it plays when it scrolls into view (or when `play`
+ * turns on, inside the close-ups). No mask, so italics are never cropped.
  */
 import { useLayoutEffect, useMemo, useRef, useState, type ElementType } from "react";
-
-const EASE = "cubic-bezier(0.19, 1, 0.22, 1)";
 
 type Word = { text: string; accent: boolean };
 
@@ -16,7 +14,7 @@ function words(text: string): Word[] {
   return text.split(/\s+/).filter(Boolean).map((raw) => ({ text: raw.replace(/\*/g, ""), accent: /^\*.*\*[.,!?]?$/.test(raw) }));
 }
 
-export function MaskText({ text, as: Tag = "h2", className = "", delay = 0, play, stagger = 90 }: { text: string; as?: ElementType; className?: string; delay?: number; play?: boolean; stagger?: number }) {
+export function MaskText({ text, as: Tag = "h2", className = "", delay = 0, play, stagger = 160 }: { text: string; as?: ElementType; className?: string; delay?: number; play?: boolean; stagger?: number }) {
   const ref = useRef<HTMLElement>(null);
   const ws = useMemo(() => words(text), [text]);
   const [lines, setLines] = useState<number[][] | null>(null);
@@ -96,16 +94,8 @@ export function MaskText({ text, as: Tag = "h2", className = "", delay = 0, play
         <span aria-hidden className="invisible">{ws.map((w, i) => word(w, i, i === ws.length - 1))}</span>
       ) : (
         lines.map((g, li) => (
-          <span key={li} aria-hidden className="mask-line block overflow-hidden">
-            <span
-              className="block will-change-transform"
-              style={{
-                transform: on ? "translate3d(0,0,0)" : "translate3d(0,150%,0)",
-                transition: `transform 1100ms ${EASE} ${delay + li * stagger}ms`,
-              }}
-            >
-              {g.map((i) => word(ws[i], i, i === ws.length - 1))}
-            </span>
+          <span key={li} aria-hidden className={`soft-line ${on ? "on" : ""}`} style={{ transitionDelay: on ? `${250 + delay + li * stagger}ms` : "0ms" }}>
+            {g.map((i) => word(ws[i], i, i === ws.length - 1))}
           </span>
         ))
       )}

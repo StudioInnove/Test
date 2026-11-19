@@ -3,6 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
 import { PageFade } from "@/components/ui/PageFade";
+import { Polish } from "@/components/ui/Polish";
 import "@fontsource-variable/inter/opsz.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <CalWarmup />
         <PageFade />
+        <Polish />
         <Analytics />
       </body>
     </html>

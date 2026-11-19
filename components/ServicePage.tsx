@@ -5,7 +5,7 @@ import { PageShell } from "./PageShell";
 import { Backdrop } from "./page/Backdrop";
 import { Finale } from "./page/Finale";
 import { Journey } from "./page/Journey";
-import { Showcase } from "./page/Showcase";
+import { ServiceIndex } from "./page/ServiceIndex";
 import { Statement } from "./page/Statement";
 import { EmailPill } from "./ui/EmailPill";
 import { Words } from "./Words";
@@ -23,8 +23,8 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
     <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} title={p.headline} intro={p.intro}>
       <Backdrop still={still} />
       <Statement text={p.statement} />
-      <Showcase kind={kind} heading={content.services.intro} items={p.showcase} views={kind === "web" ? [2, 0, 1] : [0, 1, 2]} />
-      <Journey heading={how.heading} steps={how.steps} titles={how.walk} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />
+      <ServiceIndex kicker={p.index.kicker} items={p.index.items} />
+      <Journey heading={how.heading} steps={how.steps} titles={how.walk} order={how.order} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />
 
       {/* questions, in the warm light */}
       <section className="relative px-[var(--gutter)] py-28 md:py-40">

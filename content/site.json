@@ -71,7 +71,9 @@
         "link": "Explore web apps",
         "href": "/web-app-development",
         "image": "/closeups/web.webp"
-      }
+      },
+      "kicker": "What we build",
+      "heading": "Web *apps*"
     },
     "mobile": {
       "title": "Mobile apps",
@@ -89,7 +91,9 @@
         "link": "Explore mobile apps",
         "href": "/mobile-app-development",
         "image": "/closeups/mobile.webp"
-      }
+      },
+      "kicker": "For every pocket",
+      "heading": "Mobile *apps*"
     },
     "cta": "Book a call"
   },
@@ -134,6 +138,13 @@
       "Every screen, *designed.*",
       "Built week by *week.*",
       "Launch, and *beyond.*"
+    ],
+    "kicker": "How we work",
+    "order": [
+      "First",
+      "Then",
+      "Next",
+      "Finally"
     ]
   },
   "originals": {
@@ -252,7 +263,30 @@
           ]
         }
       ],
-      "statement": "We design and build web apps that feel *effortless.* Portals, dashboards and tools your team will actually *enjoy* opening."
+      "statement": "We design and build web apps that feel *effortless.* Portals, dashboards and tools your team will actually *enjoy* opening.",
+      "index": {
+        "kicker": "What we build",
+        "items": [
+          {
+            "title": "Platforms",
+            "phrase": "people live in",
+            "line": "Portals, marketplaces and member areas your customers sign in to every day.",
+            "image": "/services/web-platforms.webp"
+          },
+          {
+            "title": "Dashboards",
+            "phrase": "clear at a glance",
+            "line": "Revenue, bookings and stock in one calm screen, live on any device.",
+            "image": "/services/web-dashboards.webp"
+          },
+          {
+            "title": "Tools",
+            "phrase": "that give hours back",
+            "line": "Booking systems and admin panels that replace the spreadsheets.",
+            "image": "/services/web-tools.webp"
+          }
+        ]
+      }
     },
     "mobile": {
       "title": "Mobile app development",
@@ -306,7 +340,30 @@
           ]
         }
       ],
-      "statement": "Apps people open every day, and *keep.* Designed screen by screen, built once for iPhone and *Android.*"
+      "statement": "Apps people open every day, and *keep.* Designed screen by screen, built once for iPhone and *Android.*",
+      "index": {
+        "kicker": "What we build",
+        "items": [
+          {
+            "title": "Events",
+            "phrase": "in every pocket",
+            "line": "Tickets, memberships and the night itself, a tap away.",
+            "image": "/services/mobile-events.webp"
+          },
+          {
+            "title": "Bookings",
+            "phrase": "in a single tap",
+            "line": "Tables, classes and appointments, booked in seconds and remembered next time.",
+            "image": "/services/mobile-bookings.webp"
+          },
+          {
+            "title": "Games",
+            "phrase": "worth coming back to",
+            "line": "Playful moments that bring people back every day.",
+            "image": "/services/mobile-play.webp"
+          }
+        ]
+      }
     },
     "originalsPage": {
       "title": "Studio Originals",

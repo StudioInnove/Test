@@ -922,7 +922,8 @@ export function FilmStage() {
             <section key={k} data-scene={k} aria-label={sv.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
               <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.45)_34%,transparent_58%)]" />
               <div className="stack">
-                <h2 className={`t-title ${n ? "wipe" : ""}`}><Words text={sv.title} /></h2>
+                <p className="rise kicker" style={{ ["--d" as string]: "0ms" }}>{sv.kicker}</p>
+                <h2 className="scene-title"><Words text={sv.heading} delay={120} /></h2>
                 <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{sv.line}</p>
                 <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
                   <a href={href(sv.more.href)} className="more">{sv.more.link}</a>
@@ -937,7 +938,8 @@ export function FilmStage() {
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
           <div className="mb-10 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-14">
             <div className="stack">
-              <h2 className="t-title"><Words text={how.heading} /></h2>
+              <p className="rise kicker" style={{ ["--d" as string]: "0ms" }}>{how.kicker}</p>
+              <h2 className="scene-title"><Words text={how.heading} delay={120} /></h2>
             </div>
             <p className="rise t-label strip-hint" style={{ ["--d" as string]: "500ms" }}>{canSwipe ? how.swipe : how.drag} →</p>
           </div>
@@ -945,10 +947,8 @@ export function FilmStage() {
             <ol className="flex w-max px-[var(--gutter)]">
               {how.steps.map((st, i) => (
                 <li key={st.title} className="relative w-[78vw] max-w-[380px] shrink-0 pr-10 sm:w-[44vw] md:w-[34vw] md:max-w-[480px] md:pr-16">
-                  <div className="mb-6 h-px w-full bg-paper/15">
-                    <div className="steps-bar h-px origin-left bg-paper" style={{ transitionDelay: `${400 + i * 240}ms` }} />
-                  </div>
-                  <h3 className="t-title">{st.title}</h3>
+                  <p className="kicker mb-3">{how.order[i]}</p>
+                  <h3 className="t-title"><Words text={how.walk[i]} /></h3>
                   <p className="t-body mt-4 max-w-[30ch]">{st.line}</p>
                 </li>
               ))}
@@ -960,7 +960,7 @@ export function FilmStage() {
         <section data-scene="originals" aria-label={originals.eyebrow} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.94)_52%,rgb(7_10_18/0.55)_72%,transparent_88%)] md:[background:linear-gradient(90deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.6)_38%,transparent_62%)]" />
           <div className="stack max-w-[460px]">
-            <h2 className="t-title wipe"><Words text={originals.heading} /></h2>
+            <h2 className="t-title"><Words text={originals.heading} /></h2>
             <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
             <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
               <button type="button" onClick={() => openRef.current(0)} className="btn btn-primary">{originals.cta}</button>
@@ -972,7 +972,7 @@ export function FilmStage() {
         <section data-scene="close" aria-label={close.heading.replace(/\*/g, "")} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
           <div aria-hidden className="close-shade absolute inset-0 -z-10" />
           <div className="stack center">
-            <h2 className="t-display wipe"><Words text={close.heading} /></h2>
+            <h2 className="t-display"><Words text={close.heading} /></h2>
             <p className="rise t-lead max-w-[34ch]" style={{ ["--d" as string]: "250ms" }}>{close.line}</p>
             <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
               <BookCall>{close.cta}</BookCall>

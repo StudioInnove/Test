@@ -4,7 +4,8 @@
  * From idea to launch, as a walk along the studio's design wall (after Era Residence's sideways chapters).
  * The section stays put while the wall slides by, driven by GSAP ScrollTrigger with a little smoothing,
  * so the picture moves on the compositor and never redraws. One caption at a time, like an exhibition
- * label: a number, a title with an italic word, a line. Small numbered pins mark each step on the wall.
+ * label: a word in the italic serif (first, then, next, finally), a title, a line. A fine thread, pinned
+ * from one group of sketches to the next, is drawn along the wall as you walk.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
@@ -15,12 +16,26 @@ type Step = { title: string; line: string };
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
-export function Journey({ heading, steps, titles, image, aspect, at }: { heading: string; steps: Step[]; titles?: string[]; image: string; aspect: number; at: number[] }) {
+/** Where the thread runs on the wall (a share of its height), and its path: pin to pin with a soft sag. */
+const THREAD_Y = 0.255;
+function thread(at: number[], w: number, h: number) {
+  const y = h * THREAD_Y;
+  let d = `M ${at[0] * w} ${y}`;
+  for (let i = 1; i < at.length; i++) {
+    const x0 = at[i - 1] * w, x1 = at[i] * w;
+    const sag = h * 0.05;
+    d += ` C ${x0 + (x1 - x0) * 0.3} ${y + sag} ${x0 + (x1 - x0) * 0.7} ${y + sag} ${x1} ${y}`;
+  }
+  return d;
+}
+
+export function Journey({ heading, steps, titles, order, image, aspect, at }: { heading: string; steps: Step[]; titles?: string[]; order?: string[]; image: string; aspect: number; at: number[] }) {
   const ref = useRef<HTMLElement>(null);
   const boxRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
-  const barRef = useRef<HTMLDivElement>(null);
+  const barRef = useRef<SVGPathElement>(null);
   const [active, setActive] = useState(0);
+  const [dims, setDims] = useState({ w: 2400, h: 900 });
 
   useIso(() => {
     const { gsap } = getGsap();
@@ -32,6 +47,7 @@ export function Journey({ heading, steps, titles, image, aspect, at }: { heading
       const size = () => {
         const w = box.clientWidth, h = box.clientHeight;
         track.style.width = `${Math.max(w * 1.6, h * aspect)}px`;
+        setDims({ w: Math.max(w * 1.6, h * aspect), h });
         return Math.max(w * 1.6, h * aspect) - w;
       };
       size();
@@ -46,7 +62,8 @@ export function Journey({ heading, steps, titles, image, aspect, at }: { heading
           invalidateOnRefresh: true,
           onUpdate: (st) => {
             const p = st.progress;
-            bar.style.transform = `scaleX(${p})`;
+            // the thread is drawn a little ahead of you, so it reaches each group as you do
+            bar.style.strokeDashoffset = String(1 - Math.min(1, p * 1.04));
             // which step you're on, with a little give so it never flickers between two
             const f = p * (steps.length - 1);
             const near = Math.round(f);
@@ -67,14 +84,22 @@ export function Journey({ heading, steps, titles, image, aspect, at }: { heading
         <div ref={trackRef} className="absolute inset-y-0 left-0 will-change-transform" style={{ width: "160vw" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={asset(image)} alt="Sketches for every screen, pinned along the studio wall" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
-          {/* a numbered pin under each part of the wall */}
-          {steps.map((s, i) => (
-            <div key={s.title} aria-hidden className="absolute top-[64%] -translate-x-1/2" style={{ left: `${at[i] * 100}%` }}>
-              <span className={`flex h-9 w-9 items-center justify-center rounded-full border text-[12px] font-medium tabular-nums backdrop-blur-md transition-[background-color,color,border-color] duration-500 ${i === active ? "border-paper bg-paper text-ink" : "border-paper/30 bg-ink/30 text-paper"}`}>
-                {String(i + 1).padStart(2, "0")}
-              </span>
-            </div>
-          ))}
+          {/* a fine thread pinned from one group of sketches to the next, sagging a little between pins */}
+          <svg aria-hidden className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" viewBox={`0 0 ${dims.w} ${dims.h}`}>
+            <path
+              ref={barRef}
+              d={thread(at, dims.w, dims.h)}
+              pathLength={1}
+              fill="none"
+              stroke="rgb(239 233 224 / 0.7)"
+              strokeWidth={1.4}
+              strokeLinecap="round"
+              style={{ strokeDasharray: 1, strokeDashoffset: 1, filter: "drop-shadow(0 2px 2px rgb(0 0 0 / 0.45))" }}
+            />
+            {at.map((a, i) => (
+              <circle key={i} cx={a * dims.w} cy={dims.h * THREAD_Y} r={4} fill="#efe9e0" style={{ opacity: i <= active ? 0.95 : 0, transition: "opacity 600ms ease", filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.6))" }} />
+            ))}
+          </svg>
         </div>
         <div aria-hidden className="pointer-events-none absolute inset-0 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.55)_30%,transparent_55%),linear-gradient(180deg,rgb(7_10_18/0.6)_0%,transparent_26%)]" />
 
@@ -89,11 +114,9 @@ export function Journey({ heading, steps, titles, image, aspect, at }: { heading
             const on = i === active;
             return (
               <div key={s.title} aria-hidden={!on} className="col-start-1 row-start-1 max-w-[560px]" style={{ pointerEvents: on ? "auto" : "none" }}>
-                <p className="t-label tabular-nums transition-opacity duration-500" style={{ opacity: on ? 1 : 0 }}>
-                  <span className="text-paper">{String(i + 1).padStart(2, "0")}</span> / {String(steps.length).padStart(2, "0")} · {s.title}
-                </p>
-                <MaskText as="h3" className="journey-title mt-3" text={titles?.[i] ?? s.title} play={on} stagger={70} />
-                <p className="t-lead mt-4 max-w-[36ch] transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(8px)", transitionDelay: on ? "200ms" : "0ms" }}>
+                <p className="kicker transition-[opacity,filter] duration-[1200ms]" style={{ opacity: on ? 1 : 0, filter: on ? "none" : "blur(6px)" }}>{order?.[i] ?? s.title}</p>
+                <MaskText as="h3" className="journey-title mt-2" text={titles?.[i] ?? s.title} play={on} delay={80} />
+                <p className="t-lead mt-4 max-w-[36ch] transition-[opacity,transform,filter] duration-[1400ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(8px)", filter: on ? "none" : "blur(6px)", transitionDelay: on ? "550ms" : "0ms" }}>
                   {s.line}
                 </p>
               </div>
@@ -101,15 +124,6 @@ export function Journey({ heading, steps, titles, image, aspect, at }: { heading
           })}
         </div>
 
-        {/* the four steps as a quiet ruler, filling as you walk */}
-        <div aria-hidden className="absolute inset-x-[var(--gutter)] bottom-8">
-          <div className="relative h-px bg-paper/15"><div ref={barRef} className="absolute inset-0 origin-left bg-paper/80" style={{ transform: "scaleX(0)" }} /></div>
-          <div className="mt-3 hidden justify-between md:flex">
-            {steps.map((s, i) => (
-              <span key={s.title} className={`text-[12px] font-medium transition-colors duration-500 ${i <= active ? "text-paper" : "text-paper/35"}`}>{s.title}</span>
-            ))}
-          </div>
-        </div>
       </div>
     </section>
   );

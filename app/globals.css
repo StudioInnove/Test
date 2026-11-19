@@ -8,7 +8,7 @@
   --color-paper: #efe9e0;
   --color-signal: #e8a15a;
   --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
-  --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-sans: "Geist Variable", "Geist", "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
@@ -59,22 +59,22 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
      Design system
      Type: five sizes only. Display (hero + closing), Title (every heading), Lead (the sentence under a
      heading), Body (reading text), Label (small captions).
-     Weights: light (320–350) for headings, 400 for reading. Tracking tight on large type.
-     Colour: ivory at 100 / 70 / 45 / 15. Amber only for "live" or "active".
+     Weights: 500 for headings (after gsap.com: solid, clear), 400 for reading. Tracking tight on large type.
+     Colour: solid ivory, sand (#bdb6aa) and stone (#948e83); lines at 15%. Amber only for "live" or "active".
      Space: 8 · 16 · 24 · 40 · 64 · 96 · 160. Title → lead 16, lead → actions 32.
      Motion: one curve; 300ms hovers (colour only), 700ms reveals. Nothing jumps.
      ====================================================================== */
-  .t-display { font-weight: 320; font-size: clamp(44px, 5.8vw, 88px); line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
-  .t-title { font-weight: 340; font-size: clamp(30px, 3.1vw, 46px); line-height: 1.08; letter-spacing: -0.03em; text-wrap: balance; }
-  .t-lead { font-weight: 400; font-size: clamp(17px, 1.3vw, 19px); line-height: 1.5; letter-spacing: -0.012em; color: rgb(239 233 224 / 0.7); text-wrap: pretty; }
-  .t-body { font-weight: 400; font-size: 16px; line-height: 1.6; letter-spacing: -0.01em; color: rgb(239 233 224 / 0.7); text-wrap: pretty; }
-  .t-label { font-weight: 400; font-size: 13px; line-height: 1.4; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.5); }
+  .t-display { font-weight: 500; font-size: clamp(44px, 5.8vw, 92px); line-height: 0.98; letter-spacing: -0.045em; text-wrap: balance; }
+  .t-title { font-weight: 500; font-size: clamp(30px, 3.1vw, 48px); line-height: 1.06; letter-spacing: -0.04em; text-wrap: balance; }
+  .t-lead { font-weight: 400; font-size: clamp(17px, 1.3vw, 19px); line-height: 1.5; letter-spacing: -0.01em; color: #bdb6aa; text-wrap: pretty; }
+  .t-body { font-weight: 400; font-size: 16px; line-height: 1.6; letter-spacing: -0.005em; color: #bdb6aa; text-wrap: pretty; }
+  .t-label { font-weight: 500; font-size: 13px; line-height: 1.4; letter-spacing: 0; color: #948e83; }
   .t-small { font-size: 13px; line-height: 1.4; letter-spacing: -0.005em; }
   /* kept for older markup */
-  .t-head { font-weight: 350; font-size: clamp(20px, 1.7vw, 24px); line-height: 1.25; letter-spacing: -0.02em; }
+  .t-head { font-weight: 500; font-size: clamp(20px, 1.7vw, 24px); line-height: 1.25; letter-spacing: -0.025em; }
   .t-mono { font-weight: 300; font-size: clamp(52px, 9.2vw, 140px); line-height: 1.02; letter-spacing: -0.03em; text-wrap: balance; }
-  .muted { color: rgb(239 233 224 / 0.7); }
-  .dim { color: rgb(239 233 224 / 0.45); }
+  .muted { color: #bdb6aa; }
+  .dim { color: #948e83; }
   .index { font-size: 13px; color: rgb(239 233 224 / 0.45); font-variant-numeric: tabular-nums; letter-spacing: 0; }
   .hair { border-color: rgb(239 233 224 / 0.15); }
   .mark { display: inline-block; width: 6px; height: 6px; border-radius: 99px; background: var(--color-signal); }
@@ -117,7 +117,7 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
   .wipe .w { opacity: 1 !important; transform: none !important; }
 
   /* the occasional italic serif word */
-  .accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; line-height: 0.9; }
+  .accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.12em; line-height: 0.9; padding-inline-end: 0.05em; }
 
   /* ---------- Controls (after Apple): small pill for the main action, a plain "›" link for the second ---------- */
   .btn {
@@ -312,3 +312,30 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 @keyframes dash-view { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 .dash-bar { transform-origin: bottom; animation: dash-bar 900ms cubic-bezier(0.23, 1, 0.32, 1) both; }
 @keyframes dash-bar { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+
+/* masked lines leave room for italic overhangs and descenders, so nothing is ever cropped */
+.mask-line { padding: 0.06em 0.22em 0.2em 0.12em; margin: -0.06em -0.22em -0.2em -0.12em; }
+.journey-title { font-weight: 500; font-size: clamp(34px, 3.6vw, 56px); line-height: 1.04; letter-spacing: -0.042em; text-wrap: balance; }
+
+/* ---------- A finished phone (see PhoneFrame) ---------- */
+.phone-frame { position: relative; width: 420px; height: 874px; filter: drop-shadow(0 50px 60px rgb(0 0 0 / 0.55)) drop-shadow(0 12px 18px rgb(0 0 0 / 0.35)); }
+.pf-edge {
+  position: absolute; inset: 0; border-radius: 70px; padding: 4px;
+  background:
+    linear-gradient(90deg, rgb(255 255 255 / 0.35), transparent 6%, transparent 94%, rgb(255 255 255 / 0.28)),
+    linear-gradient(160deg, #d9d5cd 0%, #8d8a84 22%, #4a4946 48%, #a29e96 74%, #e2ded6 100%);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.25), inset 0 0 2px 1px rgb(0 0 0 / 0.6);
+}
+.phone-frame.is-graphite .pf-edge { background: linear-gradient(90deg, rgb(255 255 255 / 0.2), transparent 6%, transparent 94%, rgb(255 255 255 / 0.16)), linear-gradient(160deg, #5b5c60 0%, #2a2b2e 30%, #18191b 55%, #3b3c40 80%, #6a6b70 100%); }
+.pf-bezel { width: 100%; height: 100%; border-radius: 66px; padding: 11px; background: #030304; box-shadow: inset 0 0 0 1.5px #1c1c1f; }
+.pf-screen { position: relative; width: 390px; height: 844px; border-radius: 55px; overflow: hidden; isolation: isolate; background: #000; }
+.pf-island { position: absolute; z-index: 5; top: 11px; left: 50%; width: 122px; height: 36px; transform: translateX(-50%); border-radius: 99px; background: #000; box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.04); pointer-events: none; }
+.pf-island::after { content: ""; position: absolute; right: 13px; top: 50%; width: 11px; height: 11px; transform: translateY(-50%); border-radius: 99px; background: radial-gradient(circle at 40% 35%, #2b3a55 0%, #0c1120 55%, #000 70%); }
+.pf-glare { position: absolute; z-index: 6; inset: 0; pointer-events: none; background: linear-gradient(118deg, rgb(255 255 255 / 0.13) 0%, rgb(255 255 255 / 0.04) 26%, transparent 42%); mix-blend-mode: screen; }
+.pf-btn { position: absolute; width: 4px; border-radius: 2px; background: linear-gradient(90deg, #6f6c67, #c9c5bd 45%, #7d7a74); }
+.phone-frame.is-graphite .pf-btn { background: linear-gradient(90deg, #2a2b2e, #5d5e62 45%, #2a2b2e); }
+.pf-action { left: -3px; top: 168px; height: 34px; }
+.pf-vol1 { left: -3px; top: 228px; height: 62px; }
+.pf-vol2 { left: -3px; top: 304px; height: 62px; }
+.pf-power { right: -3px; top: 262px; height: 98px; }
+.sc-title { font-weight: 500; font-size: clamp(36px, 4.4vw, 70px); line-height: 1.0; letter-spacing: -0.045em; text-wrap: balance; }

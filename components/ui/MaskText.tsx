@@ -96,11 +96,11 @@ export function MaskText({ text, as: Tag = "h2", className = "", delay = 0, play
         <span aria-hidden className="invisible">{ws.map((w, i) => word(w, i, i === ws.length - 1))}</span>
       ) : (
         lines.map((g, li) => (
-          <span key={li} aria-hidden className="block overflow-hidden pb-[0.08em] -mb-[0.08em]">
+          <span key={li} aria-hidden className="mask-line block overflow-hidden">
             <span
               className="block will-change-transform"
               style={{
-                transform: on ? "translate3d(0,0,0)" : "translate3d(0,110%,0)",
+                transform: on ? "translate3d(0,0,0)" : "translate3d(0,150%,0)",
                 transition: `transform 1100ms ${EASE} ${delay + li * stagger}ms`,
               }}
             >

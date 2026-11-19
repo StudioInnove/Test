@@ -22,7 +22,7 @@ export function Footer() {
     ...nav.links.map((l) => ({ label: l.label, href: href(l.href) })),
     { label: "Web apps", href: href("/web-app-development") },
     { label: "Mobile apps", href: href("/mobile-app-development") },
-    { label: "How we work", href: href("/process") },
+    { label: "How we work", href: href("/#how") },
   ];
 
   const toTop = (e: MouseEvent) => {

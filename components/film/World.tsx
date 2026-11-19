@@ -9,12 +9,13 @@
  */
 import { AnimatePresence, motion } from "motion/react";
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
-import { content, href } from "@/lib/content";
+import { asset, content, href } from "@/lib/content";
 import { PhoneApps } from "../apps/PhoneApps";
 import { BookCall } from "../BookCall";
 import { LaunchTrack, WaitlistForm } from "../Originals";
 import { WorldClocks } from "../ui/WorldClocks";
 import { MaskText } from "../ui/MaskText";
+import { PhoneFrame } from "../ui/PhoneFrame";
 import { BG, Scenery, usePhone, type Cam } from "./Scenery";
 import type { WorldId } from "./timeline";
 
@@ -31,6 +32,50 @@ const CAMS: Record<WorldId, Cam[]> = {
   world: [{ z: 1, u: 0.45, v: 0.32 }, { z: 1.12, u: 0.45, v: 0.32 }],
   originals: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.1, u: 0.5, v: 0.6 }, { z: 1.04, u: 0.5, v: 0.5 }],
 };
+
+/** A different shot for a chapter: it crossfades in over the room and settles slowly. x/y place it in a crop. */
+type Shot = { d: string; m?: string; x?: number; y?: number };
+const SHOTS: Partial<Record<WorldId, (Shot | null)[]>> = {
+  web: [null, null, { d: "/worlds/web-grow-d.webp", m: "/worlds/web-grow-m.webp", x: 38 }],
+  mobile: [null, null, { d: "/worlds/mobile-both-d.webp", m: "/worlds/mobile-both-m.webp", x: 64 }],
+  think: [null, { d: "/worlds/think-designs-d.webp", m: "/worlds/think-designs-m.webp", x: 62 }, { d: "/worlds/think-fast-d.webp", m: "/worlds/think-fast-m.webp", x: 56 }],
+  originals: [null, { d: "/worlds/orig-cloth-d.webp", m: "/worlds/orig-cloth-m.webp", x: 62 }, { d: "/worlds/orig-door-d.webp", m: "/worlds/orig-door-m.webp", x: 64 }],
+};
+
+/** Words on the right (r) or left (l), per chapter. */
+const SIDES: Partial<Record<WorldId, ("l" | "r")[]>> = { web: ["r", "r", "r"], how: ["r", "l", "l", "l"] };
+
+/** The process close-up walks along the design wall: one step of the process per stop. */
+const WALL = { src: "/worlds/wall-d.webp", aspect: 3800 / 1612, k: 1.32, at: [0.11, 0.355, 0.61, 0.855] };
+function Wall({ chap, phone, right }: { chap: number; phone: boolean; right: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [box, setBox] = useState({ w: 1440, h: 900 });
+  useEffect(() => {
+    const el = ref.current!;
+    const f = () => setBox({ w: el.clientWidth, h: el.clientHeight });
+    f();
+    const ro = new ResizeObserver(f);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+  const h = box.h * (phone ? 1.08 : WALL.k);
+  const w = h * WALL.aspect;
+  // centre this step (a little right of centre on a computer, where the words are not)
+  const want = box.w * (phone ? 0.5 : right ? 0.34 : 0.64) - WALL.at[chap] * w;
+  const x = Math.min(0, Math.max(box.w - w, want));
+  const y = (box.h - h) * (phone ? 0.5 : 0.42);
+  return (
+    <div ref={ref} className="absolute inset-0 overflow-hidden bg-ink">
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={asset(WALL.src)}
+        alt="Sketches and designs for every screen, pinned along the studio wall"
+        className="absolute left-0 top-0 max-w-none will-change-transform"
+        style={{ width: w, height: h, transform: `translate3d(${x}px,${y}px,0)`, transition: "transform 1600ms cubic-bezier(0.65,0,0.35,1)" }}
+      />
+    </div>
+  );
+}
 
 /** The words of one chapter, arriving like a scene's: the title word by word, then the line, then the rest. */
 function Story({ children }: { children: ReactNode }) {
@@ -73,7 +118,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
     (dir: number) => {
       const now = performance.now();
       if (now < busyUntil.current) return;
-      busyUntil.current = now + 1000;
+      busyUntil.current = now + 850;
       const next = chap + dir;
       if (next < 0 || next > last) return onClose();
       setChap(next);
@@ -95,7 +140,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   // the floating phone's size: as large as fits
   const [ps, setPs] = useState(0.7);
   useEffect(() => {
-    const f = () => setPs(phone ? Math.min(0.5, (window.innerHeight * 0.44) / 844) : Math.min(0.8, (window.innerHeight * 0.74) / 844));
+    const f = () => setPs(phone ? Math.min(0.5, (window.innerHeight * 0.44) / 874) : Math.min(0.8, (window.innerHeight * 0.72) / 874));
     f();
     window.addEventListener("resize", f);
     return () => window.removeEventListener("resize", f);
@@ -104,13 +149,13 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   const bg = id ? BG[id] : null;
   // a form keeps its own scroll and keys; elsewhere (even over a screen) one scroll is one chapter
   const inForm = (t: EventTarget | null) => !!(t as HTMLElement)?.closest?.("form");
-  const inside = (t: EventTarget | null) => !!(t as HTMLElement)?.closest?.("[data-app], form");
 
   // one fresh scroll = one chapter
   const gesture = useRef({ sum: 0, done: false });
   const onWheel = (e: React.WheelEvent) => {
     const now = performance.now();
-    if (now - lastWheel.current > 220) gesture.current = { sum: 0, done: false };
+    // a pause, or a change of direction, starts a fresh gesture
+    if (now - lastWheel.current > 200 || (gesture.current.sum && Math.sign(e.deltaY) !== Math.sign(gesture.current.sum))) gesture.current = { sum: 0, done: false };
     lastWheel.current = now;
     if (inForm(e.target) || gesture.current.done) return;
     gesture.current.sum += e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
@@ -118,14 +163,21 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
     gesture.current.done = true;
     step(Math.sign(gesture.current.sum));
   };
+  // a mostly-vertical swipe anywhere moves the story on, even over the phone (its apps swipe sideways)
+  const touchX = useRef(0);
   const onTouchStart = (e: React.TouchEvent) => {
-    touchY.current = inside(e.target) ? null : e.touches[0].clientY;
+    touchY.current = inForm(e.target) ? null : e.touches[0].clientY;
+    touchX.current = e.touches[0].clientX;
   };
   const onTouchEnd = (e: React.TouchEvent) => {
     if (touchY.current === null) return;
     const dy = touchY.current - e.changedTouches[0].clientY;
+    const dx = touchX.current - e.changedTouches[0].clientX;
     touchY.current = null;
-    if (Math.abs(dy) > 40) step(Math.sign(dy));
+    if (Math.abs(dy) > 40 && Math.abs(dy) > Math.abs(dx) * 1.3) {
+      busyUntil.current = Math.min(busyUntil.current, performance.now());
+      step(Math.sign(dy));
+    }
   };
 
   const actions = (ms: number, link?: { link: string; href: string }) => (
@@ -138,7 +190,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   // what each chapter adds under its title and line
   let extra: ReactNode = null;
   if (id && chap === last && id !== "originals") {
-    const link = id === "web" || id === "mobile" || id === "how" ? W[id] : undefined;
+    const link = id === "web" || id === "mobile" ? W[id] : undefined;
     extra = actions(380, link);
   }
   if (id === "world" && chap === 1) extra = (
@@ -151,7 +203,8 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   if (id === "originals" && chap === 2) extra = <div className="rise mt-8 w-full" style={d(380)}><WaitlistForm source="originals-room" onJoined={() => setJoined(true)} /></div>;
 
   const c = chapters[chap];
-  const right = id === "web" && !phone;
+  // which side the words sit on, so they never cover the thing the chapter is about
+  const right = !phone && (SIDES[id ?? "web"]?.[chap] ?? "l") === "r";
   const line = id === "originals" && chap === 2 && joined ? W.originals.joined : c?.line;
 
   return (
@@ -161,7 +214,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           key={id}
           role="dialog"
           aria-modal="true"
-          aria-label={chapters[0].title}
+          aria-label={chapters[0].title.replace(/\*/g, "")}
           data-panel
           onWheel={onWheel}
           onTouchStart={onTouchStart}
@@ -174,19 +227,52 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
         >
           {/* the picture: full screen on a computer, the top of the screen on a phone */}
           <div className={`absolute inset-x-0 top-0 ${phone ? "h-[56svh]" : "h-full"}`}>
-            <Scenery bg={bg} phone={phone} interactive glowOn={joined} cam={CAMS[id][chap]} />
+            {id === "how" ? <Wall chap={chap} phone={phone} right={right} /> : <Scenery bg={bg} phone={phone} interactive glowOn={joined} cam={CAMS[id][chap]} />}
+            {/* other shots crossfade in over the room */}
+            {SHOTS[id]?.map((sh, i) =>
+              sh ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={i}
+                  src={asset(phone && sh.m ? sh.m : sh.d)}
+                  alt=""
+                  className="absolute inset-0 h-full w-full object-cover"
+                  style={{
+                    objectPosition: `${sh.x ?? 50}% ${sh.y ?? 50}%`,
+                    opacity: i === chap ? 1 : 0,
+                    transform: i === chap ? "scale(1)" : "scale(1.07)",
+                    transition: `opacity 1200ms cubic-bezier(0.65,0,0.35,1), transform ${i === chap ? 2600 : 1200}ms cubic-bezier(0.22,0.61,0.36,1)`,
+                  }}
+                />
+              ) : null,
+            )}
+            {/* the room dims while the phone has the stage */}
+            {id === "mobile" && <div aria-hidden className="pointer-events-none absolute inset-0 bg-ink transition-opacity duration-[1200ms]" style={{ opacity: chap === 1 ? 0.62 : 0 }} />}
             {/* shade where the words sit: the same as the scenes */}
-            <div aria-hidden className={`pointer-events-none absolute inset-0 ${phone ? "[background:linear-gradient(180deg,rgb(7_10_18/0.45)_0%,transparent_20%,transparent_62%,#070a12_100%)]" : right ? "[background:linear-gradient(270deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.7)_22%,transparent_38%)]" : id === "originals" ? "[background:linear-gradient(90deg,rgb(7_10_18/0.96)_0%,rgb(7_10_18/0.88)_34%,rgb(7_10_18/0.35)_56%,transparent_72%)]" : "[background:linear-gradient(90deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.6)_36%,transparent_60%)]"}`} />
+            {phone ? (
+              <div aria-hidden className="pointer-events-none absolute inset-0 [background:linear-gradient(180deg,rgb(7_10_18/0.45)_0%,transparent_20%,transparent_62%,#070a12_100%)]" />
+            ) : (
+              <>
+                <div aria-hidden className="pointer-events-none absolute inset-0 transition-opacity duration-[1200ms] [background:linear-gradient(270deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.7)_22%,transparent_40%)]" style={{ opacity: right ? 1 : 0 }} />
+                <div aria-hidden className={`pointer-events-none absolute inset-0 transition-opacity duration-[1200ms] ${id === "originals" ? "[background:linear-gradient(90deg,rgb(7_10_18/0.96)_0%,rgb(7_10_18/0.88)_34%,rgb(7_10_18/0.35)_56%,transparent_72%)]" : "[background:linear-gradient(90deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.6)_36%,transparent_60%)]"}`} style={{ opacity: right ? 0 : 1 }} />
+              </>
+            )}
           </div>
 
           {/* the floating phone you can use; it comes forward in the chapter about it */}
           {id === "mobile" && (
-            <motion.div data-app className={`absolute z-10 ${phone ? "left-1/2 top-[max(64px,6svh)]" : "right-[12vw] top-1/2"}`} initial={{ opacity: 0, y: 40 }} animate={{ opacity: 1, y: 0, scale: chap === 1 ? 1.04 : 1 }} transition={{ duration: 1.2, ease, delay: chap === 0 ? 0.55 : 0 }}>
-              <div
-                className="overflow-hidden rounded-[52px] shadow-[0_40px_90px_-30px_rgb(0_0_0/0.8),0_0_0_10px_#15161b,0_0_0_11px_rgb(255_255_255/0.12)]"
-                style={{ transform: phone ? `translateX(-50%) scale(${ps})` : `translateY(-50%) scale(${ps})`, transformOrigin: phone ? "top center" : "center right" }}
-              >
-                <PhoneApps interactive />
+            <motion.div
+              data-app
+              className={`absolute z-10 ${phone ? "left-1/2 top-[max(64px,6svh)]" : "top-1/2"}`}
+              style={{ right: phone ? undefined : chap === 1 ? "22vw" : "12vw", transition: "right 1400ms cubic-bezier(0.65,0,0.35,1)", pointerEvents: chap === 2 ? "none" : undefined }}
+              initial={{ opacity: 0, y: 40 }}
+              animate={{ opacity: chap === 2 ? 0 : 1, y: chap === 2 ? 60 : 0, scale: chap === 1 ? 1.1 : 1 }}
+              transition={{ duration: 1.3, ease, delay: chap === 0 ? 0.55 : 0 }}
+            >
+              <div style={{ transform: phone ? `translateX(-50%) scale(${ps})` : `translateY(-50%) scale(${ps})`, transformOrigin: phone ? "top center" : "center right" }}>
+                <PhoneFrame>
+                  <PhoneApps interactive />
+                </PhoneFrame>
               </div>
             </motion.div>
           )}

@@ -128,7 +128,13 @@
       "href": "/process",
       "image": "/closeups/how.webp"
     },
-    "swipe": "Swipe to follow the steps"
+    "swipe": "Swipe to follow the steps",
+    "walk": [
+      "A first *call.*",
+      "Every screen, *designed.*",
+      "Built week by *week.*",
+      "Launch, and *beyond.*"
+    ]
   },
   "originals": {
     "eyebrow": "Studio Originals",
@@ -217,15 +223,33 @@
       "showcase": [
         {
           "title": "Platforms",
-          "line": "Products your customers sign in to and use every day."
+          "headline": "Products your customers *live* in.",
+          "line": "Portals, marketplaces and member areas people sign in to every day.",
+          "tags": [
+            "Client portals",
+            "Marketplaces",
+            "Member areas"
+          ]
         },
         {
           "title": "Dashboards",
-          "line": "Your numbers, clear at a glance."
+          "headline": "Your numbers, *clear* at a glance.",
+          "line": "Revenue, bookings and stock in one calm screen, live on any device.",
+          "tags": [
+            "Live data",
+            "Reports",
+            "Alerts"
+          ]
         },
         {
           "title": "Tools",
-          "line": "Internal software that saves your team hours."
+          "headline": "Software that gives your team *hours* back.",
+          "line": "Booking systems, admin panels and internal tools that replace the spreadsheets.",
+          "tags": [
+            "Admin panels",
+            "Bookings",
+            "Automations"
+          ]
         }
       ],
       "statement": "We design and build web apps that feel *effortless.* Portals, dashboards and tools your team will actually *enjoy* opening."
@@ -252,16 +276,34 @@
       ],
       "showcase": [
         {
-          "title": "Apps for your customers",
-          "line": "Events, tickets and memberships, right in their pocket."
+          "title": "For your customers",
+          "headline": "Your brand, in their *pocket.*",
+          "line": "Events, tickets and memberships, a tap away on iPhone and Android.",
+          "tags": [
+            "Events",
+            "Tickets",
+            "Memberships"
+          ]
         },
         {
-          "title": "Bookings in a tap",
-          "line": "Tables, classes and appointments, booked in seconds."
+          "title": "Bookings",
+          "headline": "Booked in a *tap.*",
+          "line": "Tables, classes and appointments, booked in seconds and remembered next time.",
+          "tags": [
+            "Restaurants",
+            "Studios",
+            "Clinics"
+          ]
         },
         {
-          "title": "Something to play",
-          "line": "Games and playful moments that bring people back."
+          "title": "Play",
+          "headline": "Something to *play.*",
+          "line": "Games and playful moments that bring people back every day.",
+          "tags": [
+            "Games",
+            "Rewards",
+            "Streaks"
+          ]
         }
       ],
       "statement": "Apps people open every day, and *keep.* Designed screen by screen, built once for iPhone and *Android.*"
@@ -366,19 +408,19 @@
       "href": "/process",
       "chapters": [
         {
-          "title": "Call",
+          "title": "A first *call.*",
           "line": "Thirty minutes on your idea, your users and what success looks like."
         },
         {
-          "title": "Design",
+          "title": "Every screen, *designed.*",
           "line": "You see and approve every screen before any code is written."
         },
         {
-          "title": "Build",
+          "title": "Built week by *week.*",
           "line": "Steady progress you can see and try as it takes shape."
         },
         {
-          "title": "Launch",
+          "title": "Launch, and *beyond.*",
           "line": "We ship it, then stay on for updates and support if you want us to."
         }
       ]

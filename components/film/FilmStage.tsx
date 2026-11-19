@@ -7,7 +7,6 @@ import { quadMatrix } from "@/lib/quad";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
 import { Words } from "../Words";
-import { WorldClocks } from "../ui/WorldClocks";
 import { BuildScreen, BUILD_SIZE } from "../apps/BuildScreen";
 import { Dashboard, DASH_SIZE } from "../apps/Dashboard";
 import { PhoneApps, PHONE_SIZE } from "../apps/PhoneApps";
@@ -804,7 +803,7 @@ export function FilmStage() {
           if (!alive) return;
           const have = Math.min(1, engine!.loadedRatio(need) / 0.6);
           setProgress(0.5 + have * 0.5);
-          if ((have >= 1 && performance.now() - t0 > (entered ? 500 : 2600)) || performance.now() - t0 > 7000) {
+          if ((have >= 1 && performance.now() - t0 > (entered ? 400 : 1200)) || performance.now() - t0 > 7000) {
             setLoaded(true);
             remember();
             begin();
@@ -1006,7 +1005,7 @@ export function FilmStage() {
 
         {/* ---------------- Quiet controls ---------------- */}
         <div className={`pointer-events-none absolute inset-x-[var(--gutter)] bottom-5 z-10 flex items-center justify-between transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
-          <div className="pointer-events-auto -ml-2 flex items-center">
+          <div className="pointer-events-auto -ml-2 hidden items-center md:flex">
             {SCENES.map((s, i) => (
               <button key={s.key} type="button" aria-label={`Go to ${rooms[i]}`} aria-current={i === scene ? "true" : undefined} onClick={() => cutRef.current(i)} className="scene-dot group relative flex h-10 items-center px-2">
                 <span className={`block h-[2px] rounded-full transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === scene ? "w-9 bg-paper" : "w-4 bg-white/30 group-hover:bg-white/70"}`} />
@@ -1031,8 +1030,7 @@ export function FilmStage() {
           <div className={`entrance absolute inset-0 flex flex-col items-center justify-center px-[var(--gutter)] text-center ${skipEntrance ? "invisible" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />
-            <WorldClocks className="mt-12 w-full max-w-[680px] text-left" />
-            <div className="relative mt-14 h-px w-[120px] overflow-hidden bg-white/15">
+            <div className="relative mt-10 h-px w-[120px] overflow-hidden bg-white/15">
               <div className="h-full origin-left bg-paper/80 transition-transform duration-500" style={{ transform: `scaleX(${progress})` }} />
             </div>
           </div>

@@ -24,7 +24,7 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
       <Backdrop still={still} />
       <Statement text={p.statement} />
       <Showcase kind={kind} heading={content.services.intro} items={p.showcase} views={kind === "web" ? [2, 0, 1] : [0, 1, 2]} />
-      <Journey heading={how.heading} steps={how.steps} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />
+      <Journey heading={how.heading} steps={how.steps} titles={how.walk} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />
 
       {/* questions, in the warm light */}
       <section className="relative px-[var(--gutter)] py-28 md:py-40">

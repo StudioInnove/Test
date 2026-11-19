@@ -119,51 +119,7 @@
     "error": "Something went wrong. Please try again.",
     "privacy": "Only emails about this app. Unsubscribe anytime.",
     "line": "Alongside client work, we're building a product of our own. It's in development now. Join the list to see it first.",
-    "code": "Original 01",
     "more": "See what's coming",
-    "perksHeading": "Join early, get more.",
-    "perksLine": "The first people on the list get things nobody else will.",
-    "perks": [
-      {
-        "label": "First access",
-        "title": "In before anyone else",
-        "line": "You get the private beta first, before the doors open to everyone."
-      },
-      {
-        "label": "Founding price",
-        "title": "A price that stays yours",
-        "line": "Early members keep a founding price for as long as they stay."
-      },
-      {
-        "label": "A say in it",
-        "title": "Help shape what we build",
-        "line": "Tell us what you need. The earliest members help decide what comes next."
-      }
-    ],
-    "projectsHeading": "What we're making",
-    "projects": [
-      {
-        "code": "Original 01",
-        "name": "The sales assistant",
-        "line": "An assistant that helps businesses with their sales, from finding the right B2B customers to winning them.",
-        "status": "Building now",
-        "locked": false
-      },
-      {
-        "code": "Original 02",
-        "name": "Under wraps",
-        "line": "The next one is already on the wall. More when it's ready.",
-        "status": "Coming 2027",
-        "locked": true
-      },
-      {
-        "code": "Original 03",
-        "name": "Under wraps",
-        "line": "Still an idea, and a good one. Join the list to hear first.",
-        "status": "Later",
-        "locked": true
-      }
-    ],
     "joinLine": "Be the first through the door."
   },
   "close": {
@@ -195,7 +151,8 @@
         "q": "Who do you work with?",
         "a": "Founders, businesses and anyone with an idea for an app, anywhere in the world."
       }
-    ]
+    ],
+    "eyebrow": "FAQ"
   },
   "contact": {
     "heading": "Prefer email?",
@@ -204,7 +161,6 @@
   "footer": {
     "tagline": "Web and mobile apps, designed and built with care.",
     "privacy": "Privacy",
-    "status": "Open for new projects",
     "top": "Back to the top"
   },
   "pages": {

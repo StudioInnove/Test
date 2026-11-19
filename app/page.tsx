@@ -4,7 +4,7 @@ import { Faq } from "@/components/Faq";
 import { Footer } from "@/components/Footer";
 import { InView } from "@/components/InView";
 import { Words } from "@/components/Words";
-import { ArrowLink } from "@/components/ui/ArrowLink";
+import { EmailPill } from "@/components/ui/EmailPill";
 import { content, SITE_URL } from "@/lib/content";
 
 export default function Home() {
@@ -42,16 +42,19 @@ export default function Home() {
       <Nav />
       <FilmStage />
 
-      <section id="faq" className="relative bg-ink-2 px-[var(--gutter)] pb-32 pt-32 md:pt-40">
-        <InView className="grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
-          <div className="md:col-span-2">
+      <section id="faq" className="relative overflow-hidden bg-ink-2 px-[var(--gutter)] pb-28 pt-28 md:pb-36 md:pt-40">
+        {/* a faint warm light, as if from the studio upstairs */}
+        <div aria-hidden className="pointer-events-none absolute -left-[20%] top-0 h-[70%] w-[70%] [background:radial-gradient(closest-side,rgb(232_161_90/0.07),transparent)]" />
+        <InView className="relative grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
+          <div className="md:col-span-2 md:pt-6">
+            <p className="rise t-small mb-5 flex items-center gap-2.5 text-paper/55"><span className="mark" />{faq.eyebrow}</p>
             <h2 className="t-title"><Words text={faq.heading} /></h2>
-            <p className="rise t-body muted mt-4 max-w-[30ch]" style={{ ["--d" as string]: "300ms" }}>
+            <p className="rise t-body mt-4 max-w-[30ch] text-paper/60" style={{ ["--d" as string]: "300ms" }}>
               {faq.line} {studio.replyPromise}
             </p>
-            <p className="rise mt-6" style={{ ["--d" as string]: "450ms" }}>
-              <ArrowLink href={`mailto:${studio.email}`}>{studio.email}</ArrowLink>
-            </p>
+            <div className="rise mt-8" style={{ ["--d" as string]: "450ms" }}>
+              <EmailPill email={studio.email} />
+            </div>
           </div>
           <div className="md:col-span-3">
             <Faq />

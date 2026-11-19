@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { PageShell } from "@/components/PageShell";
 import { InView } from "@/components/InView";
-import { Words } from "@/components/Words";
-import { LaunchTrack, PerkCards, WaitlistForm, WarpCarousel } from "@/components/Originals";
+import { LaunchTrack, WaitlistForm } from "@/components/Originals";
 import { content } from "@/lib/content";
 
 const p = content.pages.originalsPage;
@@ -28,31 +27,6 @@ export default function Page() {
         </InView>
       </section>
 
-      {/* what's being made */}
-      <section className="bg-ink-2 py-24 md:py-32">
-        <InView className="px-[var(--gutter)]" threshold={0.1}>
-          <p className="rise index mb-4">{o.eyebrow}</p>
-          <h2 className="t-title"><Words text={o.projectsHeading} /></h2>
-        </InView>
-        <div className="mt-10">
-          <WarpCarousel />
-        </div>
-      </section>
-
-      {/* what joining early gets you */}
-      <section className="bg-ink px-[var(--gutter)] py-24 md:py-32">
-        <InView className="mx-auto max-w-[1100px]" threshold={0.1}>
-          <div className="mb-12 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-            <h2 className="t-title"><Words text={o.perksHeading} /></h2>
-            <p className="rise t-body max-w-[34ch] text-paper/60" style={{ ["--d" as string]: "200ms" }}>{o.perksLine}</p>
-          </div>
-          <PerkCards />
-          <div className="rise mt-16 flex flex-col items-center gap-3 text-center" style={{ ["--d" as string]: "600ms" }}>
-            <p className="t-head">{o.cta}</p>
-            <WaitlistForm source="originals-page-bottom" size="lg" />
-          </div>
-        </InView>
-      </section>
     </PageShell>
   );
 }

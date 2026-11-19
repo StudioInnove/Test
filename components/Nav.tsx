@@ -21,7 +21,7 @@ const SCENE_LINK: Record<string, string> = {
   faq: "/#faq",
 };
 
-const spring = { type: "spring", bounce: 0.28, duration: 0.55 } as const;
+const spring = { type: "spring", bounce: 0.1, duration: 0.5 } as const;
 
 export function Nav() {
   const { links, cta } = content.nav;

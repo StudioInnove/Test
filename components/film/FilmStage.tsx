@@ -6,7 +6,6 @@ import { asset, content, href } from "@/lib/content";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
 import { LaunchTrack, WaitlistForm } from "../Originals";
-import { ArrowLink } from "../ui/ArrowLink";
 import { Words } from "../Words";
 import { FilmEngine, type Manifest, type Single } from "./engine";
 import { SCENES, sceneIndex, type SceneKey } from "./scenes";
@@ -514,12 +513,12 @@ export function FilmStage() {
 
         {/* ---------------- Scenes ---------------- */}
         <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[108px] md:pb-[13svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.85)_0%,rgb(7_10_18/0.4)_40%,transparent_65%)] md:[background:linear-gradient(20deg,rgb(7_10_18/0.85)_0%,rgb(7_10_18/0.45)_42%,transparent_66%)]" />
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.85)_0%,rgb(7_10_18/0.4)_40%,transparent_65%)] md:[background:linear-gradient(20deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.62)_38%,transparent_64%)]" />
           <h1 className="t-display max-w-[11ch]"><Words text={hero.headline} /></h1>
           <p className="rise t-body mt-5 max-w-[36ch] text-paper/80" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
           <div className="rise mt-8 flex flex-wrap items-center gap-6" style={{ ["--d" as string]: "450ms" }}>
             <BookCall>{hero.primary}</BookCall>
-            <ArrowLink href="#originals">{hero.secondary}</ArrowLink>
+            <a href="#originals" className="btn btn-ghost">{hero.secondary}</a>
           </div>
         </section>
 
@@ -539,7 +538,6 @@ export function FilmStage() {
             <section key={k} data-scene={k} aria-label={s.title} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[100px] md:pb-[13svh]" style={sceneStyle}>
               <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.88)_0%,rgb(7_10_18/0.45)_38%,transparent_62%)]" />
               <div className="max-w-[440px]">
-                <p className="rise index mb-4">{s.index}</p>
                 <h2 className="t-title"><Words text={s.title} /></h2>
                 <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "200ms" }}>{s.line}</p>
                 <ul className="rise mt-6 flex flex-wrap gap-1.5" style={{ ["--d" as string]: "320ms" }}>
@@ -571,16 +569,12 @@ export function FilmStage() {
         <section data-scene="originals" aria-label={originals.eyebrow} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.92),rgb(7_10_18/0.5)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.6)_38%,transparent_62%)]" />
           <div className="max-w-[460px]">
-            <p className="rise t-small mb-6 flex items-center gap-3 text-paper/70">
-              <span>{originals.eyebrow}</span>
-              <span className="h-px w-6 bg-white/30" />
-              <span className="tabular-nums tracking-[0.08em]" data-scramble={originals.code}>{originals.code}</span>
-            </p>
+            <p className="rise t-small mb-6 flex items-center gap-2.5 text-paper/70"><span className="mark" />{originals.eyebrow}</p>
             <h2 className="t-title"><Words text={originals.heading} /></h2>
             <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
             <div className="rise mt-8" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>
             <div className="rise mt-7" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
-            <div className="rise mt-3" style={{ ["--d" as string]: "600ms" }}><ArrowLink href={href("/studio-originals")}>{originals.more}</ArrowLink></div>
+            <div className="rise mt-2" style={{ ["--d" as string]: "600ms" }}><a href={href("/studio-originals")} className="btn btn-ghost">{originals.more}</a></div>
           </div>
         </section>
 

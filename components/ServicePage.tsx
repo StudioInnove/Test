@@ -2,7 +2,7 @@ import { content } from "@/lib/content";
 import { BookCall } from "./BookCall";
 import { Faq } from "./Faq";
 import { PageShell, Section } from "./PageShell";
-import { ArrowLink } from "./ui/ArrowLink";
+import { EmailPill } from "./ui/EmailPill";
 
 export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
   const p = content.pages[kind];
@@ -39,8 +39,8 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
       </Section>
       <Section title={`${close.heading} ${close.sub}`} tone="ink-2">
         <div className="rise flex flex-wrap items-center gap-6">
-          <BookCall>{close.cta}</BookCall>
-          <ArrowLink href={`mailto:${studio.email}`}>{studio.email}</ArrowLink>
+          <BookCall className="!h-12 !rounded-full !px-6">{close.cta}</BookCall>
+          <EmailPill email={studio.email} />
         </div>
       </Section>
     </PageShell>

@@ -56,6 +56,7 @@ export function FilmStage() {
   const [progress, setProgress] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [skipEntrance, setSkipEntrance] = useState(false);
+  const [howStep, setHowStep] = useState(0);
   const [ready, setReady] = useState(false);
   const [scene, setScene] = useState(0);
   const [canSwipe, setCanSwipe] = useState(false);
@@ -230,6 +231,9 @@ export function FilmStage() {
     strip?.addEventListener("scroll", () => {
       // a finger moved it natively: follow it
       if (!stripAnim && !dragging) stripTarget = strip.scrollLeft;
+      // the strip is only the hand that turns the steps: show the one it has reached
+      const max = stripMax();
+      setHowStep(max ? Math.round((strip.scrollLeft / max) * (how.steps.length - 1)) : 0);
     }, { passive: true });
     const cardW = () => (strip?.querySelector("li") as HTMLElement | null)?.offsetWidth ?? 300;
 
@@ -353,13 +357,16 @@ export function FilmStage() {
         if (max > 4) {
           const at = stripTarget;
           if ((dir > 0 && at < max - 2) || (dir < 0 && at > 2)) {
-            stripTarget = clamp(at + (touch ? dir * cardW() : dy * 0.9), 0, max);
+            // one gesture, one step
+            if (stripMovedAt >= gestureAt && !fresh) return;
+            const stepW = max / (how.steps.length - 1);
+            stripTarget = clamp((Math.round(at / stepW) + dir) * stepW, 0, max);
             stripAnim = true;
             stripMovedAt = performance.now();
             return;
           }
           // at the end of the steps: the same gesture stops here; a new one moves on
-          if (stripMovedAt > gestureAt && !fresh) return;
+          if (stripMovedAt >= gestureAt && !fresh) return;
         }
       }
       boost = Math.min(1, boost + Math.abs(dy) / 900);
@@ -784,7 +791,8 @@ export function FilmStage() {
       if (!/si-entered/.test(window.name)) window.name = (window.name ? window.name + " " : "") + "si-entered";
     };
     // returning within the visit: no entrance at all
-    if (entered) setSkipEntrance(true);
+    // no loading screen: the film simply fades up from black once it is ready
+    setSkipEntrance(true);
 
     fetch(asset("/film/manifest.json"))
       .then((r) => r.json())
@@ -936,22 +944,38 @@ export function FilmStage() {
         {/* Process: the steps arrive from the side; scrolling moves them sideways */}
         <section data-scene="how" aria-label={how.heading.replace(/\*/g, "")} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
-          <div className="mb-10 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-14">
-            <div className="stack">
-              <p className="rise kicker" style={{ ["--d" as string]: "0ms" }}>{how.kicker}</p>
-              <h2 className="scene-title"><Words text={how.heading} delay={120} /></h2>
-            </div>
-            <p className="rise t-label strip-hint" style={{ ["--d" as string]: "500ms" }}>{canSwipe ? how.swipe : how.drag} →</p>
+          {/* the chapter's name, up in the corner */}
+          <div className="stack absolute left-[var(--gutter)] top-[max(92px,13svh)]">
+            <p className="rise kicker" style={{ ["--d" as string]: "0ms" }}>{how.kicker}</p>
+            <h2 className="scene-title"><Words text={how.heading} delay={120} /></h2>
           </div>
-          <div data-hscroll className="hstrip slide relative overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <ol className="flex w-max px-[var(--gutter)]">
-              {how.steps.map((st, i) => (
-                <li key={st.title} className="relative w-[78vw] max-w-[380px] shrink-0 pr-10 sm:w-[44vw] md:w-[34vw] md:max-w-[480px] md:pr-16">
-                  <p className="kicker mb-3">{how.order[i]}</p>
+          {/* one step at a time, like the close-ups: a title with an italic word, one plain line */}
+          <div className="relative grid px-[var(--gutter)]">
+            {how.steps.map((st, i) => {
+              const on = i === howStep;
+              return (
+                <div key={st.title} aria-hidden={!on} className="col-start-1 row-start-1 max-w-[520px] transition-[opacity,transform,filter] duration-[900ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(10px)", filter: on ? "none" : "blur(8px)", transitionDelay: on ? "120ms" : "0ms" }}>
                   <h3 className="t-title"><Words text={how.walk[i]} /></h3>
-                </li>
+                  <p className="t-lead mt-4">{st.line}</p>
+                </div>
+              );
+            })}
+          </div>
+          <div className="mt-10 flex items-center gap-4 px-[var(--gutter)] md:mt-12">
+            <div aria-hidden className="flex gap-2">
+              {how.steps.map((st, i) => (
+                <span key={st.title} className={`h-[2px] rounded-full transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === howStep ? "w-8 bg-paper" : "w-3 bg-paper/30"}`} />
               ))}
-              <li aria-hidden className="w-[10vw] shrink-0" />
+            </div>
+            <p className="t-label strip-hint">{canSwipe ? how.swipe : how.drag}</p>
+          </div>
+          {/* the strip itself is invisible: scrolling, swiping or dragging moves it, and it turns the steps */}
+          <div data-hscroll aria-hidden className="hstrip absolute inset-x-0 bottom-0 h-[46%] overflow-x-auto overscroll-x-contain opacity-0 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ol className="flex h-full w-max">
+              {how.steps.map((st) => (
+                <li key={st.title} className="h-full w-[60vw] shrink-0 md:w-[30vw]" />
+              ))}
+              <li className="h-full w-[10vw] shrink-0" />
             </ol>
           </div>
         </section>

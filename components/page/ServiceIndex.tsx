@@ -67,7 +67,7 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
 
   return (
     <section ref={ref} className="relative" style={{ height: `${n * 85 + 40}svh` }} aria-label={kicker}>
-      <div className="sticky top-0 flex h-[100svh] flex-col justify-center gap-8 overflow-hidden px-[var(--gutter)] md:grid md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:items-center md:gap-[6vw]">
+      <div className="sticky top-0 flex h-[100svh] flex-col justify-center gap-8 overflow-hidden px-[var(--gutter)] md:grid md:grid-cols-[minmax(0,600px)_minmax(0,400px)] md:content-center md:items-center md:justify-center md:gap-[5vw]">
         {/* the words */}
         <div className="relative max-md:pt-16">
           <p className="kicker">{kicker}</p>
@@ -101,7 +101,7 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         </div>
 
         {/* the photographs, one uncovering the next */}
-        <div className="relative mx-auto aspect-[4/5] w-[min(52vw,300px)] overflow-hidden rounded-[6px] md:mx-0 md:w-full md:max-w-[440px] md:justify-self-end">
+        <div className="relative mx-auto aspect-[4/5] w-[min(52vw,300px)] overflow-hidden rounded-[6px] md:mx-0 md:w-full md:max-w-[400px]">
           {items.map((it, i) => (
             <div key={it.image + i} ref={(el) => { photos.current[i] = el; }} className="absolute inset-0 overflow-hidden" style={{ zIndex: i + 1, clipPath: i === 0 ? "none" : "inset(100% 0% 0% 0%)" }}>
               {/* eslint-disable-next-line @next/next/no-img-element */}

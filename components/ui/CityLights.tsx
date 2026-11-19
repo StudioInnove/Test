@@ -4,11 +4,14 @@
  * The foot of the page: a field of tiny city lights seen from very high up, with the studio's name
  * cut out of them across the full width. Lights glitter, a shimmer runs up and down through them in a
  * few places, and every so often a little train slides along the bottom. On a computer the lights near the cursor warm up a touch.
- * Drawn on a canvas at a calm frame rate, and only while it's on screen.
+ * Drawn on a canvas at a calm frame rate, and only while it's on screen. The first time the footer comes
+ * into view the city powers up: the lights come on in a wave from left to right (a GSAP tween), and the
+ * name appears as the dark shape they leave.
  */
 import { useEffect, useRef } from "react";
+import { getGsap } from "@/lib/gsap";
 
-type Dot = { x: number; y: number; base: number; level: number; target: number; warm: boolean };
+type Dot = { x: number; y: number; base: number; level: number; target: number; warm: boolean; on: number };
 
 export function CityLights({ text }: { text: string }) {
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -66,7 +69,8 @@ export function CityLights({ text }: { text: string }) {
       o.letterSpacing = "-5px";
       const w100 = o.measureText(text).width;
       const gutter = Math.max(16, Math.min(69, W * 0.048));
-      const size = ((W - gutter * 2) * 100) / w100;
+      // the name at a modest width, sitting on the bottom at the left
+      const size = (Math.min(W - gutter * 2, Math.max(240, W * 0.36)) * 100) / w100;
       o.font = `500 ${size}px ${family}`;
       o.letterSpacing = `${-0.05 * size}px`;
       o.fillStyle = "#fff";
@@ -83,7 +87,7 @@ export function CityLights({ text }: { text: string }) {
         for (let x = step / 2; x < W; x += step) {
           if (Math.random() > p || inText(x, y)) continue;
           const base = 0.3 + Math.random() * 0.45;
-          dots.push({ x, y, base, level: base, target: base, warm: Math.random() < 0.6 });
+          dots.push({ x, y, base, level: base, target: base, warm: Math.random() < 0.6, on: (x / W) * 1.1 + Math.random() * 0.35 });
         }
       }
       draw(performance.now());
@@ -122,7 +126,10 @@ export function CityLights({ text }: { text: string }) {
           const near = 1 - Math.min(1, Math.sqrt(dx * dx + dy * dy) / 140);
           a += near * near * 0.45;
         }
-        a = Math.min(1, a);
+        // powering up: each light comes on when the wave reaches it, with a little flare
+        const k = Math.max(0, Math.min(1, (power.v - d.on) * 5));
+        if (k <= 0) continue;
+        a = Math.min(1, a * k + (k < 1 ? (1 - k) * k * 1.6 : 0));
         const sz = a > 0.9 ? 2.2 : 1.6;
         ctx.fillStyle = d.warm ? `rgba(240,176,108,${a})` : `rgba(239,233,224,${a * 0.9})`;
         ctx.fillRect(d.x - (sz - 1.6) / 2, d.y - (sz - 1.6) / 2, sz, sz);
@@ -153,8 +160,14 @@ export function CityLights({ text }: { text: string }) {
       raf = requestAnimationFrame(loop);
     };
 
+    const power = { v: reduce ? 2 : 0 };
+    let powered = reduce;
     const io = new IntersectionObserver(([e]) => {
       visible = e.isIntersecting;
+      if (visible && !powered) {
+        powered = true;
+        getGsap().gsap.to(power, { v: 1.6, duration: 2.6, ease: "power2.inOut" });
+      }
       cancelAnimationFrame(raf);
       if (visible && !reduce) raf = requestAnimationFrame(loop);
     });
@@ -192,7 +205,7 @@ export function CityLights({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <div ref={wrapRef} aria-hidden className="relative h-[clamp(92px,13vw,190px)] w-full select-none">
+    <div ref={wrapRef} aria-hidden className="relative h-[clamp(84px,8.5vw,132px)] w-full select-none">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
     </div>
   );

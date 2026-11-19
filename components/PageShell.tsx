@@ -12,7 +12,7 @@ import { SmoothScroll } from "./ui/SmoothScroll";
 /** Pages beyond the film: a full-screen still from it that settles in slowly, then the story. */
 export function PageShell({ still, alt, title, intro, children }: { still: StillId; alt: string; eyebrow?: string; title: string; intro: string; children: ReactNode }) {
   return (
-    <main>
+    <main className="relative isolate">
       <SmoothScroll />
       <Nav />
       <header className="relative flex min-h-[100svh] items-end overflow-hidden bg-ink">

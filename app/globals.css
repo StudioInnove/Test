@@ -356,3 +356,7 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 @media (hover: hover) { .faq-row:hover .faq-line { transform: scaleX(1); } .faq-row:hover .faq-q { transform: translateX(10px); } }
 .faq-row[data-open] .faq-q { transform: translateX(10px); }
 
+
+/* the FAQ as a conversation */
+.faq-q-size { font-weight: 330; font-size: clamp(34px, 4vw, 60px); letter-spacing: -0.035em; text-wrap: balance; }
+.faq-a { font-weight: 400; font-size: clamp(19px, 1.6vw, 24px); line-height: 1.5; letter-spacing: -0.012em; color: #efe9e0; text-wrap: pretty; }

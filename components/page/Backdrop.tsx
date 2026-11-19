@@ -6,9 +6,9 @@ import { asset } from "@/lib/content";
  */
 export function Backdrop({ still }: { still: string }) {
   return (
-    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-ink">
+    <div aria-hidden className="pointer-events-none fixed inset-0 -z-10 bg-ink [transform:translateZ(0)] will-change-transform">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={asset(`/film/stills/${still}-blur.webp`)} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-75" />
+      <img src={asset(`/film/stills/${still}-blur.webp`)} alt="" className="absolute inset-0 h-full w-full scale-110 object-cover opacity-45" />
       <div className="absolute inset-0 [background:radial-gradient(90%_70%_at_50%_30%,rgb(7_10_18/0.2),rgb(7_10_18/0.72)_70%,rgb(7_10_18/0.92))]" />
     </div>
   );

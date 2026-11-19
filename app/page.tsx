@@ -1,6 +1,6 @@
 import { FilmStage } from "@/components/film/FilmStage";
 import { Nav } from "@/components/Nav";
-import { Faq } from "@/components/Faq";
+import { FaqDrum } from "@/components/FaqDrum";
 import { Footer } from "@/components/Footer";
 import { InView } from "@/components/InView";
 import { Words } from "@/components/Words";
@@ -42,25 +42,10 @@ export default function Home() {
       <Nav />
       <FilmStage />
 
-      <section id="faq" className="relative overflow-hidden bg-ink-2 px-[var(--gutter)] py-24 md:py-40">
-        {/* the sunrise the film ended on carries on down the page */}
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%] [background:radial-gradient(90%_60%_at_70%_0%,rgb(244_170_110/0.16),rgb(232_161_90/0.05)_45%,transparent_75%)]" />
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px [background:linear-gradient(90deg,transparent,rgb(244_180_120/0.45),transparent)]" />
-        <InView className="relative grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
-          <div className="md:sticky md:top-28 md:col-span-2 md:self-start">
-            <h2 className="t-title"><Words text={faq.heading} /></h2>
-            <p className="rise t-lead mt-4 max-w-[30ch]" style={{ ["--d" as string]: "300ms" }}>
-              {faq.line} {studio.replyPromise}
-            </p>
-            <div className="rise mt-8" style={{ ["--d" as string]: "450ms" }}>
-              <EmailPill email={studio.email} />
-            </div>
-          </div>
-          <div className="md:col-span-3">
-            <Faq />
-          </div>
-        </InView>
-      </section>
+      <div className="relative bg-ink-2">
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px [background:linear-gradient(90deg,transparent,rgb(244_180_120/0.45),transparent)]" />
+        <FaqDrum id="faq" warm={0.16} />
+      </div>
 
       <Footer />
     </main>

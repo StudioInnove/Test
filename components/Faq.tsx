@@ -28,7 +28,7 @@ export function Faq({ items = content.faq.items }: { items?: { q: string; a: str
                 onClick={() => setOpen(isOpen ? null : i)}
                 className="group flex w-full items-center justify-between gap-6 py-6 text-left outline-none focus-visible:outline-1 focus-visible:outline-dashed focus-visible:outline-paper/70 md:py-7"
               >
-                <span className={`text-[clamp(20px,2.2vw,28px)] leading-[1.2] tracking-[-0.025em] transition-colors duration-500 ${dim ? "text-paper/40 group-hover:text-paper/80" : "text-paper"}`}>{it.q}</span>
+                <span className={`t-head font-normal transition-colors duration-500 ${dim ? "text-paper/45 group-hover:text-paper/80" : "text-paper"}`}>{it.q}</span>
                 <span aria-hidden className="relative h-3.5 w-3.5 shrink-0">
                   <span className="absolute left-0 top-1/2 h-px w-3.5 -translate-y-1/2 bg-paper/80" />
                   <span className={`absolute left-1/2 top-0 h-3.5 w-px -translate-x-1/2 bg-paper/80 transition-transform duration-500 [transition-timing-function:var(--ease-out)] ${isOpen ? "scale-y-0" : ""}`} />
@@ -46,7 +46,7 @@ export function Faq({ items = content.faq.items }: { items?: { q: string; a: str
                   transition={reduce ? { duration: 0 } : { height: { duration: 0.55, ease }, opacity: { duration: 0.4, delay: 0.1 } }}
                   className="overflow-hidden"
                 >
-                  <p className="max-w-[56ch] pb-8 pr-10 text-[17px] leading-[1.55] tracking-[-0.01em] text-paper/65">{it.a}</p>
+                  <p className="t-body max-w-[56ch] pb-8 pr-10">{it.a}</p>
                 </motion.div>
               )}
             </AnimatePresence>

@@ -21,14 +21,13 @@ const SCENE_LINK: Record<string, string> = {
   faq: "/#faq",
 };
 
-const spring = { type: "spring", bounce: 0.1, duration: 0.5 } as const;
+const spring = { type: "tween", ease: [0.22, 1, 0.36, 1], duration: 0.9 } as const;
 
 export function Nav() {
   const { links, cta } = content.nav;
   const { studio } = content;
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState<string | null>(null);
-  const [hover, setHover] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const reduce = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
@@ -58,7 +57,7 @@ export function Nav() {
     return () => document.removeEventListener("keydown", key);
   }, [open]);
 
-  const lit = hover ?? active;
+  const lit = active;
 
   return (
     <header className="nav-shade pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-[max(14px,env(safe-area-inset-top))] max-md:px-[var(--gutter)] md:px-3 md:pt-5">
@@ -72,13 +71,13 @@ export function Nav() {
         <nav
           aria-label="Main"
           data-compact={compact}
-          className="nav-bar glass glass-pill flex h-11 items-center gap-2 transition-[height,background-color] duration-500 [transition-timing-function:var(--ease-out)] md:rounded-full md:pl-5 md:pr-[5px] md:data-[compact=true]:h-[46px] md:data-[compact=false]:h-[50px]"
+          className="nav-bar glass glass-pill flex h-11 items-center gap-2 transition-[background-color] duration-700 [transition-timing-function:var(--ease-out)] md:rounded-full md:pl-5 md:pr-[5px] md:h-12"
         >
           <a href={href("/")} aria-label={`${studio.name}, home`} className="link mr-3 shrink-0">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-[22px] w-auto select-none" draggable={false} />
           </a>
-          <ul className="hidden items-center md:flex" onPointerLeave={() => setHover(null)}>
+          <ul className="hidden items-center md:flex">
             {links.map((l) => {
               const on = lit === l.href;
               return (
@@ -93,9 +92,8 @@ export function Nav() {
                   )}
                   <a
                     href={href(l.href)}
-                    onPointerEnter={() => setHover(l.href)}
                     aria-current={active === l.href ? "true" : undefined}
-                    className={`relative block rounded-full px-3.5 py-[7px] text-[14px] transition-colors duration-300 ${on ? "text-paper" : "text-paper/65 hover:text-paper"}`}
+                    className={`relative block rounded-full px-3.5 py-[7px] text-[14px] transition-colors duration-500 ${on ? "text-paper" : "text-paper/60 hover:text-paper"}`}
                   >
                     {l.label}
                   </a>
@@ -145,8 +143,8 @@ export function Nav() {
                   transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.06 + i * 0.05 }}
                   className="border-b-[0.5px] border-white/10"
                 >
-                  <a href={href(l.href)} onClick={() => setOpen(false)} className="flex items-baseline gap-5 py-4 text-[34px] font-[320] tracking-[-0.03em] active:opacity-60">
-                    <span className="index w-6">0{i + 1}</span>
+                  <a href={href(l.href)} onClick={() => setOpen(false)} className="t-title flex items-baseline gap-5 py-4 active:opacity-60">
+                    <span className="t-label w-6">0{i + 1}</span>
                     <span className={active === l.href ? "text-paper" : "text-paper/80"}>{l.label}</span>
                   </a>
                 </motion.li>

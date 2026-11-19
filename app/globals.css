@@ -9,6 +9,7 @@
   --color-signal: #e8a15a;
   --font-serif: "Instrument Serif", "Iowan Old Style", Georgia, serif;
   --font-sans: "Inter Variable", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
   --ease-out-strong: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out-strong: cubic-bezier(0.77, 0, 0.175, 1);
 }
@@ -35,7 +36,7 @@ body {
   background: var(--color-ink);
   font-family: var(--font-sans);
   font-optical-sizing: auto;
-  font-weight: 350;
+  font-weight: 400;
   letter-spacing: -0.02em;
   line-height: 1.2;
   overflow-x: clip;
@@ -54,66 +55,93 @@ html.film-lock, html.film-lock body { overflow: hidden; overscroll-behavior: non
 .film-page::-webkit-scrollbar { display: none; }
 
 @layer components {
-  /* ---------- Type recipes ---------- */
-  .t-mono { font-weight: 300; font-size: clamp(52px, 9.2vw, 140px); line-height: 1.02; letter-spacing: -0.03em; text-wrap: balance; }
-  .t-display { font-weight: 350; font-size: clamp(44px, 5.4vw, 80px); line-height: 1.02; letter-spacing: -0.035em; text-wrap: balance; }
-  .t-title { font-weight: 350; font-size: clamp(32px, 3vw, 43px); line-height: 1.1; letter-spacing: -0.025em; text-wrap: balance; }
-  .t-head { font-weight: 350; font-size: clamp(22px, 1.9vw, 27px); line-height: 1.2; letter-spacing: -0.02em; }
-  .t-body { font-size: 17px; line-height: 1.45; letter-spacing: -0.012em; text-wrap: pretty; }
-  .t-small { font-size: 13px; line-height: 1.3; letter-spacing: -0.005em; }
-  .muted { color: var(--mute); }
-  .dim { color: rgb(239 233 224 / 0.46); }
-  .index { font-size: 13px; color: rgb(239 233 224 / 0.42); font-variant-numeric: tabular-nums; letter-spacing: 0; }
-  .hair { border-color: var(--hair); }
-  .mark { display: inline-block; width: 7px; height: 7px; border-radius: 2px; background: var(--color-signal); }
+  /* ======================================================================
+     Design system
+     Type: five sizes only. Display (hero + closing), Title (every heading), Lead (the sentence under a
+     heading), Body (reading text), Label (tiny mono captions).
+     Weights: 400 and 500. Tracking tight on large type, open on labels.
+     Colour: ivory at 100 / 70 / 45 / 15. Amber only for "live" or "active".
+     Space: 8 · 16 · 24 · 40 · 64 · 96 · 160. Title → lead 16, lead → actions 32.
+     Motion: one curve; 300ms hovers (colour only), 700ms reveals. Nothing jumps.
+     ====================================================================== */
+  .t-display { font-weight: 500; font-size: clamp(42px, 5.6vw, 84px); line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
+  .t-title { font-weight: 500; font-size: clamp(30px, 3.1vw, 46px); line-height: 1.06; letter-spacing: -0.032em; text-wrap: balance; }
+  .t-lead { font-weight: 400; font-size: clamp(17px, 1.3vw, 19px); line-height: 1.5; letter-spacing: -0.012em; color: rgb(239 233 224 / 0.7); text-wrap: pretty; }
+  .t-body { font-weight: 400; font-size: 16px; line-height: 1.6; letter-spacing: -0.01em; color: rgb(239 233 224 / 0.7); text-wrap: pretty; }
+  .t-label { font-family: var(--font-mono); font-weight: 500; font-size: 11px; line-height: 1.4; letter-spacing: 0.06em; text-transform: uppercase; color: rgb(239 233 224 / 0.45); }
+  .t-small { font-size: 13px; line-height: 1.4; letter-spacing: -0.005em; }
+  /* kept for older markup */
+  .t-head { font-weight: 500; font-size: clamp(20px, 1.7vw, 24px); line-height: 1.25; letter-spacing: -0.02em; }
+  .t-mono { font-weight: 500; font-size: clamp(42px, 5.6vw, 84px); line-height: 0.98; letter-spacing: -0.04em; text-wrap: balance; }
+  .muted { color: rgb(239 233 224 / 0.7); }
+  .dim { color: rgb(239 233 224 / 0.45); }
+  .index { font-size: 13px; color: rgb(239 233 224 / 0.45); font-variant-numeric: tabular-nums; letter-spacing: 0; }
+  .hair { border-color: rgb(239 233 224 / 0.15); }
+  .mark { display: inline-block; width: 6px; height: 6px; border-radius: 99px; background: var(--color-signal); }
 
-  /* ---------- Reveal: soft, quick, word by word ---------- */
+  /* a scene's words: label, title, lead and actions, always together */
+  .stack { display: flex; flex-direction: column; align-items: flex-start; max-width: 520px; }
+  .stack > .t-label { margin-bottom: 16px; }
+  .stack > .t-lead { margin-top: 16px; }
+  .stack > .actions { margin-top: 32px; }
+  .actions { display: flex; flex-wrap: wrap; align-items: center; gap: 24px; }
+  .stack.center { align-items: center; text-align: center; margin-inline: auto; }
+  .stack.center .actions { justify-content: center; }
+  /* steps that slide in from the side */
+  .slide { opacity: 0; transform: translateX(48px); transition: opacity 800ms var(--ease-film), transform 1100ms var(--ease-out); transition-delay: 250ms; }
+  .on .slide { opacity: 1; transform: none; }
+  .reveal:not(.on) .slide { transition-duration: 300ms; transition-delay: 0ms; }
+
+  /* ---------- Reveal: calm, Apple-like; words and lines fade up a little ---------- */
   .reveal .w {
     display: inline-block;
     opacity: 0;
-    filter: blur(6px);
-    transform: translateY(0.3em);
-    transition: opacity 900ms var(--ease-film), filter 900ms var(--ease-film), transform 900ms var(--ease-film);
-    transition-delay: calc(var(--i) * 45ms + var(--d, 0ms));
+    transform: translateY(0.35em);
+    transition: opacity 700ms var(--ease-film), transform 900ms var(--ease-out);
+    transition-delay: calc(var(--i) * 32ms + var(--d, 0ms));
   }
-  .reveal.on .w { opacity: 1; filter: blur(0); transform: none; }
-  .reveal:not(.on) .w { transition-duration: 350ms; transition-delay: 0ms; }
+  .reveal.on .w { opacity: 1; transform: none; }
+  .reveal:not(.on) .w { transition-duration: 300ms; transition-delay: 0ms; }
   .rise {
     opacity: 0;
-    transform: translateY(8px);
-    transition: opacity 800ms var(--ease-film), transform 800ms var(--ease-film);
+    transform: translateY(12px);
+    transition: opacity 700ms var(--ease-film), transform 900ms var(--ease-out);
     transition-delay: var(--d, 0ms);
   }
   .on .rise, .rise.on { opacity: 1; transform: none; }
   .reveal:not(.on) .rise { transition-duration: 300ms; transition-delay: 0ms; }
+  /* a title that is uncovered from left to right */
+  .wipe { clip-path: inset(0 100% 0 0); transition: clip-path 1200ms var(--ease-out); transition-delay: var(--d, 0ms); }
+  .on .wipe { clip-path: inset(0 0 0 0); }
+  .reveal:not(.on) .wipe { transition-duration: 300ms; transition-delay: 0ms; }
+  .wipe .w { opacity: 1 !important; transform: none !important; }
 
   /* the occasional italic serif word */
-  .accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.06em; line-height: 0.9; }
+  .accent { font-family: var(--font-serif); font-style: italic; font-weight: 400; letter-spacing: -0.01em; font-size: 1.08em; line-height: 0.9; }
 
-  /* ---------- Controls: small, exact, quiet ---------- */
+  /* ---------- Controls (after Apple): small pill for the main action, a plain "›" link for the second ---------- */
   .btn {
     display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-    height: 44px; padding: 0 22px; border-radius: 999px;
-    font-size: 14px; font-weight: 450; letter-spacing: -0.01em; white-space: nowrap; line-height: 1;
-    transition: background-color 200ms ease, color 200ms ease, transform 160ms var(--ease-out);
+    height: 38px; padding: 0 18px; border-radius: 980px;
+    font-size: 14px; font-weight: 500; letter-spacing: -0.01em; white-space: nowrap; line-height: 1;
+    transition: background-color 300ms ease, color 300ms ease, box-shadow 300ms ease;
     -webkit-tap-highlight-color: transparent; user-select: none;
   }
-  .btn:active { transform: scale(0.97); }
-  .btn:focus-visible, .link:focus-visible { outline: 1px dashed rgb(239 233 224 / 0.8); outline-offset: 3px; }
-  /* two buttons only: solid ivory, and a fine outline. Same height, same padding, everywhere. */
-  .btn-primary { background: #efe9e0; color: #070a12; font-weight: 500; }
-  .btn-ghost { background: transparent; color: #efe9e0; box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.32); }
-  .btn-sm { height: 36px; padding: 0 16px; font-size: 13px; }
+  .btn:focus-visible, .link:focus-visible, .more:focus-visible { outline: 1px solid rgb(239 233 224 / 0.8); outline-offset: 3px; }
+  .btn-primary { background: #efe9e0; color: #070a12; }
+  .btn-ghost { background: transparent; color: #efe9e0; box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.3); }
+  .btn-sm { height: 32px; padding: 0 14px; font-size: 13px; }
+  .more { display: inline-flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 400; color: #efe9e0; letter-spacing: -0.01em; transition: color 300ms ease; }
+  .more::after { content: "›"; font-size: 1.15em; line-height: 1; transform: translateY(-0.04em); transition: transform 300ms var(--ease-out); }
   @media (hover: hover) and (pointer: fine) {
     .btn-primary:hover { background: #ffffff; }
-    .btn-ghost:hover { background: rgb(239 233 224 / 0.08); box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.55); }
+    .btn-ghost:hover { box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.6); }
+    .more:hover { color: #ffffff; }
+    .more:hover::after { transform: translate(2px, -0.04em); }
     .link:hover { opacity: 0.6; }
-    .link:hover .cap { transform: translateX(2px); }
   }
 
-  /* arrow link: a small outlined capsule before plain text */
   .link { display: inline-flex; align-items: center; gap: 14px; font-size: 14px; transition: opacity 300ms ease; }
-  .cap { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 15px; border-radius: 99px; box-shadow: inset 0 0 0 1px currentColor; transition: transform 300ms var(--ease-out); }
 
   /* ---------- Liquid glass: frosted, with a lit top rim and a faint refraction edge ---------- */
   .glass {
@@ -160,6 +188,9 @@ button, a { -webkit-tap-highlight-color: transparent; }
 .steps-line { transform: scaleX(0); transition: transform 1400ms var(--ease-film); }
 .on .steps-line { transform: scaleX(1); }
 @media (prefers-reduced-motion: reduce) { .page-still { animation: none; } }
+
+/* over the moving film the small labels need a touch more presence */
+.scene-text .t-label { color: rgb(239 233 224 / 0.66); text-shadow: 0 1px 10px rgb(7 10 18 / 0.6); }
 
 /* ---------- Look closer ---------- */
 .spot { opacity: 0; transition: opacity 600ms ease; will-change: transform; }

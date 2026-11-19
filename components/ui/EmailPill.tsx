@@ -31,9 +31,9 @@ export function EmailPill({ email, className = "" }: { email: string; className?
 
   return (
     <div className={`min-w-0 ${className}`}>
-      <p className="mb-2 text-[13px] text-paper/45">Email</p>
+      <p className="t-label mb-3">Email</p>
       <div className="flex flex-wrap items-baseline gap-x-5 gap-y-2">
-        <a href={`mailto:${email}`} className="email-link min-w-0 break-all text-[clamp(18px,1.9vw,24px)] leading-tight tracking-[-0.02em] text-paper">
+        <a href={`mailto:${email}`} className="email-link min-w-0 break-all text-[clamp(17px,1.3vw,19px)] leading-tight tracking-[-0.012em] text-paper">
           <span ref={textRef}>{email}</span>
         </a>
         <button type="button" onClick={copy} className="text-[13px] text-paper/55 underline decoration-paper/25 underline-offset-4 transition-colors hover:text-paper" aria-live="polite">

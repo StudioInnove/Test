@@ -40,7 +40,7 @@ export function FilmStage() {
   const lineRef = useRef<HTMLDivElement>(null);
   const spotRef = useRef<HTMLButtonElement>(null);
   const peekRef = useRef<(open: boolean) => void>(() => {});
-  const [panel, setPanel] = useState<"web" | "mobile" | null>(null);
+  const [panel, setPanel] = useState<"web" | "mobile" | "how" | null>(null);
   const soundRef = useRef<Soundscape | null>(null);
   const cutRef = useRef<(i: number) => void>(() => {});
   const [progress, setProgress] = useState(0);
@@ -256,7 +256,7 @@ export function FilmStage() {
       if (open && (!spot || moving)) return;
       peekTarget = open ? 1 : 0;
       stage.classList.toggle("peeking", open);
-      setPanel(open && spot ? (spot.id as "web" | "mobile") : null);
+      setPanel(open && spot ? (spot.id as "web" | "mobile" | "how") : null);
     };
     peekRef.current = setPeek;
 
@@ -598,6 +598,7 @@ export function FilmStage() {
   };
 
   const { hero, services, how, originals, close, studio } = content;
+  const pd = panel ? (panel === "how" ? how.more : services[panel].more) : null;
   const sceneStyle = { opacity: 0, visibility: "hidden" as const, transition: "opacity 600ms cubic-bezier(0.22,0.61,0.36,1), visibility 600ms" };
 
   return (
@@ -613,97 +614,97 @@ export function FilmStage() {
           <div aria-hidden className="absolute inset-x-0 bottom-0 h-[38%] [background:linear-gradient(180deg,transparent,rgb(7_10_18/0.55)_45%,#070a12)] md:hidden" />
         </div>
 
-        {/* ---------------- Scenes ---------------- */}
-        <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:pb-[11svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.5)_38%,transparent_62%)]" />
-          <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between md:gap-12">
-            <h1 className="max-w-[10ch] text-[clamp(52px,8.6vw,148px)] font-[320] leading-[0.94] tracking-[-0.045em] [text-wrap:balance]"><Words text={hero.headline} /></h1>
-            <div className="md:max-w-[340px] md:pb-[0.6vw]">
-              <p className="rise text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
-              <div className="rise mt-7 flex flex-wrap items-center gap-3" style={{ ["--d" as string]: "450ms" }}>
-                <BookCall>{hero.primary}</BookCall>
-                <a href="#originals" className="btn btn-ghost">{hero.secondary}</a>
+        {/* ---------------- Scenes ----------------
+            Every scene's words are one block (label, title, lead, actions) set to the same system.
+            What changes from scene to scene is the room, the camera and how the words arrive. */}
+        <section data-scene="hero" aria-label="Introduction" className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.5)_36%,transparent_60%)] md:[background:linear-gradient(15deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.55)_36%,transparent_62%)]" />
+          <div className="stack max-w-[640px]">
+            <p className="rise t-label">{hero.label}</p>
+            <h1 className="t-display"><Words text={hero.headline} /></h1>
+            <p className="rise t-lead max-w-[38ch]" style={{ ["--d" as string]: "300ms" }}>{hero.line}</p>
+            <div className="rise actions" style={{ ["--d" as string]: "420ms" }}>
+              <BookCall>{hero.primary}</BookCall>
+              <a href="#originals" className="more">{hero.secondary}</a>
+            </div>
+          </div>
+        </section>
+
+        <section data-scene="services" aria-label={services.intro} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(70%_60%_at_50%_50%,rgb(7_10_18/0.8),rgb(7_10_18/0.35)_70%,rgb(7_10_18/0.1)_100%)]" />
+          <div className="stack center max-w-[18ch] md:max-w-none">
+            <p className="rise t-label">{services.intro}</p>
+            <h2 className="t-display">
+              <span className="wipe block"><Words text={services.headline[0]} /></span>
+              <span className="wipe block text-paper/55" style={{ ["--d" as string]: "250ms" }}><Words text={services.headline[1]} /></span>
+            </h2>
+          </div>
+        </section>
+
+        {(["web", "mobile"] as const).map((k, n) => {
+          const sv = services[k];
+          return (
+            <section key={k} data-scene={k} aria-label={sv.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
+              <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.45)_34%,transparent_58%)]" />
+              <div className="stack">
+                <p className="rise t-label">{sv.label}</p>
+                <h2 className={`t-title ${n ? "wipe" : ""}`}><Words text={sv.title} /></h2>
+                <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{sv.line}</p>
+                <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
+                  <button type="button" onClick={() => peekRef.current(true)} className="more">{sv.more.spot}</button>
+                  <a href={href(sv.more.href)} className="more">{sv.more.link}</a>
+                </div>
               </div>
-            </div>
-          </div>
-        </section>
+            </section>
+          );
+        })}
 
-        <section data-scene="services" aria-label={services.intro} className="reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_65%_at_50%_50%,rgb(7_10_18/0.78),rgb(7_10_18/0.35)_70%,rgb(7_10_18/0.15)_100%)]" />
-          <p className="rise t-small mb-6 text-paper/70">{services.intro}</p>
-          <h2 className="t-mono max-w-[16ch] text-[clamp(44px,7.4vw,112px)]">
-            <Words text={services.headline[0]} />
-            <br />
-            <span className="text-paper/60"><Words text={services.headline[1]} delay={180} /></span>
-          </h2>
-        </section>
-
-        {/* Web: the title along the bottom, the words to the right */}
-        <section data-scene="web" aria-label={services.web.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:pb-[11svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.45)_34%,transparent_58%)]" />
-          <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between md:gap-12">
-            <h2 className="text-[clamp(52px,8vw,136px)] font-[320] leading-[0.92] tracking-[-0.045em]"><Words text={services.web.title} /></h2>
-            <div className="md:max-w-[360px] md:pb-[0.5vw]">
-              <p className="rise text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "200ms" }}>{services.web.line}</p>
-              <p className="rise mt-4 text-[14px] text-paper/50" style={{ ["--d" as string]: "320ms" }}>{services.web.tags.join("  ·  ")}</p>
-            </div>
-          </div>
-        </section>
-
-        {/* Mobile: the title up top, the words beneath it, the phone free below */}
-        <section data-scene="mobile" aria-label={services.mobile.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-start md:pb-0 md:pt-[17svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.4)_34%,transparent_58%)] md:[background:linear-gradient(180deg,rgb(7_10_18/0.82)_0%,rgb(7_10_18/0.4)_34%,transparent_56%)]" />
-          <div className="max-w-[560px]">
-            <h2 className="text-[clamp(52px,8vw,136px)] font-[320] leading-[0.92] tracking-[-0.045em]"><Words text={services.mobile.title} /></h2>
-            <p className="rise mt-5 max-w-[40ch] text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/80" style={{ ["--d" as string]: "200ms" }}>{services.mobile.line}</p>
-            <p className="rise mt-4 text-[14px] text-paper/50" style={{ ["--d" as string]: "320ms" }}>{services.mobile.tags.join("  ·  ")}</p>
-          </div>
-        </section>
-
-        {/* Process: a strip of steps you drag sideways */}
-        <section data-scene="how" aria-label={how.heading} className="reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
+        {/* Process: the steps arrive from the side and can be dragged */}
+        <section data-scene="how" aria-label={how.heading} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
-          <div className="mb-8 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-12">
-            <h2 className="text-[clamp(36px,4.4vw,64px)] font-[320] leading-[1] tracking-[-0.04em]"><Words text={how.heading} /></h2>
-            <p className="rise hidden text-[13px] text-paper/45 sm:block" style={{ ["--d" as string]: "500ms" }}>{how.drag} →</p>
+          <div className="mb-10 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-14">
+            <div className="stack">
+              <p className="rise t-label">{how.label}</p>
+              <h2 className="t-title"><Words text={how.heading} /></h2>
+            </div>
+            <p className="rise t-label hidden sm:block" style={{ ["--d" as string]: "500ms" }}>{how.drag} →</p>
           </div>
-          <div data-hscroll className="hstrip relative overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            <ol className="flex w-max snap-x snap-mandatory gap-0 px-[var(--gutter)]">
+          <div data-hscroll className="hstrip slide relative overflow-x-auto overscroll-x-contain [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            <ol className="flex w-max snap-x snap-mandatory px-[var(--gutter)]">
               {how.steps.map((st, i) => (
-                <li key={st.title} className="rise relative w-[78vw] max-w-[380px] shrink-0 snap-start pr-8 sm:w-[44vw] md:w-[30vw]" style={{ ["--d" as string]: `${150 + i * 140}ms` }}>
-                  <div className="mb-7 h-px w-full bg-paper/15">
-                    <div className="steps-bar h-px origin-left bg-paper" style={{ transitionDelay: `${300 + i * 260}ms` }} />
+                <li key={st.title} className="relative w-[78vw] max-w-[360px] shrink-0 snap-start pr-10 sm:w-[44vw] md:w-[28vw]">
+                  <div className="mb-6 h-px w-full bg-paper/15">
+                    <div className="steps-bar h-px origin-left bg-paper" style={{ transitionDelay: `${400 + i * 240}ms` }} />
                   </div>
-                  <p className="text-[clamp(34px,3.6vw,52px)] font-[320] leading-none tracking-[-0.04em]">{st.title}</p>
-                  <p className="mt-4 max-w-[30ch] text-[16px] leading-[1.5] text-paper/70">{st.line}</p>
+                  <p className="t-label mb-3">{String(i + 1).padStart(2, "0")}</p>
+                  <h3 className="t-title">{st.title}</h3>
+                  <p className="t-body mt-4 max-w-[30ch]">{st.line}</p>
                 </li>
               ))}
             </ol>
           </div>
         </section>
 
-        <section data-scene="originals" aria-label={originals.eyebrow} className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
+        <section data-scene="originals" aria-label={originals.eyebrow} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.92),rgb(7_10_18/0.5)_45%,transparent_75%)] md:[background:linear-gradient(90deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.6)_38%,transparent_62%)]" />
-          <div className="max-w-[460px]">
-            <p className="rise t-small mb-6 flex items-center gap-2.5 text-paper/70"><span className="mark" />{originals.eyebrow}</p>
-            <h2 className="t-title"><Words text={originals.heading} /></h2>
-            <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
-            <div className="rise mt-8" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>
-            <div className="rise mt-7" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
-            <div className="rise mt-2" style={{ ["--d" as string]: "600ms" }}><a href={href("/studio-originals")} className="btn btn-ghost">{originals.more}</a></div>
+          <div className="stack max-w-[460px]">
+            <p className="rise t-label">{originals.eyebrow}</p>
+            <h2 className="t-title wipe"><Words text={originals.heading} /></h2>
+            <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
+            <div className="rise mt-10 w-full" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>
+            <div className="rise mt-8 w-full" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
           </div>
         </section>
 
-        <section data-scene="close" aria-label={close.heading} className="reveal absolute inset-0 isolate flex flex-col items-center justify-start px-[var(--gutter)] pt-[20svh] text-center md:pt-[16svh]" style={sceneStyle}>
-          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(85%_62%_at_50%_34%,rgb(7_10_18/0.82),rgb(7_10_18/0.3)_75%,transparent_100%)]" />
-          <h2 className="t-mono text-[clamp(44px,7.4vw,112px)]">
-            <Words text={close.heading} />
-            <br />
-            <span className="text-paper/60"><Words text={close.sub} delay={160} /></span>
-          </h2>
-          <div className="rise mt-10 flex flex-col items-center gap-5" style={{ ["--d" as string]: "420ms" }}>
-            <BookCall>{close.cta}</BookCall>
-            <span className="t-small select-all text-paper/75">{studio.email}</span>
+        <section data-scene="close" aria-label={close.heading} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
+          <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(70%_60%_at_50%_50%,rgb(7_10_18/0.82),rgb(7_10_18/0.35)_72%,rgb(7_10_18/0.1)_100%)]" />
+          <div className="stack center">
+            <h2 className="t-display wipe"><Words text={close.heading} /></h2>
+            <p className="rise t-lead max-w-[34ch]" style={{ ["--d" as string]: "250ms" }}>{close.line}</p>
+            <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
+              <BookCall>{close.cta}</BookCall>
+              <a href={`mailto:${studio.email}`} className="more">{close.email}</a>
+            </div>
           </div>
         </section>
 
@@ -720,7 +721,7 @@ export function FilmStage() {
               key={panel}
               data-panel
               role="dialog"
-              aria-label={services[panel].more.title}
+              aria-label={pd!.title}
               initial={{ opacity: 0, x: 40 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 30, transition: { duration: 0.3 } }}
@@ -728,21 +729,25 @@ export function FilmStage() {
               className="panel absolute z-40 flex flex-col bg-ink-2 max-md:inset-x-0 max-md:bottom-0 max-md:max-h-[72%] max-md:rounded-t-[22px] max-md:border-t max-md:border-paper/10 md:inset-y-0 md:right-0 md:w-[min(460px,40vw)] md:border-l md:border-paper/10"
             >
               <div className="flex items-center justify-between px-7 pb-2 pt-6 md:px-10 md:pt-24">
-                <p className="text-[13px] text-paper/45">{services[panel].more.title}</p>
+                <p className="t-label">{pd!.title}</p>
                 <button type="button" onClick={() => peekRef.current(false)} className="-mr-2 px-2 py-2 text-[13px] text-paper/70 underline decoration-paper/25 underline-offset-4 hover:text-paper">Close</button>
               </div>
               <div className="overflow-y-auto px-7 pb-[max(28px,env(safe-area-inset-bottom))] md:px-10">
-                <p className="mt-4 text-[clamp(24px,2.2vw,30px)] leading-[1.15] tracking-[-0.03em]">{services[panel].more.line}</p>
+                {pd!.image && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={asset(pd!.image)} alt="" className="mb-8 mt-4 aspect-[4/3] w-full object-cover" />
+                )}
+                <p className="t-head mt-4">{pd!.line}</p>
                 <ul className="mt-8 border-t border-paper/12">
-                  {services[panel].more.items.map((it, i) => (
-                    <motion.li key={it} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.45 + i * 0.07 }} className="border-b border-paper/12 py-4 text-[17px] text-paper/85">
+                  {pd!.items.map((it, i) => (
+                    <motion.li key={it} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.23, 1, 0.32, 1], delay: 0.45 + i * 0.07 }} className="t-body border-b border-paper/12 py-4 !text-paper/85">
                       {it}
                     </motion.li>
                   ))}
                 </ul>
-                <div className="mt-9 flex flex-wrap items-center gap-3">
+                <div className="actions mt-8">
                   <BookCall>{services.cta}</BookCall>
-                  <a href={href(services[panel].more.href)} className="btn btn-ghost">{services[panel].more.link}</a>
+                  <a href={href(pd!.href)} className="more">{pd!.link}</a>
                 </div>
               </div>
             </motion.aside>

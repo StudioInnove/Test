@@ -20,4 +20,5 @@ export const MFOCUS: Partial<Record<StillId, number>> = { s1n: 0.62, s2: 0.5, s3
 export const SPOTS: Partial<Record<StillId, { id: string; u: number; v: number }>> = {
   s3: { id: "web", u: 0.5, v: 0.56 },
   s4: { id: "mobile", u: 0.66, v: 0.68 },
+  s5: { id: "how", u: 0.36, v: 0.42 },
 };

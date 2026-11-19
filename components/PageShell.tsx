@@ -18,10 +18,10 @@ export function PageShell({ still, alt, eyebrow, title, intro, children }: { sti
         </picture>
         <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.6)_36%,rgb(7_10_18/0.1)_70%)]" />
         <InView className="relative w-full px-[var(--gutter)] pb-[10svh]" threshold={0}>
-          <p className="rise mb-6 text-[13px] text-paper/55">{eyebrow}</p>
-          <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
-            <h1 className="max-w-[12ch] text-[clamp(48px,7.4vw,128px)] font-[320] leading-[0.94] tracking-[-0.045em] [text-wrap:balance]"><Words text={title} delay={150} /></h1>
-            <p className="rise max-w-[36ch] text-[17px] leading-[1.5] tracking-[-0.01em] text-paper/75 md:pb-[0.5vw]" style={{ ["--d" as string]: "700ms" }}>{intro}</p>
+          <div className="stack max-w-[680px]">
+            <p className="rise t-label">{eyebrow}</p>
+            <h1 className="t-display"><Words text={title} delay={150} /></h1>
+            <p className="rise t-lead max-w-[40ch]" style={{ ["--d" as string]: "500ms" }}>{intro}</p>
           </div>
         </InView>
       </header>
@@ -35,7 +35,7 @@ export function Section({ title, children, id, tone = "ink" }: { title?: string;
   return (
     <section id={id} className={`${tone === "ink" ? "bg-ink" : "bg-ink-2"} px-[var(--gutter)] py-24 md:py-36`}>
       <InView className="grid gap-12 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
-        {title ? <h2 className="text-[clamp(36px,4.4vw,64px)] font-[320] leading-none tracking-[-0.04em] md:col-span-2"><Words text={title} /></h2> : <div className="hidden md:col-span-2 md:block" />}
+        {title ? <h2 className="t-title md:col-span-2"><Words text={title} /></h2> : <div className="hidden md:col-span-2 md:block" />}
         <div className="md:col-span-3">{children}</div>
       </InView>
     </section>

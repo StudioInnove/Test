@@ -17,11 +17,11 @@ export default function Page() {
   return (
     <PageShell still="s6" alt="A row of screens in a quiet room, one glowing amber" eyebrow={o.eyebrow} title={o.heading} intro={o.line}>
       {/* where the build is, and the list */}
-      <section className="bg-ink px-[var(--gutter)] pb-24 pt-6 md:pb-32">
-        <InView className="mx-auto max-w-[1100px]" threshold={0.15}>
+      <section className="bg-ink px-[var(--gutter)] pb-24 pt-10 md:pb-40">
+        <InView threshold={0.15}>
           <LaunchTrack size="lg" />
           <div className="rise mt-12 flex flex-col items-start gap-4 md:flex-row md:items-center md:justify-between" style={{ ["--d" as string]: "400ms" }}>
-            <p className="t-head max-w-[24ch] text-paper/85">{o.joinLine}</p>
+            <h2 className="t-title max-w-[16ch]">{o.joinLine}</h2>
             <WaitlistForm source="originals-page" size="lg" />
           </div>
         </InView>

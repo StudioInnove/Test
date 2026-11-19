@@ -49,8 +49,9 @@
     "headline": "Ideas, *made* into apps.",
     "line": "An independent studio designing and building web and mobile apps, from first sketch to launch day.",
     "primary": "Book a call",
-    "secondary": "Studio Originals",
-    "scrollCue": "Scroll"
+    "secondary": "See Studio Originals",
+    "scrollCue": "Scroll",
+    "label": "Web & mobile apps"
   },
   "services": {
     "intro": "What we do",
@@ -76,9 +77,11 @@
           "Dashboards and internal tools",
           "SaaS products"
         ],
-        "link": "More on web apps",
-        "href": "/web-app-development"
-      }
+        "link": "Web apps",
+        "href": "/web-app-development",
+        "image": ""
+      },
+      "label": "Services"
     },
     "mobile": {
       "title": "Mobile apps",
@@ -98,9 +101,11 @@
           "Companion apps for your business",
           "Apps for your team"
         ],
-        "link": "More on mobile apps",
-        "href": "/mobile-app-development"
-      }
+        "link": "Mobile apps",
+        "href": "/mobile-app-development",
+        "image": ""
+      },
+      "label": "Services"
     },
     "cta": "Book a call"
   },
@@ -124,7 +129,22 @@
         "line": "We ship it, then stay on for updates and support if you want us to."
       }
     ],
-    "drag": "Drag to see each step"
+    "drag": "Drag to see each step",
+    "label": "Process",
+    "more": {
+      "spot": "Look closer",
+      "title": "Process",
+      "line": "Every screen is sketched, tested and agreed on the wall before a line of code is written.",
+      "items": [
+        "A call to understand the idea",
+        "Sketches and clickable designs",
+        "Weekly builds you can try",
+        "Launch, then updates and support"
+      ],
+      "link": "How we work",
+      "href": "/web-app-development",
+      "image": ""
+    }
   },
   "originals": {
     "eyebrow": "Studio Originals",
@@ -150,7 +170,9 @@
   "close": {
     "heading": "Have an idea?",
     "sub": "Let's *talk* about it.",
-    "cta": "Book a call"
+    "cta": "Book a call",
+    "line": "Tell us what you want to make. We reply within one working day.",
+    "email": "Email us"
   },
   "faq": {
     "heading": "Questions",

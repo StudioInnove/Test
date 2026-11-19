@@ -37,6 +37,7 @@ export function FilmStage() {
   const stageRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const curtainRef = useRef<HTMLDivElement>(null);
+  const lineRef = useRef<HTMLDivElement>(null);
   const soundRef = useRef<Soundscape | null>(null);
   const cutRef = useRef<(i: number) => void>(() => {});
   const [progress, setProgress] = useState(0);
@@ -48,6 +49,8 @@ export function FilmStage() {
     const stage = stageRef.current!;
     const canvas = canvasRef.current!;
     const curtain = curtainRef.current!;
+    const line = lineRef.current;
+    let lineAt = -1;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const mode: "d" | "m" = window.matchMedia("(max-width: 899px)").matches ? "m" : "d";
     // phones and tablets scroll natively (smooth-scroll libraries fight the finger and stall)
@@ -398,6 +401,12 @@ export function FilmStage() {
           else engine.paint(shot, { time: now, ...opts });
         }
         lastShot = shot;
+        // the thin line along the bottom: how far through the film we are
+        const at = Math.round((pos / LAST) * 1000) / 1000;
+        if (line && at !== lineAt) {
+          lineAt = at;
+          line.style.transform = `scaleX(${at})`;
+        }
         const inside = smooth(clamp((pos - 1.2) / 0.8)) * (1 - smooth(clamp((pos - 5.1) / 0.8)));
         soundRef.current?.setPlace(inside);
       }
@@ -629,6 +638,9 @@ export function FilmStage() {
           </div>
         </div>
 
+        <div aria-hidden className={`pointer-events-none absolute inset-x-0 bottom-0 z-10 h-px bg-white/[0.06] transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`}>
+          <div ref={lineRef} className="h-full origin-left bg-gradient-to-r from-paper/10 via-paper/50 to-signal shadow-[0_0_8px_rgb(232_161_90/0.5)]" style={{ transform: "scaleX(0)" }} />
+        </div>
         <div ref={curtainRef} aria-hidden className="pointer-events-none absolute inset-0 z-30 bg-ink" style={{ opacity: 0 }} />
       </div>
       <style>{`

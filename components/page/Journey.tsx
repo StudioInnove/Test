@@ -7,6 +7,7 @@
 import { useEffect, useRef, useState } from "react";
 import { asset } from "@/lib/content";
 import { useProgress } from "./useProgress";
+import { MaskText } from "../ui/MaskText";
 
 type Step = { title: string; line: string };
 
@@ -24,8 +25,8 @@ export function Journey({ heading, steps, image, aspect, at }: { heading: string
   // the wall is as tall as the view and as wide as its picture makes it
   const trackW = Math.max(size.w * 1.6, size.h * aspect);
   const x = -p * (trackW - size.w);
-  // which step is in front of you
-  const centre = (-x + size.w * 0.5) / trackW;
+  // which step you're on follows the scroll: the first at the start, the last at the end
+  const active = Math.min(steps.length - 1, Math.round(p * (steps.length - 1)));
   return (
     <section ref={ref} className="relative" style={{ height: "420svh" }}>
       <div ref={boxRef} className="sticky top-0 h-[100svh] overflow-hidden">
@@ -35,7 +36,7 @@ export function Journey({ heading, steps, image, aspect, at }: { heading: string
           <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,rgb(7_10_18/0.92)_0%,rgb(7_10_18/0.4)_38%,transparent_62%)]" />
           {/* each step sits under its part of the wall */}
           {steps.map((s, i) => {
-            const near = Math.abs(centre - at[i]) < 0.16;
+            const near = i === active;
             return (
               <div key={s.title} className="absolute bottom-[12svh] w-[min(380px,80vw)] transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)]" style={{ left: `calc(${at[i] * 100}% - min(190px, 40vw))`, opacity: near ? 1 : 0.18, transform: near ? "none" : "translateY(10px)" }}>
                 <div className="mb-5 h-px w-full bg-paper/20"><div className="h-px origin-left bg-paper transition-transform duration-1000" style={{ transform: `scaleX(${near ? 1 : 0})` }} /></div>
@@ -46,7 +47,7 @@ export function Journey({ heading, steps, image, aspect, at }: { heading: string
           })}
         </div>
         {/* the heading stays, and a fine line shows how far along the wall you are */}
-        <h2 className="t-title absolute left-[var(--gutter)] top-[max(96px,14svh)]">{heading}</h2>
+        <div className="absolute left-[var(--gutter)] top-[max(96px,14svh)]"><MaskText className="t-title" text={heading} /></div>
         <div aria-hidden className="absolute inset-x-[var(--gutter)] bottom-8 h-px bg-paper/15"><div className="h-px origin-left bg-paper/70" style={{ transform: `scaleX(${p})` }} /></div>
       </div>
     </section>

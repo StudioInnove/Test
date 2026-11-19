@@ -14,7 +14,7 @@ import { PhoneApps } from "../apps/PhoneApps";
 import { BookCall } from "../BookCall";
 import { LaunchTrack, WaitlistForm } from "../Originals";
 import { WorldClocks } from "../ui/WorldClocks";
-import { Words } from "../Words";
+import { MaskText } from "../ui/MaskText";
 import { BG, Scenery, usePhone, type Cam } from "./Scenery";
 import type { WorldId } from "./timeline";
 
@@ -107,12 +107,16 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   const inside = (t: EventTarget | null) => !!(t as HTMLElement)?.closest?.("[data-app], form");
 
   // one fresh scroll = one chapter
+  const gesture = useRef({ sum: 0, done: false });
   const onWheel = (e: React.WheelEvent) => {
     const now = performance.now();
-    const fresh = now - lastWheel.current > 220;
+    if (now - lastWheel.current > 220) gesture.current = { sum: 0, done: false };
     lastWheel.current = now;
-    if (inForm(e.target) || !fresh || Math.abs(e.deltaY) < 4) return;
-    step(Math.sign(e.deltaY));
+    if (inForm(e.target) || gesture.current.done) return;
+    gesture.current.sum += e.deltaMode === 1 ? e.deltaY * 32 : e.deltaY;
+    if (Math.abs(gesture.current.sum) < 24 || now < busyUntil.current) return;
+    gesture.current.done = true;
+    step(Math.sign(gesture.current.sum));
   };
   const onTouchStart = (e: React.TouchEvent) => {
     touchY.current = inside(e.target) ? null : e.touches[0].clientY;
@@ -191,7 +195,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           <div className={`pointer-events-none relative z-[5] flex h-full flex-col px-[var(--gutter)] ${phone ? `justify-end pb-[max(28px,env(safe-area-inset-bottom))]` : `justify-end pb-[12svh] ${right ? "items-end" : ""}`}`}>
             <div className={`pointer-events-auto w-full ${right ? "max-w-[400px] mr-[2vw]" : "max-w-[460px]"}`}>
               <Story key={chap}>
-                <h2 className="t-title"><Words text={c.title} /></h2>
+                <MaskText className="t-title" text={c.title} play />
                 {line && <p className="rise t-lead" style={d(250)}>{line}</p>}
                 {extra}
               </Story>

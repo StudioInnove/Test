@@ -23,8 +23,8 @@ export const href = (h: string) => {
   // in the preview, page links say "you came from inside" and carry the build, so nothing old is shown
   const v = typeof window !== "undefined" ? (window as unknown as { __V?: string }).__V : "";
   const q = `?in=1${v ? `&v=${v}` : ""}`;
-  if (h === "/") return pre + q;
-  if (h.startsWith("/#")) return up === "./" ? h.slice(1) : up + q + h.slice(1);
+  if (h === "/") return pre + "index.html" + q;
+  if (h.startsWith("/#")) return up === "./" ? h.slice(1) : up + "index.html" + q + h.slice(1);
   const [path, hash] = h.split("#");
-  return pre + path.replace(/^\//, "") + "/" + q + (hash ? "#" + hash : "");
+  return pre + path.replace(/^\//, "") + "/index.html" + q + (hash ? "#" + hash : "");
 };

@@ -51,12 +51,12 @@ export function FilmStage() {
   const markRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const openRef = useRef<(k: number) => void>(() => {});
   const closeRef = useRef<() => void>(() => {});
-  const enterRef = useRef<(sound: boolean) => void>(() => {});
   const soundRef = useRef<Soundscape | null>(null);
   const cutRef = useRef<(i: number) => void>(() => {});
   const [world, setWorld] = useState<WorldId | null>(null);
   const [progress, setProgress] = useState(0);
   const [loaded, setLoaded] = useState(false);
+  const [skipEntrance, setSkipEntrance] = useState(false);
   const [ready, setReady] = useState(false);
   const [scene, setScene] = useState(0);
   const [canSwipe, setCanSwipe] = useState(false);
@@ -778,11 +778,14 @@ export function FilmStage() {
     let entered = /si-entered/.test(window.name) || /[?&]in=1/.test(location.search);
     try { entered = entered || sessionStorage.getItem("si-entered") === "1"; } catch {}
     try { if (document.referrer && new URL(document.referrer).origin === location.origin) entered = true; } catch {}
-    enterRef.current = (sound: boolean) => {
+    try { entered = entered || Date.now() - Number(localStorage.getItem("si-entered-at") || 0) < 2 * 3600e3; } catch {}
+    const remember = () => {
       try { sessionStorage.setItem("si-entered", "1"); } catch {}
+      try { localStorage.setItem("si-entered-at", String(Date.now())); } catch {}
       if (!/si-entered/.test(window.name)) window.name = (window.name ? window.name + " " : "") + "si-entered";
-      begin(sound, true);
     };
+    // returning within the visit: no entrance at all
+    if (entered) setSkipEntrance(true);
 
     fetch(asset("/film/manifest.json"))
       .then((r) => r.json())
@@ -801,16 +804,17 @@ export function FilmStage() {
           if (!alive) return;
           const have = Math.min(1, engine!.loadedRatio(need) / 0.6);
           setProgress(0.5 + have * 0.5);
-          if ((have >= 1 && performance.now() - t0 > 500) || performance.now() - t0 > 7000) {
+          if ((have >= 1 && performance.now() - t0 > (entered ? 500 : 2600)) || performance.now() - t0 > 7000) {
             setLoaded(true);
-            if (entered) begin();
+            remember();
+            begin();
           } else setTimeout(wait, 100);
         };
         wait();
       })
       .catch(() => {
         setLoaded(true);
-        if (entered) begin();
+        begin();
       });
 
     // the first click, tap or key press anywhere lets the sound begin
@@ -930,7 +934,7 @@ export function FilmStage() {
         })}
 
         {/* Process: the steps arrive from the side; scrolling moves them sideways */}
-        <section data-scene="how" aria-label={how.heading} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
+        <section data-scene="how" aria-label={how.heading.replace(/\*/g, "")} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end pb-[86px] md:pb-[10svh]" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.6)_42%,transparent_72%)]" />
           <div className="mb-10 flex items-end justify-between gap-6 px-[var(--gutter)] md:mb-14">
             <div className="stack">
@@ -966,7 +970,7 @@ export function FilmStage() {
           </div>
         </section>
 
-        <section data-scene="close" aria-label={close.heading} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
+        <section data-scene="close" aria-label={close.heading.replace(/\*/g, "")} className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)]" style={sceneStyle}>
           <div aria-hidden className="close-shade absolute inset-0 -z-10" />
           <div className="stack center">
             <h2 className="t-display wipe"><Words text={close.heading} /></h2>
@@ -1015,7 +1019,7 @@ export function FilmStage() {
 
         {/* ---------------- Entrance: the city surfaces, the world's clocks tick, then you come in ---------------- */}
         {/* once you choose, it opens from the middle, like blinds parting on the city */}
-        <div aria-hidden={ready} className={`fixed inset-0 z-[60] overflow-hidden bg-ink transition-[clip-path,visibility] duration-[1500ms] [transition-timing-function:cubic-bezier(0.77,0,0.175,1)] ${ready ? "invisible" : ""}`} style={{ clipPath: ready ? "inset(50% 0 50% 0)" : "inset(0 0 0 0)" }}>
+        <div aria-hidden={ready} className={`entrance-wrap fixed inset-0 z-[60] overflow-hidden bg-ink transition-[clip-path,visibility,opacity] duration-[1500ms] [transition-timing-function:cubic-bezier(0.77,0,0.175,1)] ${ready ? "invisible" : ""}`} style={skipEntrance ? { opacity: ready ? 0 : 1 } : { clipPath: ready ? "inset(50% 0 50% 0)" : "inset(0 0 0 0)" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src={asset("/film/stills/s1n-m.webp")}
@@ -1024,17 +1028,12 @@ export function FilmStage() {
             style={{ opacity: 0.1 + progress * 0.35, filter: `blur(${16 - progress * 10}px)`, transform: `scale(${1.12 - progress * 0.08})` }}
           />
           <div className="absolute inset-0 [background:radial-gradient(80%_70%_at_50%_50%,rgb(7_10_18/0.35),rgb(7_10_18/0.94))]" />
-          <div className="entrance absolute inset-0 flex flex-col items-center justify-center px-[var(--gutter)] text-center">
+          <div className={`entrance absolute inset-0 flex flex-col items-center justify-center px-[var(--gutter)] text-center ${skipEntrance ? "invisible" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />
             <WorldClocks className="mt-12 w-full max-w-[680px] text-left" />
-            <div className="relative mt-14 h-12 w-full max-w-[420px]">
-              <div className={`absolute inset-x-0 top-1/2 mx-auto h-px w-[120px] overflow-hidden bg-white/15 transition-opacity duration-500 ${loaded ? "opacity-0" : "opacity-100"}`}>
-                <div className="h-full origin-left bg-paper/80 transition-transform duration-500" style={{ transform: `scaleX(${progress})` }} />
-              </div>
-              <div className={`actions absolute inset-0 justify-center transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)] ${loaded ? "opacity-100" : "pointer-events-none translate-y-2 opacity-0"}`}>
-                <button type="button" tabIndex={loaded && !ready ? 0 : -1} onClick={() => enterRef.current(true)} className="btn btn-primary">{entrance.enter}</button>
-              </div>
+            <div className="relative mt-14 h-px w-[120px] overflow-hidden bg-white/15">
+              <div className="h-full origin-left bg-paper/80 transition-transform duration-500" style={{ transform: `scaleX(${progress})` }} />
             </div>
           </div>
         </div>

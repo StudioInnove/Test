@@ -31,8 +31,8 @@ for (const f of walk(OUT)) {
   }
   if (ext === ".html") {
     // links to pages of the site: the newest version, and "you came from inside" (no entrance again)
-    s = s.replaceAll('?in=1"', `?in=1&v=${V}"`).replaceAll("?in=1#", `?in=1&v=${V}#`);
-    s = s.replace(/href="((?:\.\.\/|\.\/)+)([a-z0-9-]*\/?)(#[^"]*)?"/g, (m, up, page, hash) => `href="${up}${page}?in=1&v=${V}${hash || ""}"`);
+    // name the page file itself (a folder link can be redirected, losing what follows the "?")
+    s = s.replace(/href="((?:\.\.\/|\.\/)+)([a-z0-9-]*\/)?(?:index\.html)?(?:\?in=1(?:&amp;|&)?(?:v=[a-z0-9]*)?)?(#[^"]*)?"/g, (m, up, page, hash) => `href="${up}${page || ""}index.html?in=1&v=${V}${hash || ""}"`);
   }
   if (s !== before) fs.writeFileSync(f, s);
 }

@@ -94,7 +94,7 @@
     "cta": "Book a call"
   },
   "how": {
-    "heading": "From idea to launch",
+    "heading": "From idea to *launch*",
     "steps": [
       {
         "title": "Call",
@@ -153,13 +153,13 @@
     "inside": "Look inside"
   },
   "close": {
-    "heading": "Have an idea?",
+    "heading": "Have an *idea?*",
     "cta": "Book a call",
     "line": "Tell us what you want to make. We reply within one working day.",
     "email": "Email us"
   },
   "faq": {
-    "heading": "Questions",
+    "heading": "Questions, *answered*",
     "line": "Anything else? Write to us.",
     "items": [
       {
@@ -198,7 +198,7 @@
       "title": "Web app development",
       "metaTitle": "Custom web app development — Studio Innové",
       "metaDescription": "Custom web apps, platforms, dashboards and internal tools, designed and built by Studio Innové. From first idea to launch. Book a call.",
-      "headline": "Web apps your team will open every morning.",
+      "headline": "Web apps, *made* to be used.",
       "intro": "Platforms, dashboards and tools that run in any browser. Fast, secure and simple to use.",
       "points": [
         {
@@ -227,13 +227,14 @@
           "title": "Tools",
           "line": "Internal software that saves your team hours."
         }
-      ]
+      ],
+      "statement": "We design and build web apps that feel *effortless.* Portals, dashboards and tools your team will actually *enjoy* opening."
     },
     "mobile": {
       "title": "Mobile app development",
       "metaTitle": "iPhone and Android app development — Studio Innové",
       "metaDescription": "Mobile apps for iPhone and Android, designed and built by Studio Innové. From first idea to the App Store. Book a call.",
-      "headline": "Apps your customers keep on their home screen.",
+      "headline": "Apps that *live* on the home screen.",
       "intro": "For iPhone and Android. Smooth, native-feeling apps, designed screen by screen.",
       "points": [
         {
@@ -262,7 +263,8 @@
           "title": "Something to play",
           "line": "Games and playful moments that bring people back."
         }
-      ]
+      ],
+      "statement": "Apps people open every day, and *keep.* Designed screen by screen, built once for iPhone and *Android.*"
     },
     "originalsPage": {
       "title": "Studio Originals",
@@ -273,7 +275,7 @@
       "title": "How we work",
       "metaTitle": "How we work — Studio Innové",
       "metaDescription": "How Studio Innové designs and builds web and mobile apps: a call, clickable designs, weekly builds you can try, then launch and support.",
-      "headline": "From a first call to launch day.",
+      "headline": "From first call to *launch* day.",
       "intro": "Four simple steps. You see and try everything along the way.",
       "steps": [
         {
@@ -292,7 +294,8 @@
           "title": "Launch",
           "line": "We ship it to the web, the App Store and Google Play, then stay on for updates and support if you want us to."
         }
-      ]
+      ],
+      "statement": "Four steps, no surprises. You see and *try* everything, all the way to *launch.*"
     }
   },
   "privacyPage": {
@@ -319,15 +322,15 @@
       "href": "/web-app-development",
       "chapters": [
         {
-          "title": "Software that runs the business.",
+          "title": "Software that runs the *business.*",
           "line": "Client portals, booking systems and dashboards your team opens every morning."
         },
         {
-          "title": "Try it.",
+          "title": "Try *it.*",
           "line": "The screen is real. Switch the view, follow the chart."
         },
         {
-          "title": "Built to grow with you.",
+          "title": "Built to *grow* with you.",
           "line": "Fast, secure and designed screen by screen, before a line of code."
         }
       ]
@@ -343,15 +346,15 @@
       "href": "/mobile-app-development",
       "chapters": [
         {
-          "title": "Apps people keep.",
+          "title": "Apps people *keep.*",
           "line": "For iPhone and Android, from a single build."
         },
         {
-          "title": "Swipe through three.",
+          "title": "Swipe through *three.*",
           "line": "An events app, a table booking and a little game, made for this room."
         },
         {
-          "title": "Ready for both stores.",
+          "title": "Ready for *both* stores.",
           "line": "We design every screen, build it once and launch it on the App Store and Google Play."
         }
       ]
@@ -386,15 +389,15 @@
       "joined": "You're on the list. We'll open the door for you first.",
       "chapters": [
         {
-          "title": "Something is being built in here.",
+          "title": "Something is being *built* in here.",
           "line": "Our first Studio Original. That's all we can say for now."
         },
         {
-          "title": "It's in the build.",
+          "title": "It's in the *build.*",
           "line": "The idea and the design are done. Next comes a private beta."
         },
         {
-          "title": "Be the first through the door.",
+          "title": "Be the *first* through the door.",
           "line": "Join the list and we'll let you in before anyone else."
         }
       ]
@@ -408,15 +411,15 @@
       ],
       "chapters": [
         {
-          "title": "Fewer features, made well.",
+          "title": "Fewer features, made *well.*",
           "line": "Five things done beautifully beat twenty done badly."
         },
         {
-          "title": "You see it before we build it.",
+          "title": "You *see* it before we build it.",
           "line": "Every screen is designed and clicked through before any code."
         },
         {
-          "title": "Fast is a feature.",
+          "title": "Fast is a *feature.*",
           "line": "Apps that open instantly and never make you wait."
         }
       ]
@@ -426,11 +429,11 @@
       "line": "We work with founders and teams in every time zone. Calls are booked at a time that suits you.",
       "chapters": [
         {
-          "title": "Wherever you are.",
+          "title": "Wherever *you* are.",
           "line": "We work with founders and teams in every time zone."
         },
         {
-          "title": "Any time that suits you.",
+          "title": "Any time that *suits* you.",
           "line": "Calls are booked at a time that works where you are."
         }
       ]

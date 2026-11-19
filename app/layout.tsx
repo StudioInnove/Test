@@ -3,7 +3,7 @@ import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
 import { PageFade } from "@/components/ui/PageFade";
-import "@fontsource-variable/geist/wght.css";
+import "@fontsource-variable/inter/opsz.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
 

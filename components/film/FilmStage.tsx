@@ -949,7 +949,6 @@ export function FilmStage() {
                 <li key={st.title} className="relative w-[78vw] max-w-[380px] shrink-0 pr-10 sm:w-[44vw] md:w-[34vw] md:max-w-[480px] md:pr-16">
                   <p className="kicker mb-3">{how.order[i]}</p>
                   <h3 className="t-title"><Words text={how.walk[i]} /></h3>
-                  <p className="t-body mt-4 max-w-[30ch]">{st.line}</p>
                 </li>
               ))}
               <li aria-hidden className="w-[10vw] shrink-0" />

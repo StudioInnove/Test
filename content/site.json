@@ -102,19 +102,19 @@
     "steps": [
       {
         "title": "Call",
-        "line": "Thirty minutes on your idea, your users and what success looks like."
+        "line": "Thirty minutes on your idea and your users."
       },
       {
         "title": "Design",
-        "line": "You see and approve every screen before any code is written."
+        "line": "You approve every screen before any code."
       },
       {
         "title": "Build",
-        "line": "Steady progress you can see and try as it takes shape."
+        "line": "Try it as it takes shape."
       },
       {
         "title": "Launch",
-        "line": "We ship it, then stay on for updates and support if you want us to."
+        "line": "We ship it, then stay on."
       }
     ],
     "drag": "Scroll to follow the steps",
@@ -466,15 +466,15 @@
       "chapters": [
         {
           "title": "A fixed *quote*, up front.",
-          "line": "You know the price and the plan before anything starts."
+          "line": "Price and plan, before we start."
         },
         {
           "title": "Try it *every* week.",
-          "line": "A working version lands every Friday, so you can steer as it grows."
+          "line": "A working version every Friday."
         },
         {
           "title": "It's all *yours.*",
-          "line": "The code, the designs and the accounts belong to you."
+          "line": "The code, the designs, the accounts."
         }
       ]
     },

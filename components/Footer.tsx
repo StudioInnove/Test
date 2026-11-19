@@ -1,13 +1,12 @@
 "use client";
 
 /*
- * The footer rises from underneath the page like a curtain lifting, and the studio's name, set very
- * large, surfaces letter by letter from a soft blur: "Studio" in the light sans, "Innové" in the italic
- * serif. The five cities we work across keep time underneath it.
+ * A compact footer over a field of tiny warm lights, like the city at night seen from very high up.
+ * The studio's name isn't drawn: it is the gap in the lights. Windows flicker now and then, a train passes.
+ * The idea of a name cut out of lights comes from the 21st.dev "Dithered Footer" (otatechie).
  */
-import { useEffect, useRef, type MouseEvent } from "react";
-import { getGsap } from "@/lib/gsap";
-import { WorldClocks } from "./ui/WorldClocks";
+import { type MouseEvent } from "react";
+import { CityLights } from "./ui/CityLights";
 import { asset, content, href } from "@/lib/content";
 
 const Icon = ({ d }: { d: string }) => (
@@ -18,27 +17,6 @@ const YOUTUBE = "M23.5 6.2a3 3 0 0 0-2.1-2.1C19.5 3.6 12 3.6 12 3.6s-7.5 0-9.4.5
 
 export function Footer() {
   const { studio, footer, nav } = content;
-  const ref = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const { gsap } = getGsap();
-    const ctx = gsap.context(() => {
-      // the curtain: the footer's contents start a little below and settle as it comes up
-      gsap.fromTo(".footer-inner", { yPercent: -18 }, { yPercent: 0, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom bottom", scrub: true } });
-      // the name, letter by letter
-      gsap.fromTo(
-        ".fm-char",
-        { yPercent: 55, opacity: 0, filter: "blur(12px)" },
-        { yPercent: 0, opacity: 1, filter: "blur(0px)", duration: 1.6, ease: "expo.out", stagger: 0.045, scrollTrigger: { trigger: ".footer-mark", start: "top 92%", once: true } },
-      );
-    }, el);
-    return () => ctx.revert();
-  }, []);
-
-  const chars = (w: string) => w.split("").map((c, i) => <span key={i} className="fm-char inline-block">{c}</span>);
-  const [first, ...rest] = studio.name.split(" ");
 
   const links = [
     ...nav.links.map((l) => ({ label: l.label, href: href(l.href) })),
@@ -56,8 +34,7 @@ export function Footer() {
   };
 
   return (
-    <footer ref={ref} className="relative overflow-hidden bg-ink-2">
-      <div className="footer-inner">
+    <footer className="relative overflow-hidden bg-ink-2">
 
       <div className="flex flex-col gap-10 border-t-[0.5px] border-white/10 px-[var(--gutter)] pb-10 pt-14 md:flex-row md:items-start md:justify-between md:pt-16">
         <div className="max-w-[300px]">
@@ -74,14 +51,8 @@ export function Footer() {
         </nav>
       </div>
 
-      {/* the name, very large */}
-      <p className="footer-mark px-[var(--gutter)]" aria-label={studio.name}>
-        <span aria-hidden>{chars(first)}</span>{" "}
-        <span aria-hidden className="fm-serif">{chars(rest.join(" "))}</span>
-      </p>
-      <div className="px-[var(--gutter)] pb-6 pt-8">
-        <WorldClocks className="w-full max-w-[760px]" />
-      </div>
+      {/* the lights, with the name cut out of them */}
+      <CityLights text={studio.name} />
 
       <div className="flex items-center justify-between gap-4 whitespace-nowrap px-[var(--gutter)] py-5 text-[13px] text-paper/40">
         <span>© {studio.year}<span className="max-sm:hidden"> {studio.name}</span></span>
@@ -94,7 +65,6 @@ export function Footer() {
             <svg viewBox="0 0 24 24" className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
           </a>
         </div>
-      </div>
       </div>
     </footer>
   );

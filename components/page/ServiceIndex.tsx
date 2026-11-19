@@ -1,16 +1,15 @@
 "use client";
 
 /*
- * What we build, as a typographic index (the way studios like Off+Brand and Rejouice list their work):
- * three very large lines in the light display type, each with a few words in the italic serif, divided by
- * hairlines. On a computer, resting on a line brings up a photograph of that kind of app in use; it trails
- * the cursor a little behind, like a print held up to the light. On a phone, each photograph opens inline
- * from a thin slit as it scrolls into view, and drifts slightly slower than the page.
+ * What we build, told one at a time. The section holds still while you scroll, and the three lines turn
+ * past a reading line like the drum of a rolodex: the one you are on is sharp and bright; the last one
+ * lifts away, smaller and out of focus, as the next one rises into place. Beside it, its photograph is uncovered
+ * from the bottom as you arrive, and settles. Everything follows the scroll exactly (GSAP ScrollTrigger),
+ * so it reads at your pace, on a computer and a phone alike.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
 import { asset } from "@/lib/content";
-import { InView } from "../InView";
 
 type Item = { title: string; phrase: string; line: string; image: string };
 
@@ -18,106 +17,99 @@ const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 
 export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] }) {
   const ref = useRef<HTMLElement>(null);
-  const floatRef = useRef<HTMLDivElement>(null);
-  const [hover, setHover] = useState<number | null>(null);
-  const [fine, setFine] = useState(false);
+  const rows = useRef<(HTMLDivElement | null)[]>([]);
+  const photos = useRef<(HTMLDivElement | null)[]>([]);
+  const [active, setActive] = useState(0);
+  const n = items.length;
 
-  useEffect(() => {
-    setFine(window.matchMedia("(hover: hover) and (pointer: fine)").matches);
-  }, []);
-
-  // the floating photograph follows the cursor, a little behind it
   useIso(() => {
-    if (!fine) return;
-    const { gsap } = getGsap();
-    const root = ref.current, fl = floatRef.current;
-    if (!root || !fl) return;
-    const qx = gsap.quickTo(fl, "x", { duration: 0.9, ease: "power3" });
-    const qy = gsap.quickTo(fl, "y", { duration: 0.9, ease: "power3" });
-    const qr = gsap.quickTo(fl, "rotation", { duration: 1.2, ease: "power3" });
-    let lx = 0;
-    const move = (e: PointerEvent) => {
-      const r = root.getBoundingClientRect();
-      const x = e.clientX - r.left, y = e.clientY - r.top;
-      // it lives in the right-hand column, clear of the big words: it follows the cursor up and down
-      // and only drifts a little sideways with it
-      const home = r.width - fl.offsetWidth - parseFloat(getComputedStyle(root).paddingRight || "0");
-      qx(home + Math.max(-40, Math.min(24, (x - r.width * 0.6) * 0.06)));
-      qy(y - fl.offsetHeight * 0.5);
-      // it leans a touch into the direction you move
-      qr(Math.max(-3, Math.min(3, (e.clientX - lx) * 0.15)));
-      lx = e.clientX;
-    };
-    root.addEventListener("pointermove", move);
-    return () => root.removeEventListener("pointermove", move);
-  }, [fine]);
-
-  // phones: each photograph opens from a slit, then drifts as you scroll
-  useIso(() => {
-    if (fine) return;
     const { gsap } = getGsap();
     const root = ref.current;
     if (!root) return;
+    const state = { pos: 0 };
+    let last = 0;
+    const apply = () => {
+      const pos = state.pos;
+      rows.current.forEach((el, i) => {
+        if (!el) return;
+        const d = i - pos;
+        const a = Math.min(1, Math.abs(d));
+        el.style.transform = `translate3d(0, ${d * 92}%, 0) scale(${1 - a * 0.3})`;
+        el.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 1.15));
+        el.style.filter = a > 0.02 ? `blur(${a * 5}px)` : "none";
+      });
+      photos.current.forEach((el, i) => {
+        if (!el) return;
+        // each photograph is uncovered from the bottom as you arrive at its line
+        const r = i === 0 ? 1 : Math.min(1, Math.max(0, pos - (i - 1)));
+        const e = r * r * (3 - 2 * r);
+        el.style.clipPath = `inset(${(1 - e) * 100}% 0% 0% 0%)`;
+        const img = el.firstElementChild as HTMLElement | null;
+        if (img) img.style.transform = `scale(${1.18 - e * 0.18})`;
+      });
+      const near = Math.round(pos);
+      if (near !== last) {
+        last = near;
+        setActive(near);
+      }
+    };
+    apply();
     const ctx = gsap.context(() => {
-      gsap.utils.toArray<HTMLElement>(".si-photo", root).forEach((el) => {
-        const img = el.querySelector("img");
-        gsap.fromTo(el, { clipPath: "inset(48% 0% 48% 0%)" }, { clipPath: "inset(0% 0% 0% 0%)", duration: 1.6, ease: "expo.out", scrollTrigger: { trigger: el, start: "top 85%", once: true } });
-        if (img) gsap.fromTo(img, { yPercent: -6, scale: 1.12 }, { yPercent: 6, scale: 1.12, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom top", scrub: true } });
+      gsap.to(state, {
+        pos: n - 1,
+        ease: "none",
+        onUpdate: apply,
+        scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 0.8 },
       });
     }, root);
     return () => ctx.revert();
-  }, [fine]);
+  }, [n]);
 
   return (
-    <section ref={ref} className="relative px-[var(--gutter)] py-28 md:py-40" onPointerLeave={() => setHover(null)}>
-      <InView threshold={0.05}>
-      <p className="rise kicker">{kicker}</p>
-      <ul className="mt-8 border-t border-paper/12 md:mt-12">
-        {items.map((it, i) => {
-          const dim = hover !== null && hover !== i;
-          return (
-            <li key={it.title} className="rise border-b border-paper/12" style={{ ["--d" as string]: `${150 + i * 180}ms` }} onPointerEnter={() => fine && setHover(i)}>
-              <div className="grid gap-6 py-8 md:grid-cols-[minmax(0,1fr)_minmax(0,320px)] md:items-end md:gap-10 md:py-12">
-                <h3 className="si-title transition-opacity duration-700" style={{ opacity: dim ? 0.42 : 1 }}>
-                  {it.title} <span className="si-phrase">{it.phrase}</span>
-                </h3>
-                <p className="t-body max-w-[32ch] pb-2 transition-opacity duration-700 md:justify-self-end" style={{ opacity: hover === i ? 0 : dim ? 0.45 : 1 }}>{it.line}</p>
-              </div>
-              {/* phones: the photograph sits under its line */}
-              {!fine && (
-                <div className="si-photo relative mb-10 aspect-[4/5] w-[78%] overflow-hidden rounded-[6px]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={asset(it.image)} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover" />
-                </div>
-              )}
-            </li>
-          );
-        })}
-      </ul>
-      </InView>
-
-      {/* computers: one photograph, following the cursor; the picture changes with the line you rest on */}
-      {fine && (
-        <div ref={floatRef} aria-hidden className="pointer-events-none absolute left-0 top-0 z-10 w-[min(23vw,360px)]">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-[4px] shadow-[0_40px_80px_-30px_rgb(0_0_0/0.8)] transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)]" style={{ opacity: hover === null ? 0 : 1, transform: hover === null ? "scale(0.86)" : "scale(1)" }}>
+    <section ref={ref} className="relative" style={{ height: `${n * 85 + 40}svh` }} aria-label={kicker}>
+      <div className="sticky top-0 flex h-[100svh] flex-col justify-center gap-8 overflow-hidden px-[var(--gutter)] md:grid md:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] md:items-center md:gap-[6vw]">
+        {/* the words */}
+        <div className="relative max-md:pt-16">
+          <p className="kicker">{kicker}</p>
+          {/* the drum: one line in focus, its neighbours above and below */}
+          <div className="relative mt-6 h-[1.9em] si-title md:mt-10">
             {items.map((it, i) => (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img
-                key={it.image + i}
-                src={asset(it.image)}
-                alt=""
-                className="absolute inset-0 h-full w-full object-cover"
-                style={{
-                  clipPath: hover === i ? "inset(0% 0% 0% 0%)" : "inset(100% 0% 0% 0%)",
-                  transform: hover === i ? "scale(1)" : "scale(1.15)",
-                  transition: "clip-path 900ms cubic-bezier(0.77,0,0.175,1), transform 1400ms cubic-bezier(0.22,0.61,0.36,1)",
-                  zIndex: hover === i ? 2 : 1,
-                }}
-              />
+              <div key={it.title} ref={(el) => { rows.current[i] = el; }} aria-hidden={i !== active} className="absolute inset-x-0 top-0 origin-left will-change-transform">
+                <h3 className="leading-[0.95]">{it.title}</h3>
+                <p className="si-phrase mt-[0.12em]">{it.phrase}</p>
+              </div>
+            ))}
+          </div>
+          {/* what it is, for the one in focus */}
+          <div className="relative mt-8 grid md:mt-12">
+            {items.map((it, i) => (
+              <p
+                key={it.title}
+                className="t-lead col-start-1 row-start-1 max-w-[34ch] transition-[opacity,transform,filter] duration-[900ms] [transition-timing-function:var(--ease-out)]"
+                style={{ opacity: i === active ? 1 : 0, transform: i === active ? "none" : "translateY(10px)", filter: i === active ? "none" : "blur(6px)" }}
+              >
+                {it.line}
+              </p>
+            ))}
+          </div>
+          {/* where you are, quietly */}
+          <div aria-hidden className="mt-10 flex gap-2">
+            {items.map((it, i) => (
+              <span key={it.title} className={`h-[2px] rounded-full transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === active ? "w-8 bg-paper" : "w-3 bg-paper/25"}`} />
             ))}
           </div>
         </div>
-      )}
+
+        {/* the photographs, one uncovering the next */}
+        <div className="relative mx-auto aspect-[4/5] w-[min(52vw,300px)] overflow-hidden rounded-[6px] md:mx-0 md:w-full md:max-w-[440px] md:justify-self-end">
+          {items.map((it, i) => (
+            <div key={it.image + i} ref={(el) => { photos.current[i] = el; }} className="absolute inset-0 overflow-hidden" style={{ zIndex: i + 1, clipPath: i === 0 ? "none" : "inset(100% 0% 0% 0%)" }}>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={asset(it.image)} alt="" loading="lazy" className="absolute inset-0 h-full w-full object-cover will-change-transform" />
+            </div>
+          ))}
+        </div>
+      </div>
     </section>
   );
 }

@@ -6,10 +6,13 @@ import { content } from "@/lib/content";
 
 const NS = "call";
 let ready: Promise<unknown> | null = null;
+/** True once the calendar pop-up has loaded; until then the button is a plain link to the booking page. */
+let calReady = false;
 
 function initCal() {
   if (!ready) {
     ready = getCalApi({ namespace: NS }).then((cal) => {
+      calReady = true;
       cal("ui", {
         theme: "dark",
         hideEventTypeDetails: false,
@@ -54,13 +57,16 @@ export function BookCall({ children, className = "", variant = "primary", size =
       onPointerEnter={() => initCal()}
       onFocus={() => initCal()}
       onClick={(e) => {
-        e.preventDefault();
         onOpen?.();
-        initCal()
-          .then((cal) => {
-            (cal as (...a: unknown[]) => void)("modal", { calLink, config: { layout: "month_view", theme: "dark", overlayCalendar: "true" } });
-          })
-          .catch(() => window.open(calUrl, "_blank", "noopener"));
+        // Pop-up not loaded (slow network, blocked script)? Let the link open the booking page in a new tab.
+        if (!calReady) {
+          initCal();
+          return;
+        }
+        e.preventDefault();
+        initCal().then((cal) => {
+          (cal as (...a: unknown[]) => void)("modal", { calLink, config: { layout: "month_view", theme: "dark", overlayCalendar: "true" } });
+        });
       }}
       className={`btn ${variant === "primary" ? "btn-primary" : "btn-ghost"} ${size === "sm" ? "btn-sm" : ""} ${className}`}
     >

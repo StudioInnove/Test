@@ -1,10 +1,15 @@
 import { FOCUS, type ClipId, type StillId } from "./timeline";
 import { asset } from "@/lib/content";
 
+type FrameSet = { path: string; frames: number; w?: number; h?: number };
 export type Manifest = {
   fps: number;
+  /** frames per file: a file holds `sheet` frames stacked top to bottom */
+  sheet?: number;
+  /** phone frames are pre-cropped to this width/height and already centred on the subject */
+  mAspect?: number;
   stills: Partial<Record<StillId, { d: string; m?: string; depth?: string }>>;
-  clips: Partial<Record<ClipId, { from: StillId; to: StillId; d?: { path: string; frames: number }; m?: { path: string; frames: number } }>>;
+  clips: Partial<Record<ClipId, { from: StillId; to: StillId; fps?: number; d?: FrameSet; m?: FrameSet }>>;
 };
 
 export type Single =
@@ -172,10 +177,29 @@ export class FilmEngine {
     return c?.[this.mode] ?? c?.d ?? c?.m;
   }
 
-  private frameUrl(clip: ClipId, i: number) {
+  private get per() {
+    return this.manifest.sheet ?? 1;
+  }
+
+  /** The file that holds frame i. */
+  private sheetUrl(clip: ClipId, i: number) {
     const c = this.clipSet(clip);
     if (!c) return "";
-    return asset(`${c.path}${String(i + 1).padStart(3, "0")}.webp`);
+    return asset(`${c.path}${String(Math.floor(i / this.per) + 1).padStart(3, "0")}.webp`);
+  }
+
+  /** A key for one frame: its file, and its place in that file. */
+  private frameUrl(clip: ClipId, i: number) {
+    return `${this.sheetUrl(clip, i)}#${i % this.per}`;
+  }
+
+  /** Where the subject sits: phone frames are already cropped around it. */
+  private focusOf(s: StillId): [number, number] {
+    return this.cropped ? [0.5, FOCUS[s][1]] : FOCUS[s];
+  }
+
+  private get cropped() {
+    return this.mode === "m" && !!this.manifest.mAspect && !!this.manifest.clips.c1?.m;
   }
 
   /** Share of the given clips' frames already downloaded (0..1). */
@@ -184,7 +208,7 @@ export class FilmEngine {
     for (const c of clips) {
       const n = this.frames(c);
       total += n;
-      for (let i = 0; i < n; i++) if (this.blobs.has(this.frameUrl(c, i))) have++;
+      for (let i = 0; i < n; i++) if (this.blobs.has(this.sheetUrl(c, i))) have++;
     }
     return total ? have / total : 1;
   }
@@ -199,9 +223,11 @@ export class FilmEngine {
     for (const c of clips) {
       const n = this.frames(c);
       if (!n) continue;
-      for (const step of [8, 4, 2, 1]) {
+      const per = this.per;
+      const steps = per > 1 ? [per * 2, per] : [8, 4, 2, 1];
+      for (const step of steps) {
         for (let i = 0; i < n; i += step) {
-          const u = this.frameUrl(c, i);
+          const u = this.sheetUrl(c, i);
           if (!this.blobs.has(u) && !q.includes(u)) q.push(u);
         }
       }
@@ -211,7 +237,8 @@ export class FilmEngine {
   }
 
   private pump() {
-    while (this.inflight < 6 && this.queue.length && !this.aborted) {
+    const max = this.mode === "m" ? 3 : 6;
+    while (this.inflight < max && this.queue.length && !this.aborted) {
       const u = this.queue.shift()!;
       if (this.blobs.has(u)) continue;
       this.inflight++;
@@ -226,24 +253,44 @@ export class FilmEngine {
     }
   }
 
+  /** Decode the file that holds frame u, and cut it into its frames. */
   private requestDecode(u: string) {
-    if (this.decoded.has(u) || this.decoding.has(u)) return;
-    const b = this.blobs.get(u);
+    const sheet = u.split("#")[0];
+    if (this.decoded.has(u) || this.decoding.has(sheet)) return;
+    const b = this.blobs.get(sheet);
     if (!b) return;
-    this.decoding.add(u);
+    this.decoding.add(sheet);
+    const keep = this.mode === "m" ? 16 : 28;
     createImageBitmap(b)
-      .then((bm) => {
-        this.decoded.set(u, bm);
-        if (this.decoded.size > 28) {
+      .then(async (all) => {
+        const per = this.per;
+        // every frame has the same shape; the last file of a clip may hold fewer of them
+        const set = this.clipSet("c1");
+        const h = set?.w && set?.h ? Math.round((all.width * set.h) / set.w) : Math.round(all.height / per);
+        const count = Math.max(1, Math.min(per, Math.round(all.height / h)));
+        for (let j = 0; j < count; j++) {
+          const key = `${sheet}#${j}`;
+          if (this.decoded.has(key)) continue;
+          const bm = per > 1 ? await createImageBitmap(all, 0, j * h, all.width, h) : all;
+          this.decoded.set(key, bm);
+        }
+        if (per > 1) all.close();
+        while (this.decoded.size > keep) {
           const k = this.decoded.keys().next().value as string;
-          if (k !== this.texAKey && k !== this.texBKey) {
-            this.decoded.get(k)?.close();
+          if (k === this.texAKey || k === this.texBKey) {
+            // still on screen: move it to the back of the queue
+            const v = this.decoded.get(k)!;
             this.decoded.delete(k);
+            this.decoded.set(k, v);
+            if (this.decoded.size <= keep + 2) break;
+            continue;
           }
+          this.decoded.get(k)?.close();
+          this.decoded.delete(k);
         }
       })
       .catch(() => {})
-      .finally(() => this.decoding.delete(u));
+      .finally(() => this.decoding.delete(sheet));
   }
 
   /** Best decoded frame near index i (searching outwards), or null. */
@@ -265,10 +312,10 @@ export class FilmEngine {
   private single(shot: Single): { bm: Bitmap; key: string; focus: [number, number] } | null {
     if (shot.kind === "hold") {
       const bm = this.stills.get(shot.still);
-      return bm ? { bm, key: "still:" + shot.still, focus: FOCUS[shot.still] } : null;
+      return bm ? { bm, key: "still:" + shot.still, focus: this.focusOf(shot.still) } : null;
     }
     const n = this.frames(shot.clip);
-    const fa = FOCUS[shot.from], fb = FOCUS[shot.to];
+    const fa = this.focusOf(shot.from), fb = this.focusOf(shot.to);
     const focus: [number, number] = [fa[0] + (fb[0] - fa[0]) * shot.t, fa[1] + (fb[1] - fa[1]) * shot.t];
     if (n > 1) {
       const f = this.nearestFrame(shot.clip, Math.round(shot.t * (n - 1)), n);
@@ -276,7 +323,7 @@ export class FilmEngine {
     }
     const still = shot.t < 0.5 ? shot.from : shot.to;
     const bm = this.stills.get(still);
-    return bm ? { bm, key: "still:" + still, focus: FOCUS[still] } : null;
+    return bm ? { bm, key: "still:" + still, focus: this.focusOf(still) } : null;
   }
 
   // ---------- Painting ----------
@@ -314,11 +361,11 @@ export class FilmEngine {
       B = A;
       bKey = aKey;
       rest = shot.rest;
-      focusA = focusB = FOCUS[shot.still];
+      focusA = focusB = this.focusOf(shot.still);
       depthKey = shot.still;
     } else {
       const n = this.frames(shot.clip);
-      const fa = FOCUS[shot.from], fb = FOCUS[shot.to];
+      const fa = this.focusOf(shot.from), fb = this.focusOf(shot.to);
       const e = shot.t;
       const f: [number, number] = [fa[0] + (fb[0] - fa[0]) * e, fa[1] + (fb[1] - fa[1]) * e];
       let used = false;

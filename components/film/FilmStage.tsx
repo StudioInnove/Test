@@ -2,10 +2,10 @@
 
 import Lenis from "lenis";
 import { useEffect, useRef, useState } from "react";
-import { asset, content } from "@/lib/content";
+import { asset, content, href } from "@/lib/content";
 import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
-import { StatusTrack, WaitlistForm } from "../Originals";
+import { LaunchTrack, WaitlistForm } from "../Originals";
 import { ArrowLink } from "../ui/ArrowLink";
 import { Words } from "../Words";
 import { FilmEngine, type Manifest, type Single } from "./engine";
@@ -50,6 +50,8 @@ export function FilmStage() {
     const curtain = curtainRef.current!;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const mode: "d" | "m" = window.matchMedia("(max-width: 899px)").matches ? "m" : "d";
+    // phones and tablets scroll natively (smooth-scroll libraries fight the finger and stall)
+    const touchUI = window.matchMedia("(hover: none) and (pointer: coarse)").matches;
     if ("scrollRestoration" in history) history.scrollRestoration = "manual";
 
     let engine: FilmEngine | null = null;
@@ -77,15 +79,35 @@ export function FilmStage() {
     let filmMode = true;
     let exiting = false;
     let lastWheel = 0;
-    let touchY: number | null = null;
-    let touchFresh = false;
+    let touchY0: number | null = null;
+    let touchT0 = 0;
+    let swiped = false;
 
-    const lenis = new Lenis({ lerp: reduce ? 1 : 0.085, smoothWheel: !reduce });
-    lenis.stop();
+    // Page scrolling: Lenis on desktop, the browser's own on touch screens.
+    const lenis = touchUI ? null : new Lenis({ lerp: reduce ? 1 : 0.085, smoothWheel: !reduce });
+    const root = document.documentElement;
+    const lock = () => {
+      lenis?.stop();
+      root.classList.add("film-lock");
+    };
+    const unlock = () => {
+      root.classList.remove("film-lock");
+      lenis?.start();
+    };
+    const scrollY = () => (lenis ? lenis.scroll : window.scrollY);
+    lock();
     window.scrollTo(0, 0);
 
     const overlays = Array.from(stage.querySelectorAll<HTMLElement>("[data-scene]"));
-    const resize = () => engine?.resize(stage.clientWidth, stage.clientHeight, Math.min(window.devicePixelRatio || 1, 2));
+    let lastW = 0, lastH = 0;
+    const resize = () => {
+      const w = canvas.clientWidth, h = canvas.clientHeight;
+      // the phone's address bar sliding in and out changes only the height a little: ignore it
+      if (touchUI && w === lastW && Math.abs(h - lastH) < 140 && lastH) return;
+      lastW = w;
+      lastH = h;
+      engine?.resize(w, h, Math.min(window.devicePixelRatio || 1, 2));
+    };
     window.addEventListener("resize", resize);
 
     const scramble = (el: HTMLElement) => {
@@ -180,18 +202,22 @@ export function FilmStage() {
 
     const exitFilm = () => {
       filmMode = false;
+      window.dispatchEvent(new CustomEvent("film:scene", { detail: "faq" }));
       exiting = true;
-      lenis.start();
+      unlock();
       const faq = document.getElementById("faq");
       const done = () => (exiting = false);
-      if (faq) lenis.scrollTo(faq, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4), onComplete: done });
+      if (faq && lenis) lenis.scrollTo(faq, { duration: 1.6, easing: (t) => 1 - Math.pow(1 - t, 4), onComplete: done });
+      else if (faq) window.scrollTo({ top: faq.getBoundingClientRect().top + window.scrollY, behavior: reduce ? "auto" : "smooth" });
       setTimeout(done, 1900);
     };
 
     const enterFilm = () => {
       filmMode = true;
-      lenis.stop();
-      lenis.scrollTo(0, { immediate: true, force: true });
+      window.dispatchEvent(new CustomEvent("film:scene", { detail: SCENES[target].key }));
+      lock();
+      if (lenis) lenis.scrollTo(0, { immediate: true, force: true });
+      window.scrollTo(0, 0);
       held = true;
       arrivedAt = performance.now() / 1000;
     };
@@ -226,6 +252,9 @@ export function FilmStage() {
       } else if (dir !== Math.sign(target - pos)) {
         // changed their mind: glide back the way we came
         head(dir > 0 ? Math.ceil(pos) : Math.floor(pos));
+      } else if (fresh && Math.abs(target - pos) < 0.5 && target + dir >= 0 && target + dir <= LAST) {
+        // a new gesture near the end of a glide carries on to the scene after
+        head(target + dir);
       }
     };
 
@@ -236,7 +265,7 @@ export function FilmStage() {
       lastWheel = nowMs;
       if (!filmMode) {
         // at the very top of the page, scrolling up hands control back to the film
-        if (!exiting && dy < 0 && lenis.scroll <= 1 && window.scrollY <= 1) {
+        if (!exiting && dy < 0 && scrollY() <= 1 && window.scrollY <= 1) {
           e.preventDefault();
           enterFilm();
         }
@@ -246,26 +275,31 @@ export function FilmStage() {
       if (Math.abs(dy) < 1) return;
       input(dy, fresh);
     };
+    // On a touch screen one swipe is one scene: the swipe's speed sets how briskly the film glides.
     const onTouchStart = (e: TouchEvent) => {
-      touchY = e.touches[0].clientY;
-      touchFresh = true;
+      touchY0 = e.touches[0].clientY;
+      touchT0 = performance.now();
+      swiped = false;
     };
     const onTouchMove = (e: TouchEvent) => {
-      if (touchY === null) return;
-      const y = e.touches[0].clientY;
-      const d = touchY - y;
+      if (touchY0 === null) return;
+      const d = touchY0 - e.touches[0].clientY;
       if (!filmMode) {
-        if (!exiting && d < -12 && window.scrollY <= 1) {
+        if (!exiting && d < -14 && window.scrollY <= 1) {
+          e.preventDefault();
           enterFilm();
-          touchY = null;
+          touchY0 = null;
         }
         return;
       }
       e.preventDefault();
-      if (touchFresh && Math.abs(d) < 14) return; // wait for a clear swipe
-      touchY = y;
-      input(d * 2.2, touchFresh);
-      touchFresh = false;
+      if (swiped || Math.abs(d) < 34) return;
+      swiped = true;
+      const speed = Math.abs(d) / Math.max(16, performance.now() - touchT0); // px per ms
+      input(Math.sign(d) * (260 + Math.min(1.6, speed) * 380), true);
+    };
+    const onTouchEnd = () => {
+      touchY0 = null;
     };
     const onKey = (e: KeyboardEvent) => {
       if (!filmMode || ["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
@@ -287,21 +321,38 @@ export function FilmStage() {
       } else if (id === "faq") {
         e.preventDefault();
         if (filmMode) exitFilm();
-        else lenis.scrollTo("#faq", { duration: 1.4 });
+        else if (lenis) lenis.scrollTo("#faq", { duration: 1.4 });
+        else document.getElementById("faq")?.scrollIntoView({ behavior: "smooth" });
       }
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
     window.addEventListener("keydown", onKey);
     document.addEventListener("click", onClick, true);
+    // other parts of the page (the footer's "back to the top") can send the film to a scene
+    const onGoto = (e: Event) => {
+      const i = Number((e as CustomEvent).detail) || 0;
+      if (filmMode) return cutRef.current(i);
+      // from below the film: glide up to it first, then let it take over
+      exiting = true;
+      if (lenis) lenis.scrollTo(0, { duration: 1.3, easing: (t) => 1 - Math.pow(1 - t, 4) });
+      else window.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+      setTimeout(() => {
+        exiting = false;
+        enterFilm();
+        if (i !== current) cut(i);
+      }, reduce ? 50 : 1350);
+    };
+    window.addEventListener("film:goto", onGoto);
 
     const opts = { mouse: [0, 0] as [number, number], pointer: [0.5, 0.5] as [number, number], motion: 0 };
 
     const tick = (nowMs: number) => {
       if (!alive) return;
-      lenis.raf(nowMs);
+      lenis?.raf(nowMs);
       const now = nowMs / 1000;
       const dt = Math.min(0.05, (nowMs - lastTick) / 1000);
       lastTick = nowMs;
@@ -395,12 +446,12 @@ export function FilmStage() {
       .catch(() => begin());
 
     // the first click, tap or key press anywhere lets the sound begin
-    const unlock = (e: Event) => {
+    const unlockSound = (e: Event) => {
       if ((e.target as HTMLElement)?.closest?.("[data-sound-toggle]")) return;
       soundRef.current?.unlock();
     };
     const gestures = ["pointerdown", "keydown", "touchend"];
-    gestures.forEach((ev) => window.addEventListener(ev, unlock, { capture: true }));
+    gestures.forEach((ev) => window.addEventListener(ev, unlockSound, { capture: true }));
 
     raf = requestAnimationFrame(tick);
     return () => {
@@ -410,14 +461,22 @@ export function FilmStage() {
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("touchstart", onTouchStart);
       window.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("touchend", onTouchEnd);
       window.removeEventListener("keydown", onKey);
       document.removeEventListener("click", onClick, true);
-      gestures.forEach((ev) => window.removeEventListener(ev, unlock, { capture: true }));
-      lenis.destroy();
+      window.removeEventListener("film:goto", onGoto);
+      gestures.forEach((ev) => window.removeEventListener(ev, unlockSound, { capture: true }));
+      lenis?.destroy();
+      root.classList.remove("film-lock");
       engine?.destroy();
       soundRef.current?.destroy();
     };
   }, []);
+
+  // tell the navigation where we are
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("film:scene", { detail: SCENES[scene].key }));
+  }, [scene]);
 
   const toggleSound = async () => {
     const s = (soundRef.current = soundRef.current ?? new Soundscape());
@@ -434,12 +493,15 @@ export function FilmStage() {
   return (
     <div id="top" className="relative h-svh">
       <div ref={stageRef} className="relative h-svh w-full overflow-hidden bg-ink" style={{ touchAction: "pan-x" }}>
-        <picture>
-          <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1n-m.webp")} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/film/stills/s1n-d.webp")} alt="A glass penthouse studio above a city at night" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[60%_55%]" />
-        </picture>
-        <canvas ref={canvasRef} aria-hidden className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`} />
+        <div className="film-frame absolute inset-x-0 top-0">
+          <picture>
+            <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1n-m.webp")} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset("/film/stills/s1n-d.webp")} alt="A glass penthouse studio above a city at night" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover object-[60%_55%] max-md:object-center" />
+          </picture>
+          <canvas ref={canvasRef} aria-hidden className={`absolute inset-0 h-full w-full transition-opacity duration-700 ${ready ? "opacity-100" : "opacity-0"}`} />
+          <div aria-hidden className="absolute inset-x-0 bottom-0 h-[38%] [background:linear-gradient(180deg,transparent,rgb(7_10_18/0.55)_45%,#070a12)] md:hidden" />
+        </div>
 
         {/* ---------------- Scenes ---------------- */}
         <section data-scene="hero" aria-label="Introduction" className="reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[108px] md:pb-[13svh]" style={sceneStyle}>
@@ -507,8 +569,9 @@ export function FilmStage() {
             </p>
             <h2 className="t-title"><Words text={originals.heading} /></h2>
             <p className="rise t-body mt-4 text-paper/80" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
-            <div className="rise mt-8" style={{ ["--d" as string]: "380ms" }}><StatusTrack /></div>
-            <div className="rise mt-8" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
+            <div className="rise mt-8" style={{ ["--d" as string]: "380ms" }}><LaunchTrack /></div>
+            <div className="rise mt-7" style={{ ["--d" as string]: "480ms" }}><WaitlistForm source="film" /></div>
+            <div className="rise mt-3" style={{ ["--d" as string]: "600ms" }}><ArrowLink href={href("/studio-originals")}>{originals.more}</ArrowLink></div>
           </div>
         </section>
 

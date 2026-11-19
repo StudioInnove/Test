@@ -15,6 +15,11 @@ for (const f of walk(OUT)) {
     const depth = path.relative(OUT, path.dirname(f)).split(path.sep).filter(Boolean).length;
     const up = depth ? "../".repeat(depth) : "./";
     s = s.replaceAll('"/_next/', `"${up}_next/`).replaceAll("'/_next/", `'${up}_next/`);
+    if (depth && ext === ".html") {
+      // files from /public (film, brand) live at the root of the preview
+      s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('srcSet="./', `srcSet="${up}`);
+      s = s.replace("<head>", `<head><script>window.__B=${JSON.stringify(up)}</script>`);
+    }
   } else {
     // webpack runtime public path
     s = s.replaceAll('"/_next/"', '"./_next/"').replaceAll("\uFFFD", "\\uFFFD");
@@ -22,14 +27,3 @@ for (const f of walk(OUT)) {
   if (s !== before) fs.writeFileSync(f, s);
 }
 console.log("preview ready");
-
-// Preview only: one frame set (desktop) keeps the file count small; phones fall back to it.
-const mf = path.join(OUT, "film", "manifest.json");
-if (fs.existsSync(mf)) {
-  const m = JSON.parse(fs.readFileSync(mf, "utf8"));
-  for (const [id, c] of Object.entries(m.clips)) {
-    delete c.m;
-    fs.rmSync(path.join(OUT, "film", id, "m"), { recursive: true, force: true });
-  }
-  fs.writeFileSync(mf, JSON.stringify(m));
-}

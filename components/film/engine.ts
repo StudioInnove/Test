@@ -151,7 +151,9 @@ export class FilmEngine {
 
   /** Stills (and depth maps) first: enough to show the whole film as crossfades. */
   async loadStills(first: StillId[]) {
-    const ids = Object.keys(this.manifest.stills) as StillId[];
+    // the sunrise is only needed at the very end: it loads after everything else
+    const late: StillId[] = ["s1d"];
+    const ids = (Object.keys(this.manifest.stills) as StillId[]).filter((i) => !late.includes(i));
     const order = [...first, ...ids.filter((i) => !first.includes(i))];
     let done = 0;
     const total = order.length;
@@ -168,7 +170,7 @@ export class FilmEngine {
     await one(order[0]);
     await Promise.all(order.slice(1).map(one));
     this.ready = true;
-
+    setTimeout(() => late.forEach((id) => this.manifest.stills[id] && one(id)), 2500);
   }
 
   hasStill(id: StillId) {

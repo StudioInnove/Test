@@ -17,7 +17,7 @@ for (const f of walk(OUT)) {
     s = s.replaceAll('"/_next/', `"${up}_next/`).replaceAll("'/_next/", `'${up}_next/`);
     if (depth && ext === ".html") {
       // files from /public (film, brand) live at the root of the preview
-      s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('srcSet="./', `srcSet="${up}`);
+      s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('"./worlds/', `"${up}worlds/`).replaceAll('"./closeups/', `"${up}closeups/`).replaceAll('srcSet="./', `srcSet="${up}`);
       s = s.replace("<head>", `<head><script>window.__B=${JSON.stringify(up)}</script>`);
     }
   } else {

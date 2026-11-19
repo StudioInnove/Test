@@ -22,6 +22,7 @@ export function Footer() {
     ...nav.links.map((l) => ({ label: l.label, href: href(l.href) })),
     { label: "Web apps", href: href("/web-app-development") },
     { label: "Mobile apps", href: href("/mobile-app-development") },
+    { label: "How we work", href: href("/process") },
   ];
 
   const toTop = (e: MouseEvent) => {
@@ -38,7 +39,7 @@ export function Footer() {
       <div className="flex flex-col gap-10 border-t-[0.5px] border-white/10 px-[var(--gutter)] pb-10 pt-14 md:flex-row md:items-start md:justify-between md:pt-16">
         <div className="max-w-[300px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[60px] opacity-90" />
+          <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />
           <p className="t-body mt-4">{footer.tagline}</p>
         </div>
         <nav aria-label="Footer" className="grid grid-cols-2 gap-x-10 gap-y-2.5 sm:grid-cols-3 md:gap-x-14">

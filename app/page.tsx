@@ -43,8 +43,9 @@ export default function Home() {
       <FilmStage />
 
       <section id="faq" className="relative overflow-hidden bg-ink-2 px-[var(--gutter)] py-24 md:py-40">
-        {/* a faint warm light, as if from the studio upstairs */}
-        <div aria-hidden className="pointer-events-none absolute -left-[20%] top-0 h-[70%] w-[70%] [background:radial-gradient(closest-side,rgb(232_161_90/0.07),transparent)]" />
+        {/* the sunrise the film ended on carries on down the page */}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%] [background:radial-gradient(90%_60%_at_70%_0%,rgb(244_170_110/0.16),rgb(232_161_90/0.05)_45%,transparent_75%)]" />
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px [background:linear-gradient(90deg,transparent,rgb(244_180_120/0.45),transparent)]" />
         <InView className="relative grid gap-14 md:grid-cols-5 md:gap-[34px]" threshold={0.1}>
           <div className="md:col-span-2">
             <h2 className="t-title"><Words text={faq.heading} /></h2>

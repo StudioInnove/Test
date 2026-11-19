@@ -241,6 +241,72 @@ export class Soundscape {
     }).catch(() => {});
   }
 
+  /**
+   * Small sounds for what you do, all very quiet: a soft tone entering a room, a gentle tap on objects,
+   * a warm swell stepping into something (and a lower one stepping out), and birds at sunrise.
+   */
+  cue(kind: "room" | "tap" | "open" | "close" | "dawn") {
+    const ctx = this.ctx;
+    if (!ctx || !this.audible) return;
+    const t = ctx.currentTime;
+    const tone = (f: number, at: number, peak: number, attack: number, decay: number, type: OscillatorType = "sine", to?: number) => {
+      const o = ctx.createOscillator();
+      o.type = type;
+      o.frequency.setValueAtTime(f, t + at);
+      if (to) o.frequency.exponentialRampToValueAtTime(to, t + at + attack + decay * 0.4);
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0, t + at);
+      g.gain.linearRampToValueAtTime(peak, t + at + attack);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + at + attack + decay);
+      const lp = ctx.createBiquadFilter();
+      lp.type = "lowpass";
+      lp.frequency.value = 2400;
+      o.connect(g).connect(lp);
+      lp.connect(this.master);
+      lp.connect(this.verb);
+      o.start(t + at);
+      o.stop(t + at + attack + decay + 0.1);
+    };
+    if (kind === "tap") tone(1174.66, 0, 0.018, 0.006, 0.5, "sine", 880);
+    else if (kind === "room") {
+      tone(146.83, 0, 0.03, 0.25, 2.2);
+      tone(220, 0.08, 0.016, 0.3, 2.0);
+    } else if (kind === "open") {
+      tone(293.66, 0, 0.028, 0.35, 2.6);
+      tone(440, 0.12, 0.02, 0.4, 2.4);
+      tone(587.33, 0.3, 0.012, 0.4, 2.2);
+    } else if (kind === "close") {
+      tone(440, 0, 0.016, 0.05, 1.0, "sine", 330);
+      tone(220, 0.05, 0.016, 0.2, 1.4);
+    } else if (kind === "dawn") {
+      tone(293.66, 0, 0.022, 1.6, 4.5);
+      tone(369.99, 0.4, 0.016, 1.6, 4.2);
+      tone(587.33, 0.9, 0.01, 1.8, 4);
+      // a few birds, far away
+      for (let i = 0; i < 7; i++) {
+        const at = 1.2 + i * 0.55 + Math.random() * 0.4;
+        const f = 2600 + Math.random() * 1400;
+        const p = ctx.createStereoPanner();
+        p.pan.value = Math.random() * 1.4 - 0.7;
+        for (let k = 0; k < 2; k++) {
+          const o = ctx.createOscillator();
+          o.frequency.setValueAtTime(f, t + at + k * 0.14);
+          o.frequency.exponentialRampToValueAtTime(f * 1.35, t + at + k * 0.14 + 0.05);
+          o.frequency.exponentialRampToValueAtTime(f * 0.9, t + at + k * 0.14 + 0.11);
+          const g = ctx.createGain();
+          g.gain.setValueAtTime(0, t + at + k * 0.14);
+          g.gain.linearRampToValueAtTime(0.006, t + at + k * 0.14 + 0.02);
+          g.gain.exponentialRampToValueAtTime(0.0001, t + at + k * 0.14 + 0.12);
+          o.connect(g).connect(p);
+          o.start(t + at + k * 0.14);
+          o.stop(t + at + k * 0.14 + 0.15);
+        }
+        p.connect(this.outside);
+        p.connect(this.verb);
+      }
+    }
+  }
+
   /** 0 = fully outside, 1 = fully inside the studio. */
   setPlace(inside: number) {
     if (!this.ctx || Math.abs(inside - this.place) < 0.02) return;

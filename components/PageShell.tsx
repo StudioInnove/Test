@@ -3,19 +3,16 @@ import { Nav } from "./Nav";
 import { Footer } from "./Footer";
 import { InView } from "./InView";
 import { Words } from "./Words";
-import { asset } from "@/lib/content";
+import { LivingStill } from "./LivingStill";
+import type { StillId } from "./film/timeline";
 
 /** Pages beyond the film: a full-screen still from it that settles in slowly, then the story. */
-export function PageShell({ still, alt, eyebrow, title, intro, children }: { still: string; alt: string; eyebrow: string; title: string; intro: string; children: ReactNode }) {
+export function PageShell({ still, alt, title, intro, children }: { still: StillId; alt: string; eyebrow?: string; title: string; intro: string; children: ReactNode }) {
   return (
     <main>
       <Nav />
       <header className="relative flex min-h-[100svh] items-end overflow-hidden bg-ink">
-        <picture>
-          <source media="(max-width: 899px)" srcSet={asset(`/film/stills/${still}-m.webp`)} />
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset(`/film/stills/${still}-d.webp`)} alt={alt} fetchPriority="high" className="page-still absolute inset-0 h-full w-full object-cover" />
-        </picture>
+        <LivingStill still={still} alt={alt} />
         <div aria-hidden className="absolute inset-0 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.6)_36%,rgb(7_10_18/0.1)_70%)]" />
         <InView className="relative w-full px-[var(--gutter)] pb-[10svh]" threshold={0}>
           <div className="stack max-w-[680px]">

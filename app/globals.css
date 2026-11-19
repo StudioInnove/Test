@@ -196,19 +196,75 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 /* over the moving film the small labels need a touch more presence */
 .scene-text .t-label { color: rgb(239 233 224 / 0.66); text-shadow: 0 1px 10px rgb(7 10 18 / 0.6); }
 
-/* ---------- Look closer ---------- */
-.spot { opacity: 0; transition: opacity 600ms ease; will-change: transform; }
+/* ---------- Things to step into: a breathing marker with its name beside it ---------- */
+.spot { display: flex; align-items: center; height: 44px; margin: -22px 0 0 -22px; padding: 0 12px 0 22px; opacity: 0; transition: opacity 700ms ease; will-change: transform; -webkit-tap-highlight-color: transparent; }
 .spot.on { opacity: 1; }
 .spot:not(.on) { pointer-events: none; }
-.spot-dot { box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 18px 2px rgb(239 233 224 / 0.35); }
-.spot-dot::after { content: ""; position: absolute; inset: -9px; border-radius: 99px; border: 1px solid rgb(239 233 224 / 0.55); animation: spot-ring 2.6s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
-@keyframes spot-ring { from { transform: scale(0.5); opacity: 1; } to { transform: scale(1.7); opacity: 0; } }
-.spot-label { opacity: 0; transform: translateX(-4px); transition: opacity 400ms ease, transform 400ms var(--ease-out); text-shadow: 0 1px 12px rgb(7 10 18 / 0.8); }
-.spot:hover .spot-label, .spot:focus-visible .spot-label { opacity: 1; transform: none; }
-@media (hover: none) { .spot.on .spot-label { opacity: 1; transform: none; transition-delay: 600ms; } }
-/* while looking closer, the scene's words step aside */
+.spot-dot { position: relative; display: block; width: 12px; height: 12px; margin-left: -6px; border-radius: 99px; background: #fff7ee; box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 22px 4px rgb(255 214 170 / 0.55); animation: spot-breathe 3.2s cubic-bezier(0.45, 0, 0.55, 1) infinite; }
+.spot-dot::after { content: ""; position: absolute; inset: -12px; border-radius: 99px; border: 1px solid rgb(255 236 214 / 0.7); animation: spot-ring 3.2s cubic-bezier(0.22, 0.61, 0.36, 1) infinite; }
+.spot-line { display: block; width: 22px; height: 1px; margin: 0 10px 0 12px; background: linear-gradient(90deg, rgb(255 240 222 / 0.7), rgb(255 240 222 / 0.25)); }
+.spot-label { position: relative; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: #fff; white-space: nowrap; letter-spacing: -0.01em; text-shadow: 0 1px 12px rgb(7 10 18 / 0.9); }
+/* a soft dark halo so the name reads over a bright screen */
+.spot-label::before { content: ""; position: absolute; inset: -14px -18px; z-index: -1; border-radius: 99px; background: radial-gradient(closest-side, rgb(7 10 18 / 0.62), rgb(7 10 18 / 0)); }
+.spot-plus { font-size: 16px; font-weight: 300; line-height: 1; opacity: 0.8; transition: transform 400ms var(--ease-out); }
+.spot.minor .spot-dot { width: 9px; height: 9px; margin-left: -4.5px; animation-duration: 4.2s; }
+.spot.minor .spot-dot::after { animation: none; opacity: 0; }
+.spot.minor .spot-label { color: rgb(255 255 255 / 0.82); font-size: 13px; }
+.spot.flip { flex-direction: row-reverse; padding: 0 22px 0 12px; }
+.spot.flip .spot-dot { margin: 0 -6px 0 0; }
+.spot.flip .spot-line { margin: 0 12px 0 10px; background: linear-gradient(270deg, rgb(255 240 222 / 0.7), rgb(255 240 222 / 0.25)); }
+@media (hover: hover) and (pointer: fine) { .spot:hover .spot-plus { transform: rotate(90deg); } }
+/* arriving in a room: the marker blooms once so the eye finds it */
+.spot.bloom .spot-dot { animation: spot-bloom 1.6s cubic-bezier(0.22, 0.61, 0.36, 1), spot-breathe 3.2s cubic-bezier(0.45, 0, 0.55, 1) 1.6s infinite; }
+.spot.bloom .spot-label { animation: spot-in 1.2s cubic-bezier(0.23, 1, 0.32, 1) 0.25s both; }
+@keyframes spot-breathe { 0%, 100% { transform: scale(1); box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 18px 3px rgb(255 214 170 / 0.4); } 50% { transform: scale(1.12); box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 30px 7px rgb(255 214 170 / 0.65); } }
+@keyframes spot-ring { from { transform: scale(0.45); opacity: 0.9; } to { transform: scale(1.6); opacity: 0; } }
+@keyframes spot-bloom { 0% { transform: scale(0.3); box-shadow: 0 0 0 0 rgb(255 214 170 / 0.9); } 45% { transform: scale(1.5); box-shadow: 0 0 60px 26px rgb(255 214 170 / 0.5); } 100% { transform: scale(1); box-shadow: 0 0 0 1px rgb(7 10 18 / 0.35), 0 0 18px 3px rgb(255 214 170 / 0.4); } }
+@keyframes spot-in { from { opacity: 0; transform: translateX(-6px); } to { opacity: 1; transform: none; } }
+/* while stepping in, the scene's words step aside */
 .peeking .scene-text { opacity: 0 !important; transition: opacity 400ms ease !important; }
-.hstrip { cursor: grab; }
+.peeking .spot { opacity: 0 !important; }
+
+/* the cursor over things you can step into */
+.open-cursor { width: 76px; height: 76px; margin: -38px 0 0 -38px; opacity: 0; transition: opacity 400ms ease; }
+.open-cursor span { display: flex; width: 100%; height: 100%; align-items: center; justify-content: center; border-radius: 99px; font-size: 13px; color: #070a12; background: rgb(255 247 238 / 0.92); box-shadow: 0 8px 30px -8px rgb(0 0 0 / 0.5); transform: scale(0.4); transition: transform 500ms var(--ease-out); }
+.open-cursor.on { opacity: 1; }
+.open-cursor.on span { transform: scale(1); }
+.film-stage.over-spot, .film-stage.over-spot .scene-text { cursor: none; }
+
+/* the live screen in a room: graded to sit in the photo */
+.room-screen { filter: saturate(0.92) contrast(0.95) brightness(0.98); will-change: transform, opacity; backface-visibility: hidden; }
+.room-screen.is-phone { filter: saturate(0.9) contrast(0.9) brightness(1.02) blur(0.5px); }
+
+/* the scene dots: a name appears over the one you point at */
+.scene-dot-name { position: absolute; bottom: 100%; left: 8px; font-size: 12px; white-space: nowrap; color: rgb(239 233 224 / 0.8); opacity: 0; transform: translateY(4px); transition: opacity 300ms ease, transform 400ms var(--ease-out); pointer-events: none; }
+@media (hover: hover) { .scene-dot:hover .scene-dot-name, .scene-dot:focus-visible .scene-dot-name { opacity: 1; transform: none; } }
+
+/* the last scene: the shade under the words follows the light, night to sunrise */
+.close-shade { background: radial-gradient(70% 60% at 50% 50%, rgb(7 10 18 / 0.82), rgb(7 10 18 / 0.35) 72%, rgb(7 10 18 / 0.1) 100%); transition: opacity 3s ease; }
+.film-stage.dawn .close-shade { background: radial-gradient(60% 52% at 50% 52%, rgb(20 14 10 / 0.62), rgb(20 14 10 / 0.18) 70%, transparent 100%); }
+
+/* back to the room: the arrow points back */
+.world-back::after { content: none; }
+.world-back::before { content: "‹"; font-size: 1.15em; line-height: 1; transform: translateY(-0.04em); transition: transform 300ms var(--ease-out); }
+@media (hover: hover) and (pointer: fine) { .world-back:hover::before { transform: translate(-2px, -0.04em); } }
+
+/* the process steps: grab and drag on a computer */
+.hstrip { cursor: grab; user-select: none; -webkit-user-select: none; }
+.hstrip.dragging { cursor: grabbing; }
+
+/* the apps on the screens */
+.dash-draw { stroke-dasharray: 1; stroke-dashoffset: 1; animation: dash-draw 1.6s cubic-bezier(0.22, 0.61, 0.36, 1) forwards; }
+.dash-fade { animation: dash-fade 1.6s ease both; }
+@keyframes dash-draw { to { stroke-dashoffset: 0; } }
+@keyframes dash-fade { from { opacity: 0; } to { opacity: 1; } }
+.dash-live i { animation: live 1.8s ease-in-out infinite; }
+@keyframes live { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+.build-pulse { opacity: 0; animation: build-pulse 4.5s ease-in-out infinite; mix-blend-mode: soft-light; }
+@keyframes build-pulse { 0%, 100% { opacity: 0; } 50% { opacity: 0.35; } }
+.lights-dot { animation: lights-dot 1.5s ease-out forwards; }
+@keyframes lights-dot { 0% { opacity: 0; transform: translate(-50%, -50%) scale(0.4); } 15% { opacity: 1; transform: translate(-50%, -50%) scale(1); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(0.85); } }
+@media (prefers-reduced-motion: reduce) { .spot-dot, .spot-dot::after, .build-pulse { animation: none !important; } }
 
 /* the large email: a faint underline that fills in on hover */
 .email-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0% 1px no-repeat, linear-gradient(rgb(239 233 224 / 0.22), rgb(239 233 224 / 0.22)) 0 100% / 100% 1px no-repeat; padding-bottom: 4px; transition: background-size 600ms var(--ease-out); }
@@ -243,3 +299,20 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 @media (prefers-reduced-motion: reduce) {
   .reveal .w, .rise { transition: opacity 400ms ease !important; filter: none !important; transform: none !important; }
 }
+
+/* ---------- The floor plan ---------- */
+.floor-plan text { font-size: 13px; fill: rgb(239 233 224 / 0.62); letter-spacing: -0.01em; font-family: var(--font-sans); pointer-events: none; transition: fill 300ms ease; }
+.floor-plan rect { fill: rgb(239 233 224 / 0); stroke: rgb(239 233 224 / 0.28); stroke-width: 1; transition: fill 400ms ease, stroke 400ms ease; }
+.floor-plan .plan-terrace { stroke-dasharray: 3 5; }
+.floor-plan .plan-hit { fill: transparent; stroke: none; }
+.floor-plan .plan-room { cursor: pointer; outline: none; }
+.floor-plan .plan-room:hover rect:not(.plan-hit), .floor-plan .plan-room:focus-visible rect:not(.plan-hit) { fill: rgb(239 233 224 / 0.05); stroke: rgb(239 233 224 / 0.6); }
+.floor-plan .plan-room:hover text, .floor-plan .plan-room:focus-visible text { fill: #efe9e0; }
+.floor-plan .plan-on { fill: rgb(232 161 90 / 0.07) !important; stroke: rgb(232 161 90 / 0.7) !important; }
+.floor-plan .plan-text-on { fill: #efe9e0; }
+.floor-plan .plan-dot { fill: var(--color-signal); filter: drop-shadow(0 0 6px rgb(232 161 90 / 0.8)); }
+.floor-plan .plan-city { fill: rgb(240 176 108 / 0.35); }
+.floor-plan .plan-sun { fill: none; stroke: rgb(240 176 108 / 0.7); }
+.floor-plan .plan-out:hover .plan-sun { fill: rgb(240 176 108 / 0.25); }
+@media (max-height: 620px) { .menu-map { display: none; } }
+.floor-plan.compact text { font-size: 22px; }

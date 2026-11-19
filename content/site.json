@@ -45,13 +45,10 @@
     "cta": "Book a call"
   },
   "hero": {
-    "eyebrow": "Studio Innové",
     "headline": "Ideas, *made* into apps.",
     "line": "An independent studio designing and building web and mobile apps, from first sketch to launch day.",
     "primary": "Book a call",
-    "secondary": "See Studio Originals",
-    "scrollCue": "Scroll",
-    "label": "Web & mobile apps"
+    "secondary": "See Studio Originals"
   },
   "services": {
     "intro": "What we do",
@@ -62,11 +59,6 @@
     "web": {
       "title": "Web apps",
       "line": "Platforms, dashboards and internal tools that run in any browser. Fast, secure and built to grow with you.",
-      "tags": [
-        "Platforms",
-        "Dashboards",
-        "Internal tools"
-      ],
       "more": {
         "spot": "Look closer",
         "title": "Web apps",
@@ -77,20 +69,14 @@
           "Dashboards and internal tools",
           "SaaS products"
         ],
-        "link": "Web apps",
+        "link": "Explore web apps",
         "href": "/web-app-development",
         "image": "/closeups/web.webp"
-      },
-      "label": "Services"
+      }
     },
     "mobile": {
       "title": "Mobile apps",
       "line": "Apps for iPhone and Android, designed screen by screen and shipped to the App Store and Google Play.",
-      "tags": [
-        "iPhone",
-        "Android",
-        "Tablet"
-      ],
       "more": {
         "spot": "Look closer",
         "title": "Mobile apps",
@@ -101,11 +87,10 @@
           "Companion apps for your business",
           "Apps for your team"
         ],
-        "link": "Mobile apps",
+        "link": "Explore mobile apps",
         "href": "/mobile-app-development",
         "image": "/closeups/mobile.webp"
-      },
-      "label": "Services"
+      }
     },
     "cta": "Book a call"
   },
@@ -129,8 +114,7 @@
         "line": "We ship it, then stay on for updates and support if you want us to."
       }
     ],
-    "drag": "Drag to see each step",
-    "label": "Process",
+    "drag": "Scroll to follow the steps",
     "more": {
       "spot": "Look closer",
       "title": "Process",
@@ -142,9 +126,10 @@
         "Launch, then updates and support"
       ],
       "link": "How we work",
-      "href": "/web-app-development",
+      "href": "/process",
       "image": "/closeups/how.webp"
-    }
+    },
+    "swipe": "Swipe to follow the steps"
   },
   "originals": {
     "eyebrow": "Studio Originals",
@@ -163,13 +148,12 @@
     "success": "You're on the list.",
     "error": "Something went wrong. Please try again.",
     "privacy": "Only emails about this app. Unsubscribe anytime.",
-    "line": "Alongside client work, we're building a product of our own. It's in development now. Join the list to see it first.",
-    "more": "See what's coming",
-    "joinLine": "Be the first through the door."
+    "line": "Alongside client work, we're building a product of our own. Join the list to see it first.",
+    "joinLine": "Be the first through the door.",
+    "teaser": "Something is being built in here."
   },
   "close": {
     "heading": "Have an idea?",
-    "sub": "Let's *talk* about it.",
     "cta": "Book a call",
     "line": "Tell us what you want to make. We reply within one working day.",
     "email": "Email us"
@@ -180,30 +164,29 @@
     "items": [
       {
         "q": "How much does an app cost?",
-        "a": "Every project is different, so we quote after a short call, once we understand what you need."
+        "a": "It depends on what it needs to do. After a free 30-minute call you get a clear, fixed quote, so there are no surprises later."
       },
       {
         "q": "How long does it take?",
-        "a": "It depends on scope. You'll have a clear timeline before any work begins."
+        "a": "You'll have a timeline before any work starts. Along the way you see every screen and try every build, so you always know where things are."
       },
       {
-        "q": "Do I own the code?",
-        "a": "Yes. Once the project is paid in full, the code and the designs are yours."
+        "q": "Do I own everything?",
+        "a": "Yes. Once the project is paid, the code, the designs and the accounts are all yours."
       },
       {
         "q": "What happens after launch?",
-        "a": "We can stay on for updates, fixes and new features, or hand everything over. Your choice."
+        "a": "We can stay on for updates, fixes and new features, or hand everything over cleanly. Whichever suits you."
+      },
+      {
+        "q": "Where are you based?",
+        "a": "We work remotely with founders and teams worldwide, across every time zone. Calls are booked at a time that suits you."
       },
       {
         "q": "Who do you work with?",
-        "a": "Founders, businesses and anyone with an idea for an app, anywhere in the world."
+        "a": "Founders with a first idea, and businesses that need an app for their customers or their team."
       }
-    ],
-    "eyebrow": "FAQ"
-  },
-  "contact": {
-    "heading": "Prefer email?",
-    "line": "Write to us any time."
+    ]
   },
   "footer": {
     "tagline": "Web and mobile apps, designed and built with care.",
@@ -215,8 +198,8 @@
       "title": "Web app development",
       "metaTitle": "Custom web app development — Studio Innové",
       "metaDescription": "Custom web apps, platforms, dashboards and internal tools, designed and built by Studio Innové. From first idea to launch. Book a call.",
-      "headline": "Web apps, designed and built for you.",
-      "intro": "Platforms, dashboards and tools that run in the browser. Fast, secure and made to grow with you.",
+      "headline": "Web apps your team will open every morning.",
+      "intro": "Platforms, dashboards and tools that run in any browser. Fast, secure and simple to use.",
       "points": [
         {
           "title": "Platforms.",
@@ -236,8 +219,8 @@
       "title": "Mobile app development",
       "metaTitle": "iPhone and Android app development — Studio Innové",
       "metaDescription": "Mobile apps for iPhone and Android, designed and built by Studio Innové. From first idea to the App Store. Book a call.",
-      "headline": "Mobile apps, designed and built for you.",
-      "intro": "For iPhone and Android. Smooth, native-feeling apps your customers keep on their home screen.",
+      "headline": "Apps your customers keep on their home screen.",
+      "intro": "For iPhone and Android. Smooth, native-feeling apps, designed screen by screen.",
       "points": [
         {
           "title": "iPhone and Android.",
@@ -256,8 +239,32 @@
     "originalsPage": {
       "title": "Studio Originals",
       "metaTitle": "Studio Originals — apps by Studio Innové",
-      "metaDescription": "Studio Originals are the apps Studio Innové makes for itself. Follow the build and get early access.",
-      "intro": "The apps we design, build and run ourselves. The first one is in the works."
+      "metaDescription": "Studio Originals are the apps Studio Innové makes for itself. Follow the build and get early access."
+    },
+    "process": {
+      "title": "How we work",
+      "metaTitle": "How we work — Studio Innové",
+      "metaDescription": "How Studio Innové designs and builds web and mobile apps: a call, clickable designs, weekly builds you can try, then launch and support.",
+      "headline": "From a first call to launch day.",
+      "intro": "Four simple steps. You see and try everything along the way.",
+      "steps": [
+        {
+          "title": "Call",
+          "line": "Thirty minutes on your idea, who it's for and what success looks like. You leave with a clear next step and a fixed quote."
+        },
+        {
+          "title": "Design",
+          "line": "Every screen is sketched, then turned into a clickable design you can try on your own phone. Nothing is built until you love it."
+        },
+        {
+          "title": "Build",
+          "line": "We build in small steps and send you a working version every week, so you can try it and steer as it takes shape."
+        },
+        {
+          "title": "Launch",
+          "line": "We ship it to the web, the App Store and Google Play, then stay on for updates and support if you want us to."
+        }
+      ]
     }
   },
   "privacyPage": {
@@ -269,6 +276,69 @@
       "Calls. Booking a call happens on Cal.com, which handles the details you enter there under its own privacy policy.",
       "Analytics. We use Vercel Analytics to count visits. It uses no cookies and does not identify you.",
       "Contact. Questions about your data: contact.studioinnove@gmail.com."
+    ]
+  },
+  "worlds": {
+    "back": "Back to the room",
+    "web": {
+      "title": "Software that runs the business.",
+      "lines": [
+        "Client portals, booking systems and dashboards your team opens every morning.",
+        "Designed screen by screen, built to be fast and secure.",
+        "The one on the screen is real. Try it."
+      ],
+      "link": "Explore web apps",
+      "href": "/web-app-development"
+    },
+    "mobile": {
+      "title": "Apps people keep.",
+      "lines": [
+        "For iPhone and Android, from a single build.",
+        "Events, bookings, memberships, even games.",
+        "Swipe through three we made for this room."
+      ],
+      "link": "Explore mobile apps",
+      "href": "/mobile-app-development"
+    },
+    "how": {
+      "title": "From idea to launch.",
+      "line": "Every screen is sketched, tested and agreed on this wall before a line of code is written.",
+      "link": "How we work",
+      "href": "/process"
+    },
+    "originals": {
+      "title": "Something is being built in here.",
+      "line": "Our first Studio Original is in the build. That's all we can say for now.",
+      "joined": "You're on the list. We'll open the door for you first."
+    },
+    "think": {
+      "title": "How we think.",
+      "lines": [
+        "Fewer features, made well.",
+        "You see it before we build it.",
+        "Fast is a feature."
+      ]
+    },
+    "world": {
+      "title": "Wherever you are.",
+      "line": "We work with founders and teams in every time zone. Calls are booked at a time that suits you."
+    }
+  },
+  "entrance": {
+    "line": "An independent app studio, working worldwide.",
+    "sound": "Enter with sound",
+    "quiet": "Enter quietly"
+  },
+  "map": {
+    "label": "Map",
+    "rooms": [
+      "Outside",
+      "Terrace",
+      "Web apps",
+      "Mobile apps",
+      "Process",
+      "Originals",
+      "Sunrise"
     ]
   }
 }

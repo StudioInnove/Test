@@ -76,7 +76,7 @@ export function CityLights({ text }: { text: string }) {
       maskW = off.width;
 
       // the lights: sparse at the top, dense near the bottom
-      const step = W < 700 ? 6 : 5;
+      const step = W < 700 ? 4 : 5;
       dots = [];
       for (let y = step; y < H - 1; y += step) {
         const p = Math.pow(y / H, 1.2) * 0.95;

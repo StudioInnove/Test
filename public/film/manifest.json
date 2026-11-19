@@ -26,6 +26,10 @@
     "s6": {
       "d": "/film/stills/s6-d.webp",
       "m": "/film/stills/s6-m.webp"
+    },
+    "s1d": {
+      "d": "/film/stills/s1d-d.webp",
+      "m": "/film/stills/s1d-m.webp"
     }
   },
   "clips": {

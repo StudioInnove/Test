@@ -66,7 +66,7 @@ export const StatusTrack = LaunchTrack;
 /* ---------------------------------------------------------------- waitlist */
 
 /** An email line and a button. Side by side on a computer, stacked on a phone. */
-export function WaitlistForm({ source = "home", size = "md" }: { source?: string; size?: "md" | "lg" }) {
+export function WaitlistForm({ source = "home", size = "md", tone = "dark", onJoined }: { source?: string; size?: "md" | "lg"; tone?: "dark" | "light"; onJoined?: () => void }) {
   const o = content.originals;
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [email, setEmail] = useState("");
@@ -83,12 +83,14 @@ export function WaitlistForm({ source = "home", size = "md" }: { source?: string
         body: JSON.stringify({ email, list: "Studio Originals waitlist", source }),
       });
       setState(r.ok ? "done" : "error");
+      if (r.ok) onJoined?.();
     } catch {
       setState("error");
     }
   }
 
   const done = state === "done";
+  const light = tone === "light";
 
   return (
     <form onSubmit={submit} className={`w-full ${size === "lg" ? "max-w-[520px]" : "max-w-[440px]"}`}>
@@ -100,7 +102,7 @@ export function WaitlistForm({ source = "home", size = "md" }: { source?: string
             initial={reduce ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, ease }}
-            className="flex h-12 items-center gap-3 border-b border-signal/60 text-[16px]"
+            className={`flex h-12 items-center gap-3 border-b text-[16px] ${light ? "border-[#b8662f]/60 text-[#231d1a]" : "border-signal/60"}`}
           >
             <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden className="text-signal">
               <motion.path d="M3 8.5l3 3 7-7.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" initial={{ pathLength: 0 }} animate={{ pathLength: 1 }} transition={{ duration: 0.5, ease, delay: 0.2 }} />
@@ -122,15 +124,15 @@ export function WaitlistForm({ source = "home", size = "md" }: { source?: string
                 setEmail(e.target.value);
                 if (state === "error") setState("idle");
               }}
-              className="h-12 min-w-0 flex-1 rounded-none border-b border-paper/25 bg-transparent px-0 text-[16px] tracking-[-0.01em] text-paper outline-none transition-colors duration-300 placeholder:text-paper/40 focus:border-paper/70"
+              className={`h-12 min-w-0 flex-1 rounded-none border-b bg-transparent px-0 text-[16px] tracking-[-0.01em] outline-none transition-colors duration-300 ${light ? "border-[#231d1a]/25 text-[#231d1a] placeholder:text-[#231d1a]/45 focus:border-[#231d1a]/70" : "border-paper/25 text-paper placeholder:text-paper/40 focus:border-paper/70"}`}
             />
-            <button type="submit" disabled={state === "sending"} className="btn btn-primary h-12 shrink-0 max-sm:w-full disabled:opacity-60">
+            <button type="submit" disabled={state === "sending"} className={`btn h-12 shrink-0 max-sm:w-full disabled:opacity-60 ${light ? "bg-[#231d1a] text-[#f6ead9] hover:bg-black" : "btn-primary"}`}>
               {state === "sending" ? "Joining…" : o.cta}
             </button>
           </motion.div>
         )}
       </AnimatePresence>
-      <p className={`mt-3 text-[13px] ${state === "error" ? "text-signal" : "text-paper/40"}`} role={state === "error" ? "alert" : undefined}>
+      <p className={`mt-3 text-[13px] ${state === "error" ? (light ? "text-[#b5402a]" : "text-signal") : light ? "text-[#231d1a]/50" : "text-paper/40"}`} role={state === "error" ? "alert" : undefined}>
         {state === "error" ? o.error : done ? "\u00a0" : o.privacy}
       </p>
     </form>

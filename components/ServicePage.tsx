@@ -1,4 +1,4 @@
-import { content } from "@/lib/content";
+import { content, href } from "@/lib/content";
 import { BookCall } from "./BookCall";
 import { Faq } from "./Faq";
 import { InView } from "./InView";
@@ -10,7 +10,7 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
   const p = content.pages[kind];
   const { how, faq, close, studio } = content;
   return (
-    <PageShell still={kind === "web" ? "s3" : "s4"} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} eyebrow={p.title} title={p.headline} intro={p.intro}>
+    <PageShell still={kind === "web" ? "s3" : "s4"} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} title={p.headline} intro={p.intro}>
       {/* What we build: big words on fine rules */}
       <section className="bg-ink px-[var(--gutter)] py-24 md:py-36">
         <InView threshold={0.1}>
@@ -28,7 +28,10 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
       {/* How it goes: four steps in a row */}
       <section className="bg-ink-2 px-[var(--gutter)] py-24 md:py-36">
         <InView threshold={0.1}>
-          <h2 className="t-title mb-12 md:mb-16"><Words text={how.heading} /></h2>
+          <div className="mb-12 flex flex-wrap items-end justify-between gap-6 md:mb-16">
+            <h2 className="t-title"><Words text={how.heading} /></h2>
+            <a href={href("/process")} className="rise more">{content.pages.process.title}</a>
+          </div>
           <ol className="grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
             {how.steps.map((s, i) => (
               <li key={s.title} className="rise" style={{ ["--d" as string]: `${150 + i * 120}ms` }}>

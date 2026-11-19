@@ -24,7 +24,7 @@ from PIL import Image
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "public", "film")
-STILLS = ["s1n", "s2", "s3", "s4", "s5", "s6"]
+STILLS = ["s1n", "s2", "s3", "s4", "s5", "s6", "s1d"]  # s1d: the sunrise at the end
 CLIPS = {  # clip -> (from still, to still)
     "c1": ("s1n", "s2"), "c2": ("s2", "s3"), "c3": ("s3", "s4"),
     "c4": ("s4", "s5"), "c5": ("s5", "s6"), "c6": ("s6", "s1n"),
@@ -38,7 +38,7 @@ M_ASPECT = 0.72          # phone crop, width / height (screens are taller: the c
 M_H = {"clip": 1200, "still": 1600}   # phone heights
 
 # Where the subject sits horizontally on a phone (0..1); the phone frames are cropped around it.
-MFOCUS = {"s1n": 0.62, "s2": 0.5, "s3": 0.5, "s4": 0.64, "s5": 0.45, "s6": 0.5}
+MFOCUS = {"s1n": 0.62, "s1d": 0.62, "s2": 0.5, "s3": 0.5, "s4": 0.64, "s5": 0.45, "s6": 0.5}
 
 
 def crop_m(im, fx, h_out):

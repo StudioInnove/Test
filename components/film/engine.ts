@@ -269,8 +269,10 @@ export class FilmEngine {
     createImageBitmap(b)
       .then(async (all) => {
         const per = this.per;
-        // every frame has the same shape; the last file of a clip may hold fewer of them
-        const set = this.clipSet("c1");
+        // every frame of a clip has the same shape (its own: clips can differ by a few pixels, and cutting
+        // with another clip's height makes each frame in a file slip a little further: a visible shake);
+        // the last file of a clip may hold fewer of them
+        const set = (Object.keys(this.manifest.clips) as ClipId[]).map((c) => this.clipSet(c)).find((s) => s && sheet.includes(s.path.replace(/^\//, ""))) ?? this.clipSet("c1");
         const h = set?.w && set?.h ? Math.round((all.width * set.h) / set.w) : Math.round(all.height / per);
         const count = Math.max(1, Math.min(per, Math.round(all.height / h)));
         for (let j = 0; j < count; j++) {

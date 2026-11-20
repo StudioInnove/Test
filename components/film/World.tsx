@@ -238,7 +238,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
                   key={i}
                   src={asset(phone && sh.m ? sh.m : sh.d)}
                   alt=""
-                  className="absolute inset-0 h-full w-full object-cover"
+                  className="pointer-events-none absolute inset-0 h-full w-full object-cover"
                   style={{
                     objectPosition: `${sh.x ?? 50}% ${sh.y ?? 50}%`,
                     opacity: i === chap ? 1 : 0,

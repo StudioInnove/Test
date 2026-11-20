@@ -78,6 +78,7 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
 
     // the photo with depth
     let depth: DepthPhoto | null = null;
+    let cornerD: number[] | null = null;
     let dRaf = 0;
     const tgt = [0, 0];
     const onPointer = (e: PointerEvent) => {
@@ -96,13 +97,20 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
         probe.onload = () => {
           if (!scr) return;
           const c = document.createElement("canvas");
-          c.width = 64;
-          c.height = 36;
+          c.width = 256;
+          c.height = 144;
           const x = c.getContext("2d");
           if (!x) return;
-          x.drawImage(probe, 0, 0, 64, 36);
+          x.drawImage(probe, 0, 0, 256, 144);
+          const at = (u: number, v: number) => x.getImageData(Math.min(255, Math.round(u * 256)), Math.min(143, Math.round(v * 144)), 1, 1).data[0] / 255;
           const u = scr.quad.reduce((a, q) => a + q[0], 0) / 4, v = scr.quad.reduce((a, q) => a + q[1], 0) / 4;
-          d.focus = x.getImageData(Math.min(63, Math.round(u * 64)), Math.min(35, Math.round(v * 36)), 1, 1).data[0] / 255;
+          d.focus = at(u, v);
+          // the depth at each corner of the screen (read a little inside, where it's surely the screen, and carried
+          // out to the corner), so the screen moves with the photo as it shifts, and never seems to lift off it
+          cornerD = scr.quad.map(([qu, qv]) => {
+            const inner = at(u + (qu - u) * 0.85, v + (qv - v) * 0.85);
+            return d.focus + (inner - d.focus) / 0.85;
+          });
         };
         d.load(asset(`/film/stills/${still}-${sfx}.webp`), asset(`/film/depth/${still}-${sfx}.webp`)).then(() => {
           d.resize(box.clientWidth, box.clientHeight);
@@ -112,6 +120,7 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
         dro.observe(box);
         if (!touch) window.addEventListener("pointermove", onPointer, { passive: true });
         const inv = 1 / d.zoom;
+        const size = scr ? (scr.app === "dash" ? DASH_SIZE : scr.app === "phone" ? PHONE_SIZE : scr.app === "site" ? SITE_SIZE : BUILD_SIZE) : null;
         const tick = (now: number) => {
           dRaf = requestAnimationFrame(tick);
           if (!visible || !d.ready) return;
@@ -126,6 +135,14 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
           // what sits on the photo moves with what it sits on
           const [lx, ly] = d.shiftAt(0.12);
           if (lightRef.current) lightRef.current.style.transform = `translate3d(${lx}px,${ly}px,0) scale(${inv})`;
+          // ...the screen too, corner by corner
+          if (scr && size && cornerD && screenRef.current) {
+            screenRef.current.style.transform = quadMatrix(size.w, size.h, scr.quad.map(([qu, qv], k) => {
+              const [px, py] = map(qu, qv);
+              const [sx, sy] = d.shiftAt(cornerD![k]);
+              return [px + sx / ZOOM, py + sy / ZOOM];
+            }));
+          }
         };
         dRaf = requestAnimationFrame(tick);
         const stop = () => {

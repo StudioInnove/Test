@@ -16,6 +16,7 @@ import { LivingLight } from "./living";
 import { SCENES, sceneIndex, type SceneKey } from "./scenes";
 import { SCREENS, SPOTS, type ClipId, type Spot, type WorldId } from "./timeline";
 import { World } from "./World";
+import { ServiceRooms } from "./ServiceRooms";
 
 /*
  * How the film moves
@@ -952,13 +953,7 @@ export function FilmStage() {
             <span data-depth="1.3" className="svc-lit inline-block will-change-transform"><Words text={services.headline[1]} delay={180} /></span>
           </h2>
           {/* then the three rooms land one after another, each a way into its room */}
-          <div className="svc-rooms mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:mt-14">
-            {(["web", "mobile", "sites"] as const).map((k, i) => (
-              <button key={k} type="button" className="svc-room" style={{ ["--n" as string]: i }} onClick={() => window.dispatchEvent(new CustomEvent("film:goto", { detail: { i: sceneIndex(k), fly: true } }))}>
-                {services[k].title}
-              </button>
-            ))}
-          </div>
+          <ServiceRooms rooms={(["web", "mobile", "sites"] as const).map((k) => ({ key: k, title: services[k].title, onGo: () => window.dispatchEvent(new CustomEvent("film:goto", { detail: { i: sceneIndex(k), fly: true } })) }))} />
         </section>
 
         {(["web", "mobile", "sites"] as const).map((k, n) => {

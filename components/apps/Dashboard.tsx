@@ -6,6 +6,7 @@
  * can sit on that screen without a seam. In the room it just lives; up close you can use it.
  */
 import { useEffect, useMemo, useState } from "react";
+import { CalendarView } from "./CalendarView";
 
 const W = 1200, H = 720;
 
@@ -48,7 +49,8 @@ const REPORT = [38, 52, 47, 61, 58, 72, 80, 76, 88, 84, 93, 99];
 
 export function Dashboard({ interactive = false, view: controlled }: { interactive?: boolean; view?: number }) {
   const [tab, setTab] = useState<keyof typeof SERIES>("Year");
-  const [own, setView] = useState(0);
+  // up close it opens on the calendar, the part you can really use
+  const [own, setView] = useState(interactive ? 1 : 0);
   const view = controlled ?? own;
   const [hover, setHover] = useState<number | null>(null);
   const [tick, setTick] = useState(0);
@@ -177,22 +179,8 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
       </div>
       </>)}
 
-      {/* bookings: tonight's list */}
-      {view === 1 && (
-        <div key="b" className="dash-view absolute bottom-[50px] left-[262px] right-[44px] top-[48px] rounded-[24px] bg-white/80 p-7 shadow-[0_8px_30px_rgb(120_80_50/0.08)]">
-          <div className="flex items-center justify-between"><p className="text-[17px] font-[500]">Tonight</p><p className="text-[13px] text-[#2b2522]/50">6 bookings · 19 guests</p></div>
-          <div className="mt-5 divide-y divide-[#2b2522]/[0.07]">
-            {BOOKINGS.map(([t, n, p, st]) => (
-              <div key={n} className="grid grid-cols-[90px_1fr_90px_120px] items-center py-[15px] text-[15px]">
-                <span className="tabular-nums text-[#2b2522]/55">{t}</span>
-                <span>{n}</span>
-                <span className="text-[#2b2522]/55">{p} guests</span>
-                <span className={`w-max rounded-full px-3 py-1 text-[13px] ${st === "Seated" ? "bg-[#6aa77f]/15 text-[#3f7d55]" : st === "Waiting" ? "bg-[#f0a36b]/20 text-[#b8662f]" : st === "New" ? "bg-[#7f95dd]/15 text-[#4d63b5]" : "bg-[#2b2522]/[0.06] text-[#2b2522]/70"}`}>{st}</span>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+      {/* bookings: a working calendar for the week */}
+      {view === 1 && <CalendarView live={interactive} />}
 
       {/* guests: the regulars */}
       {view === 2 && (

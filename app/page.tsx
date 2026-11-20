@@ -45,7 +45,7 @@ export default function Home() {
 
       <div className="relative bg-ink-2">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 z-10 h-px [background:linear-gradient(90deg,transparent,rgb(244_180_120/0.45),transparent)]" />
-        <FaqDrum id="faq" warm={0.16} />
+        <FaqDrum id="faq" warm={0.16} haze />
       </div>
 
       <Footer />

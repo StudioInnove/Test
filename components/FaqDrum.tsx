@@ -13,6 +13,7 @@ import { getGsap } from "@/lib/gsap";
 import { content } from "@/lib/content";
 import { EmailPill } from "./ui/EmailPill";
 import { Words } from "./Words";
+import { HazeLayer } from "./page/Haze";
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 type QA = { q: string; a: string };
@@ -23,7 +24,7 @@ const lenisTo = (y: number) => {
 };
 
 /** Each page has its own questions; the home page has the general ones. */
-export function FaqDrum({ id, warm = 0.12, set }: { id?: string; warm?: number; set?: "web" | "mobile" | "sites" }) {
+export function FaqDrum({ id, warm = 0.12, set, haze = false }: { id?: string; warm?: number; set?: "web" | "mobile" | "sites"; haze?: boolean }) {
   const { faq, studio } = content;
   const items: QA[] = set ? (faq as unknown as Record<string, QA[]>)[set] : faq.items;
   const n = items.length;
@@ -80,7 +81,8 @@ export function FaqDrum({ id, warm = 0.12, set }: { id?: string; warm?: number; 
   return (
     <section ref={ref} id={id} className="relative" style={{ height: `${n * 70 + 60}svh` }} aria-label={faq.heading.replace(/\*/g, "")}>
       <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden px-[var(--gutter)] pb-[7svh] pt-[max(96px,12svh)]">
-        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%]" style={{ background: `radial-gradient(80% 60% at 70% 0%, rgb(244 170 110 / ${warm}), transparent 75%)` }} />
+        {haze && <HazeLayer />}
+        <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%]" style={{ background: `radial-gradient(80% 60% at 70% 0%, rgb(244 170 110 / ${haze ? warm * 0.4 : warm}), transparent 75%)` }} />
 
         <div className="relative grid flex-1 gap-8 md:grid-cols-[minmax(0,300px)_minmax(0,1fr)] md:gap-[7vw]">
           {/* the side: the heading, every question, and a way to ask your own */}
@@ -114,9 +116,11 @@ export function FaqDrum({ id, warm = 0.12, set }: { id?: string; warm?: number; 
         </div>
 
         {/* computers: past the questions, or from the last one back to the top */}
-        <button type="button" onClick={lastOne ? top : skip} className="faq-skip absolute bottom-[7svh] right-[var(--gutter)] hidden md:inline-flex">
-          {lastOne ? "Back to the top" : "Skip the questions"}<span aria-hidden>{lastOne ? "↑" : "↓"}</span>
-        </button>
+        <div className="absolute bottom-[7svh] right-[var(--gutter)] hidden md:block">
+          <button type="button" onClick={lastOne ? top : skip} className="faq-skip">
+            {lastOne ? "Back to the top" : "Skip the questions"}<span aria-hidden>{lastOne ? "↑" : "↓"}</span>
+          </button>
+        </div>
         {/* phones: where you are, and the same way past or back */}
         <div className="relative mt-6 flex items-center justify-between gap-4 md:hidden">
           <div aria-hidden className="flex gap-2">

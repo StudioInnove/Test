@@ -400,3 +400,4 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .reveal.on .svc-room { opacity: 1; transform: none; filter: blur(0); transition-delay: calc(2300ms + var(--n) * 380ms); }
 .reveal:not(.on) .svc-room { transition-duration: 300ms; transition-delay: 0ms; }
 @media (hover: hover) { .svc-room:hover { color: #fff; } }
+.svc-room2 { font-family: var(--font-serif); font-style: italic; font-size: clamp(20px, 1.9vw, 28px); color: rgb(239 233 224 / 0.8); }

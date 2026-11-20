@@ -15,7 +15,7 @@ import { getGsap } from "@/lib/gsap";
 import { asset } from "@/lib/content";
 import { sketch, SKETCH_SIZE, FILL_ALL, PENCIL_OUT, type SketchKind, type Sketch } from "./sketches";
 
-type Item = { title: string; phrase: string; line: string; image: string; sketch?: string };
+type Item = { title: string; phrase: string; line: string; image?: string; sketch?: string };
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
@@ -40,8 +40,10 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
     const state = { t: 0 };
     let last = -1;
     // what each frame holds, looked up once
-    const parts = frames.current.map((el) => {
+    const parts = frames.current.map((el, i) => {
       if (!el) return null;
+      // with no screen to reveal (your idea), the pencil's drawing stays on the page
+      const keep = !items[i]?.image;
       const strokes = Array.from(el.querySelectorAll<SVGPathElement>("[data-stroke]")).map((p) => ({ p, s: +p.dataset.s!, e: +p.dataset.e!, len: p.getTotalLength() }));
       return {
         strokes,
@@ -49,6 +51,7 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         notes: Array.from(el.querySelectorAll<SVGTextElement>("[data-note]")).map((n) => ({ n, s: +n.dataset.s!, e: +n.dataset.e! })),
         all: el.querySelector<SVGRectElement>("[data-fill-all]"),
         pencil: el.querySelector<SVGGElement>("[data-pencil]"),
+        keep,
         ink: el.querySelector<SVGGElement>("[data-ink]"),
       };
     });
@@ -91,7 +94,8 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         pt.fills.forEach(({ r, s, e }) => r.setAttribute("opacity", String(ease(clamp((local - s) / (e - s))))));
         pt.all?.setAttribute("opacity", String(ease(clamp((local - FILL_ALL[0]) / (FILL_ALL[1] - FILL_ALL[0])))));
         // the handwriting
-        const lift = ease(clamp((local - PENCIL_OUT[0]) / (PENCIL_OUT[1] - PENCIL_OUT[0])));
+        const lifted = ease(clamp((local - PENCIL_OUT[0]) / (PENCIL_OUT[1] - PENCIL_OUT[0])));
+        const lift = pt.keep ? 0 : lifted;
         pt.notes.forEach(({ n, s, e }) => {
           const k = ease(clamp((local - s) / (e - s)));
           n.style.opacity = String(k * (1 - lift));
@@ -100,7 +104,7 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         if (pt.ink) pt.ink.style.opacity = String(1 - lift);
         if (pt.pencil) {
           const t0 = tip as { x: number; y: number } | null;
-          pt.pencil.style.opacity = t0 && lift < 1 ? "1" : "0";
+          pt.pencil.style.opacity = t0 && lifted < 1 ? "1" : "0";
           if (t0) pt.pencil.setAttribute("transform", `translate(${t0.x.toFixed(1)} ${t0.y.toFixed(1)})`);
         }
       });
@@ -155,12 +159,12 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         <div className={`relative mx-auto grid w-full md:mx-0 ${web ? "max-w-[600px] max-md:w-[88%]" : "max-w-[300px] max-md:w-[46%]"}`}>
           {items.map((it, i) => (
             <div
-              key={it.image + i}
+              key={it.title + i}
               ref={(el) => { frames.current[i] = el; }}
               className={`sketch-paper col-start-1 row-start-1 relative overflow-hidden border border-paper/12 ${web ? "rounded-[14px]" : "rounded-[34px]"}`}
               style={{ aspectRatio: `${vw} / ${vh}`, opacity: i === 0 ? 1 : 0 }}
             >
-              <svg role="img" aria-label={`${it.title}: a working screen we built, drawn first as a sketch`} viewBox={`0 0 ${vw} ${vh}`} className="absolute inset-0 h-full w-full" fill="none" strokeLinecap="round" strokeLinejoin="round">
+              <svg role="img" aria-label={it.image ? `${it.title}: an example screen, drawn first as a sketch` : "A blank page with a pencil sketch, waiting for your idea"} viewBox={`0 0 ${vw} ${vh}`} className="absolute inset-0 h-full w-full" fill="none" strokeLinecap="round" strokeLinejoin="round">
                 <defs>
                   {/* the colour comes in where the pencil has been */}
                   <mask id={`si-m-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width={vw} height={vh}>
@@ -175,7 +179,7 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
                     <feDisplacementMap in="SourceGraphic" scale={web ? 2.2 : 1.4} />
                   </filter>
                 </defs>
-                <image href={asset(it.image)} x="0" y="0" width={vw} height={vh} preserveAspectRatio="xMidYMid slice" mask={`url(#si-m-${i})`} />
+                {it.image && <image href={asset(it.image)} x="0" y="0" width={vw} height={vh} preserveAspectRatio="xMidYMid slice" mask={`url(#si-m-${i})`} />}
                 <g data-ink>
                   <g className="sketch-grain" style={{ ["--grain" as string]: `url(#si-g-${i})` }}>
                     {drawings[i].strokes.map((st, k) => (

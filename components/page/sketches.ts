@@ -11,7 +11,7 @@
 
 import SITES from "./site-layouts.json";
 
-export type SketchKind = "web-platforms" | "web-dashboards" | "web-tools" | "mobile-events" | "mobile-bookings" | "mobile-play" | "web-landing" | "web-brand" | "web-shop";
+export type SketchKind = "web-platforms" | "web-dashboards" | "web-tools" | "mobile-events" | "mobile-bookings" | "mobile-play" | "web-landing" | "web-brand" | "web-shop" | "web-blank" | "mobile-blank";
 
 /** The website screens were laid out in HTML; their boxes and lines of text were measured from it. */
 type SiteEl = { t: string; x: number; y: number; w: number; h: number; r: number; amber: boolean; size?: number; lines?: { x: number; y: number; w: number }[] };
@@ -188,6 +188,25 @@ export function sketch(kind: SketchKind): Sketch {
       site(SITES.shop as SiteEl[]);
       note(300, 250, "photography first", 560, 380);
       break;
+    // your idea: a fresh sheet, only the first lines of a page, left for you
+    case "web-blank": {
+      guideV(48, H); guideV(1152, H); guideH(48, W); guideH(672, W);
+      box(48, 48, 1104, 624, 18, false);
+      text(110, 150, 300, true, 3.2);
+      text(110, 206, 190);
+      note(470, 430, "your idea, here", 330, 170, "start");
+      amber(102, 132, 316, 34);
+      break;
+    }
+    case "mobile-blank": {
+      guideV(20, H); guideV(370, H);
+      box(20, 56, 350, 760, 30, false);
+      text(44, 130, 170, true, 2.4);
+      text(44, 162, 110);
+      note(70, 470, "your idea, here", 110, 176, "start");
+      amber(38, 116, 182, 26);
+      break;
+    }
     case "web-platforms": {
       guideV(262, H); guideV(1156, H); guideH(48, W); guideH(668, W);
       sidebar(2);

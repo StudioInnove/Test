@@ -27,7 +27,9 @@ for (const f of walk(OUT)) {
     }
   } else {
     // webpack runtime public path
-    s = s.replaceAll('"/_next/"', '"./_next/"').replaceAll("\uFFFD", "\\uFFFD");
+    // (in the runtime itself, relative to the page's folder: subpages set window.__B to "../")
+    s = path.basename(f).startsWith("webpack-") ? s.replaceAll('"/_next/"', '((self.__B||"./")+"_next/")') : s.replaceAll('"/_next/"', '"./_next/"');
+    s = s.replaceAll("\uFFFD", "\\uFFFD");
   }
   if (ext === ".html") {
     // links to pages of the site: the newest version, and "you came from inside" (no entrance again)

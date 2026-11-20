@@ -26,7 +26,6 @@ export function Footer() {
     { label: "Web apps", href: href("/web-app-development") },
     { label: "Mobile apps", href: href("/mobile-app-development") },
     { label: "Websites", href: href("/website-design") },
-    { label: "How we work", href: href("/#how") },
   ];
 
   const ref = useRef<HTMLElement>(null);

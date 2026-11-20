@@ -58,16 +58,17 @@
     ],
     "web": {
       "title": "Web apps",
-      "line": "Platforms, dashboards and internal tools that run in any browser. Fast, secure and built to grow with you.",
+      "line": "Anything that runs in a browser, from a first idea to a full product. Fast, secure and built to grow with you.",
       "more": {
         "spot": "Look closer",
         "title": "Web apps",
-        "line": "Anything that runs in a browser, from a simple portal to a full product.",
+        "line": "Anything that runs in a browser, from a first idea to a full product.",
         "items": [
           "Client portals and member areas",
           "Booking and ordering",
           "Dashboards and internal tools",
-          "SaaS products and marketplaces"
+          "SaaS products and marketplaces",
+          "Or something no one has built yet"
         ],
         "link": "Explore web apps",
         "href": "/web-app-development",
@@ -78,16 +79,17 @@
     },
     "mobile": {
       "title": "Mobile apps",
-      "line": "Apps for iPhone and Android, designed screen by screen.",
+      "line": "Any idea, made into an app for iPhone and Android. Designed screen by screen.",
       "more": {
         "spot": "Look closer",
         "title": "Mobile apps",
-        "line": "Native-feeling apps for iPhone and Android.",
+        "line": "Any idea, as a native-feeling app for iPhone and Android.",
         "items": [
           "Bookings and memberships",
           "Events and tickets",
           "Companion apps for your business",
-          "Games and playful apps"
+          "Games and playful apps",
+          "Or something no one has built yet"
         ],
         "link": "Explore mobile apps",
         "href": "/mobile-app-development",
@@ -99,7 +101,7 @@
     "cta": "Book a call",
     "sites": {
       "title": "Websites",
-      "line": "Landing pages, brand sites, portfolios and shops that people remember.",
+      "line": "From a single page to a whole brand. Websites that people remember.",
       "more": {
         "spot": "Look closer",
         "title": "Websites",
@@ -108,7 +110,8 @@
           "Landing pages",
           "Brand and company sites",
           "Portfolios",
-          "Online shops"
+          "Online shops",
+          "Or something no one has seen yet"
         ],
         "link": "Explore websites",
         "href": "/website-design",
@@ -281,9 +284,9 @@
     "web": {
       "title": "Web app development",
       "metaTitle": "Custom web app development — Studio Innové",
-      "metaDescription": "Custom web apps, platforms, dashboards and internal tools, designed and built by Studio Innové. From first idea to launch. Book a call.",
+      "metaDescription": "Custom web apps of any kind, from first products and platforms to dashboards and tools, designed and built by Studio Innové. From first idea to launch. Book a call.",
       "headline": "Web apps, *made* to be used.",
-      "intro": "Platforms, dashboards and tools that run in any browser. Fast, secure and simple to use.",
+      "intro": "Anything that runs in a browser, from a first idea to a full product. Fast, secure and simple to use.",
       "points": [
         {
           "title": "Platforms.",
@@ -330,9 +333,9 @@
           ]
         }
       ],
-      "statement": "We design and build web apps [/worlds/web-grow-m.webp] that feel *effortless.* Portals, dashboards [/worlds/think-designs-m.webp] and tools your team will actually *enjoy* opening.",
+      "statement": "We design and build web apps [/worlds/web-grow-m.webp] that feel *effortless.* Products, platforms [/worlds/think-designs-m.webp] and ideas no one has *built* yet.",
       "index": {
-        "kicker": "What we build",
+        "kicker": "Anything you can imagine",
         "items": [
           {
             "title": "Platforms",
@@ -354,6 +357,12 @@
             "line": "Booking systems and admin panels that replace the spreadsheets.",
             "image": "/services/screens/web-tools.webp",
             "sketch": "web-tools"
+          },
+          {
+            "title": "Your idea",
+            "phrase": "whatever it is",
+            "line": "If it runs in a browser, we can design and build it.",
+            "sketch": "web-blank"
           }
         ]
       }
@@ -363,11 +372,11 @@
       "metaTitle": "iPhone and Android app development — Studio Innové",
       "metaDescription": "Mobile apps for iPhone and Android, designed and built by Studio Innové. From first idea to launch. Book a call.",
       "headline": "Apps that *live* on the home screen.",
-      "intro": "For iPhone and Android. Smooth, native-feeling apps, designed screen by screen.",
+      "intro": "Any idea, made into an app for iPhone and Android. Smooth, native-feeling and designed screen by screen.",
       "points": [
         {
           "title": "iPhone and Android.",
-          "line": "Your app, in both stores."
+          "line": "Designed for both, so it feels at home on any phone."
         },
         {
           "title": "Designed first.",
@@ -412,7 +421,7 @@
       ],
       "statement": "Apps people open every day [/worlds/mobile-both-m.webp] and *keep.* Designed screen by screen for iPhone [/worlds/mobile-m.webp] and *Android.*",
       "index": {
-        "kicker": "What we build",
+        "kicker": "Anything you can imagine",
         "items": [
           {
             "title": "Events",
@@ -434,6 +443,12 @@
             "line": "Playful moments that bring people back every day.",
             "image": "/services/screens/mobile-play.webp",
             "sketch": "mobile-play"
+          },
+          {
+            "title": "Your idea",
+            "phrase": "whatever it is",
+            "line": "If it runs on a phone, we can design and build it.",
+            "sketch": "mobile-blank"
           }
         ]
       }
@@ -472,12 +487,12 @@
     "sites": {
       "title": "Website design",
       "metaTitle": "Website design and build — Studio Innové",
-      "metaDescription": "Landing pages, brand sites, portfolios and online shops, designed and built by Studio Innové. Fast, memorable and made to last. Book a call.",
+      "metaDescription": "Websites of every kind, from landing pages and portfolios to brand sites and online shops, designed and built by Studio Innové. Fast, memorable and made to last. Book a call.",
       "headline": "Websites people *remember.*",
-      "intro": "Landing pages, brand sites, portfolios and shops that load fast and feel considered.",
-      "statement": "We design and build websites [/services/screens/web-brand.webp] that people *remember.* Landing pages, shops [/services/screens/web-shop.webp] and brand sites that feel like *you.*",
+      "intro": "From a single page to a whole brand. Websites that load fast and feel considered.",
+      "statement": "We design and build websites [/services/screens/web-brand.webp] that people *remember.* From a single page to a whole brand [/services/screens/web-shop.webp], made to feel like *you.*",
       "index": {
-        "kicker": "What we build",
+        "kicker": "Anything you can imagine",
         "items": [
           {
             "title": "Landing pages",
@@ -499,6 +514,12 @@
             "line": "Online shops designed around your products.",
             "image": "/services/screens/web-shop.webp",
             "sketch": "web-shop"
+          },
+          {
+            "title": "Your idea",
+            "phrase": "whatever it is",
+            "line": "If it lives on the web, we can design and build it.",
+            "sketch": "web-blank"
           }
         ]
       }
@@ -518,9 +539,9 @@
   "worlds": {
     "back": "Back to the room",
     "web": {
-      "title": "Software that runs the business.",
+      "title": "Any idea, in a browser.",
       "lines": [
-        "Client portals, booking systems and dashboards, made for everyday use.",
+        "From a first product to a whole platform, made for the people who use it every day.",
         "Fast, secure and ready to grow.",
         "Designed screen by screen."
       ],
@@ -528,12 +549,12 @@
       "href": "/web-app-development",
       "chapters": [
         {
-          "title": "Software that runs the *business.*",
-          "line": "Client portals, booking systems and dashboards, made for everyday use."
+          "title": "Any idea, in a *browser.*",
+          "line": "From a first product to a whole platform, made for the people who use it every day."
         },
         {
           "title": "Every screen, *considered.*",
-          "line": "Designed screen by screen, so your team always knows where things are."
+          "line": "Designed screen by screen, so people always know where things are."
         },
         {
           "title": "Built to *grow* with you.",
@@ -545,8 +566,8 @@
       "title": "Apps people keep.",
       "lines": [
         "For iPhone and Android.",
-        "Events, bookings, memberships, even games.",
-        "Games, events and bookings, designed here."
+        "Any idea, for iPhone and Android.",
+        "A game, an events app and a booking app, made here. Yours can be anything."
       ],
       "link": "Explore mobile apps",
       "href": "/mobile-app-development",
@@ -557,7 +578,7 @@
         },
         {
           "title": "Made in *this* room.",
-          "line": "A little game, an events app and a table booking, designed here."
+          "line": "A game, an events app and a booking app, made here. Yours can be anything."
         },
         {
           "title": "For iPhone *and* Android.",
@@ -645,14 +666,14 @@
     "sites": {
       "title": "Websites people remember.",
       "lines": [
-        "Landing pages, brand sites, portfolios and shops, designed to be remembered and built to be fast."
+        "From a single page to a whole brand, designed to be remembered and built to be fast."
       ],
       "link": "Explore websites",
       "href": "/website-design",
       "chapters": [
         {
           "title": "Websites people *remember.*",
-          "line": "Landing pages, brand sites, portfolios and shops, designed to be remembered and built to be fast."
+          "line": "From a single page to a whole brand, designed to be remembered and built to be fast."
         },
         {
           "title": "Designed to the *last* detail.",

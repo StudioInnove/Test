@@ -196,6 +196,9 @@ export function FilmStage() {
       return !!(l && engine && engine.frames(l) > 1 && !reduce && engine.loadedRatio([l]) >= 1);
     };
 
+    // Only what's near is fetched straight away (the way there, the next room, the one after); the rest of the
+    // film follows quietly once things are idle, and never on a data-saving or slow connection.
+    let restTimer = 0;
     const preload = (i: number, from = current) => {
       if (!engine) return;
       const want: ClipId[] = [];
@@ -205,8 +208,15 @@ export function FilmStage() {
       add(SCENES[i + 1]?.enter);
       add(SCENES[i].enter);
       add(SCENES[i].loop);
-      for (let r = 2; r < SCENES.length; r++) add(SCENES[i + r]?.enter);
+      add(SCENES[i + 2]?.enter);
       engine.prioritise(want);
+      clearTimeout(restTimer);
+      const net = (navigator as unknown as { connection?: { saveData?: boolean; effectiveType?: string } }).connection;
+      if (net?.saveData || /2g|3g/.test(net?.effectiveType ?? "")) return;
+      restTimer = window.setTimeout(() => {
+        for (let r = 3; r < SCENES.length; r++) add(SCENES[i + r]?.enter);
+        engine?.prioritise(want);
+      }, touchUI ? 14000 : 7000);
     };
 
     const restShot = (i: number, now: number): Single => {
@@ -878,6 +888,7 @@ export function FilmStage() {
       document.removeEventListener("click", onClick, true);
       stage.removeEventListener("click", onStageClick);
       window.removeEventListener("film:goto", onGoto);
+      clearTimeout(restTimer);
       window.removeEventListener("pointermove", onPointer);
       window.removeEventListener("pointerdown", onTap);
       strip?.removeEventListener("pointerdown", sDown);

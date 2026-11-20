@@ -30,6 +30,10 @@
     "s1d": {
       "d": "/film/stills/s1d-d.webp",
       "m": "/film/stills/s1d-m.webp"
+    },
+    "s7": {
+      "d": "/film/stills/s7-d.webp",
+      "m": "/film/stills/s7-m.webp"
     }
   },
   "clips": {
@@ -148,6 +152,40 @@
       "m": {
         "path": "/film/cl/m/",
         "frames": 76,
+        "w": 864,
+        "h": 1200
+      }
+    },
+    "c7": {
+      "from": "s4",
+      "to": "s7",
+      "fps": 12,
+      "d": {
+        "path": "/film/c7/d/",
+        "frames": 61,
+        "w": 2400,
+        "h": 1338
+      },
+      "m": {
+        "path": "/film/c7/m/",
+        "frames": 61,
+        "w": 864,
+        "h": 1200
+      }
+    },
+    "c8": {
+      "from": "s7",
+      "to": "s5",
+      "fps": 12,
+      "d": {
+        "path": "/film/c8/d/",
+        "frames": 61,
+        "w": 2400,
+        "h": 1338
+      },
+      "m": {
+        "path": "/film/c8/m/",
+        "frames": 61,
         "w": 864,
         "h": 1200
       }

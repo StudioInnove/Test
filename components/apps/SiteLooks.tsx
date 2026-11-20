@@ -8,6 +8,7 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
+import { useLive } from "@/lib/useLive";
 import { asset } from "@/lib/content";
 
 const W = 1200, H = 720, BAR = 34;
@@ -114,7 +115,7 @@ function vars(b: Box, ink: string) {
   return v;
 }
 
-export function SiteLooks({ interactive = false, look: controlled }: { interactive?: boolean; look?: number }) {
+export function SiteLooks({ interactive = false, look: controlled, accent = null }: { interactive?: boolean; look?: number; accent?: string | null }) {
   const [own, setLook] = useState(controlled ?? 0);
   void interactive;
   const look = controlled ?? own;
@@ -122,36 +123,58 @@ export function SiteLooks({ interactive = false, look: controlled }: { interacti
   const root = useRef<HTMLDivElement>(null);
   const els = useRef<Record<string, HTMLElement | null>>({});
   const first = useRef(true);
+  const seen = useLive(root);
 
-  const apply = useCallback((i: number, dur: number) => {
+  const apply = useCallback((i: number, dur: number, tint: string | null) => {
     const { gsap } = getGsap();
     const L = LOOKS[i];
+    // your colour, on the buttons and the small label
+    const v = (k: string) => {
+      const out = vars(L.el[k], L.ink);
+      if (tint && (k === "cta" || k === "navCta")) Object.assign(out, { backgroundColor: tint, color: "#ffffff", boxShadow: "inset 0 0 0 1px rgba(0,0,0,0)" });
+      if (tint && k === "kicker") Object.assign(out, { color: tint, opacity: 1 });
+      return out;
+    };
     const page = root.current!.querySelector<HTMLElement>("[data-page]");
     const words = KEYS.filter((k) => !k.startsWith("img")).map((k) => els.current[k]).filter(Boolean);
     if (!dur) {
       gsap.set(page, { backgroundColor: L.page, color: L.ink });
-      KEYS.forEach((k) => gsap.set(els.current[k], vars(L.el[k], L.ink)));
+      KEYS.forEach((k) => gsap.set(els.current[k], v(k)));
       return;
     }
     const tl = gsap.timeline({ defaults: { ease: "power3.inOut" } });
     tl.to(words, { filter: "blur(8px)", duration: 0.32, ease: "power2.in" }, 0);
     tl.call(() => setText(i), [], 0.34);
     tl.to(page, { backgroundColor: L.page, color: L.ink, duration: dur }, 0);
-    KEYS.forEach((k, n) => tl.to(els.current[k], { ...vars(L.el[k], L.ink), duration: dur }, n * 0.02));
+    KEYS.forEach((k, n) => tl.to(els.current[k], { ...v(k), duration: dur }, n * 0.02));
     tl.to(words, { filter: "blur(0px)", duration: 0.5, ease: "power2.out", stagger: 0.03 }, 0.42);
   }, []);
 
+  const lastLook = useRef(look);
   useLayoutEffect(() => {
-    apply(look, first.current ? 0 : 1.05);
+    if (first.current) apply(look, 0, accent);
+    else if (lastLook.current !== look) apply(look, 1.05, accent);
+    else {
+      // only the colour changed: it washes over the buttons
+      const { gsap } = getGsap();
+      ["cta", "navCta", "kicker"].forEach((k) => {
+        const L = LOOKS[look], out = vars(L.el[k], L.ink);
+        if (accent && k !== "kicker") Object.assign(out, { backgroundColor: accent, color: "#ffffff" });
+        if (accent && k === "kicker") Object.assign(out, { color: accent, opacity: 1 });
+        gsap.to(els.current[k], { backgroundColor: out.backgroundColor as string, color: out.color as string, opacity: out.opacity as number, duration: 0.6, ease: "power2.out" });
+        if (k === "cta") gsap.fromTo(els.current[k], { scale: 0.92 }, { scale: 1, duration: 0.7, ease: "elastic.out(1, 0.45)" });
+      });
+    }
     first.current = false;
-  }, [look, apply]);
+    lastLook.current = look;
+  }, [look, accent, apply]);
 
   // in the film, it changes by itself
   useEffect(() => {
     if (interactive || controlled !== undefined) return;
-    const id = window.setInterval(() => setLook((l) => (l + 1) % LOOKS.length), 4600);
+    const id = window.setInterval(() => seen() && setLook((l) => (l + 1) % LOOKS.length), 4600);
     return () => clearInterval(id);
-  }, [interactive, controlled]);
+  }, [interactive, controlled]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const T = LOOKS[text];
   const font = T.serif ? "var(--font-serif)" : "var(--font-sans)";
@@ -204,7 +227,9 @@ export function SiteLooks({ interactive = false, look: controlled }: { interacti
 }
 
 /** the look picker that sits under the laptop when you can try it */
-export function LookPicker({ look, onLook }: { look: number; onLook: (i: number) => void }) {
+export const ACCENTS = [null, "#e0835f", "#3f6b5c", "#3d5a9e", "#b0413e"] as const;
+
+export function LookPicker({ look, onLook, accent, onAccent }: { look: number; onLook: (i: number) => void; accent: string | null; onAccent: (c: string | null) => void }) {
   const pill = useRef<HTMLSpanElement>(null);
   const box = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -212,13 +237,22 @@ export function LookPicker({ look, onLook }: { look: number; onLook: (i: number)
     if (btn && pill.current) getGsap().gsap.to(pill.current, { x: btn.offsetLeft - 6, width: btn.offsetWidth, duration: 0.6, ease: "power3.inOut" });
   }, [look]);
   return (
-    <div ref={box} role="group" aria-label="Pick a look" className="relative mx-auto mt-8 flex w-max items-center gap-1 rounded-full bg-paper/[0.07] p-1.5 text-[15px] shadow-[inset_0_0_0_1px_rgb(239_233_224/0.1)]">
+    <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+    <div ref={box} role="group" aria-label="Pick a look" className="relative flex w-max items-center gap-1 rounded-full bg-paper/[0.07] p-1.5 text-[15px] shadow-[inset_0_0_0_1px_rgb(239_233_224/0.1)]">
       <span ref={pill} aria-hidden className="absolute left-1.5 top-1.5 h-10 rounded-full bg-paper" style={{ width: 90 }} />
       {LOOKS.map((L, i) => (
         <button key={L.name} type="button" data-look={i} aria-pressed={look === i} onClick={() => onLook(i)} className={`relative z-10 h-10 rounded-full px-6 transition-colors duration-500 ${look === i ? "text-[#0b0e16]" : "text-paper/70 hover:text-paper"}`}>
           {L.name}
         </button>
       ))}
+    </div>
+    <div role="group" aria-label="Pick a colour" className="flex items-center gap-2 rounded-full bg-paper/[0.07] p-2 shadow-[inset_0_0_0_1px_rgb(239_233_224/0.1)]">
+      {ACCENTS.map((c) => (
+        <button key={c ?? "none"} type="button" aria-label={c ? `Colour ${c}` : "Original colours"} aria-pressed={accent === c} onClick={() => onAccent(c)} className="grid h-8 w-8 place-items-center rounded-full transition-transform duration-300 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] hover:scale-110 active:scale-95" style={{ boxShadow: accent === c ? "0 0 0 2px #efe9e0" : "none" }}>
+          <span className="block h-6 w-6 rounded-full" style={{ background: c ?? "conic-gradient(#efe9e0 0 50%, #151412 0 100%)" }} />
+        </button>
+      ))}
+    </div>
     </div>
   );
 }

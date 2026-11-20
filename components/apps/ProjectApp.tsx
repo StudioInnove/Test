@@ -13,9 +13,11 @@
  */
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
+import { useLive } from "@/lib/useLive";
 
-const W = 1200, H = 720;
+const W = 1200, H = 720, CW = 390, CH = 844;
 export const PROJECT_SIZE = { w: W, h: H };
+export const PROJECT_PHONE_SIZE = { w: CW, h: CH };
 
 type Col = "backlog" | "doing" | "review" | "done";
 type Tag = "Design" | "Build" | "Copy";
@@ -54,8 +56,12 @@ const THEMES = {
 const TAGS: Record<Tag, string> = { Design: "#e0835f", Build: "#7c8fb3", Copy: "#8ea887" };
 const ACCENT = "#e0835f";
 
-export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
+export function ProjectApp({ interactive = false, compact = false }: { interactive?: boolean; compact?: boolean }) {
   const [tasks, setTasks] = useState<Task[]>(SEED);
+  const [tab, setTab] = useState<Col>("backlog");
+  const [typing, setTyping] = useState<{ id: number; n: number } | null>(null);
+  const [coached, setCoached] = useState(!interactive);
+  const swipeX = useRef(0);
   const [view, setView] = useState<"board" | "insights">("board");
   const [dark, setDark] = useState(false);
   const [filter, setFilter] = useState<Tag | null>(null);
@@ -67,6 +73,7 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
   const nextId = useRef(100);
   const hovering = useRef(false);
   const t = dark ? THEMES.dark : THEMES.light;
+  const live = useLive(root);
 
   /** change the tasks, and let every card glide from where it was to where it lands */
   const change = useCallback((fn: (l: Task[]) => Task[]) => {
@@ -92,6 +99,27 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
     window.setTimeout(() => setToasts((l) => l.filter((x) => x.id !== id)), 2600);
   }, []);
 
+  /** a small burst of colour from an element: a task done */
+  const burst = useCallback((el: Element | null) => {
+    const box = root.current;
+    if (!el || !box || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { gsap } = getGsap();
+    const b = box.getBoundingClientRect(), r = el.getBoundingClientRect();
+    const k = b.width / (compact ? CW : W);
+    const cx = (r.left + r.width / 2 - b.left) / k, cy = (r.top + r.height / 2 - b.top) / k;
+    const colours = [ACCENT, "#f4b478", "#8ea887", "#7c8fb3", "#c9a25f"];
+    for (let i = 0; i < 22; i++) {
+      const d = document.createElement("span");
+      const sz = 5 + Math.random() * 5;
+      d.style.cssText = `position:absolute;left:${cx}px;top:${cy}px;width:${sz}px;height:${sz * (Math.random() < 0.5 ? 1 : 0.45)}px;border-radius:${Math.random() < 0.5 ? 99 : 2}px;background:${colours[i % colours.length]};z-index:60;pointer-events:none`;
+      box.appendChild(d);
+      const a = Math.random() * Math.PI * 2, dist = 50 + Math.random() * 90;
+      gsap.timeline({ onComplete: () => d.remove() })
+        .to(d, { x: Math.cos(a) * dist, y: Math.sin(a) * dist - 30, rotation: Math.random() * 360, duration: 0.55, ease: "power3.out" })
+        .to(d, { y: `+=${70 + Math.random() * 50}`, opacity: 0, rotation: `+=${Math.random() * 200}`, duration: 0.75, ease: "power1.in" });
+    }
+  }, [compact]);
+
   const move = useCallback((id: number, col: Col, at = -1, quiet = false) => {
     change((l) => {
       const task = l.find((x) => x.id === id);
@@ -105,7 +133,10 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
     });
     const task = tasks.find((x) => x.id === id);
     if (!quiet && task && task.col !== col) toast(col === "done" ? `“${task.title}” is done` : `Moved to ${COLS.find((c) => c.id === col)!.name}`);
-  }, [change, tasks, toast]);
+    if (task && col === "done" && task.col !== "done") {
+      window.setTimeout(() => burst(compact ? root.current?.querySelector('[data-tab="done"]') ?? null : root.current?.querySelector(`[data-flip-id="c${id}"]`) ?? null), compact ? 120 : 520);
+    }
+  }, [change, tasks, toast, burst, compact]);
 
   const advance = (id: number) => {
     const task = tasks.find((x) => x.id === id);
@@ -118,6 +149,11 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
     const title = NEW_TITLES[id % NEW_TITLES.length];
     change((l) => [{ id, title, tag: (["Design", "Build", "Copy"] as Tag[])[id % 3], who: id % 4, col: "backlog", due: "Next week" }, ...l]);
     setView("board");
+    setTab("backlog");
+    // its title types itself in
+    const o = { n: 0 };
+    setTyping({ id, n: 0 });
+    getGsap().gsap.to(o, { n: title.length, duration: 0.035 * title.length + 0.3, delay: 0.35, ease: "none", onUpdate: () => setTyping({ id, n: Math.round(o.n) }), onComplete: () => setTyping(null) });
     toast("New task added");
   };
 
@@ -125,6 +161,7 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
   useEffect(() => {
     if (interactive) return;
     const id = window.setInterval(() => {
+      if (!live()) return;
       setTasks((l) => {
         const open = l.filter((x) => x.col !== "done");
         if (!open.length) return SEED;
@@ -135,7 +172,7 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
       });
     }, 3200);
     return () => clearInterval(id);
-  }, [interactive]);
+  }, [interactive]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ⌘K / Ctrl K while you're using it
   useEffect(() => {
@@ -208,6 +245,99 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
     { k: "Clear filter", hint: "Filter", run: () => setFilter(null) },
   ], [view, dark, tasks]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // on a phone: the same board as a phone-sized web app, one column at a time
+  if (compact) {
+    const list = tasks.filter((x) => x.col === tab);
+    const tapCard = (e: React.MouseEvent, task: Task) => {
+      if (!interactive) return;
+      const el = e.currentTarget as HTMLElement;
+      getGsap().gsap.to(el, { x: 70, opacity: 0, scale: 0.96, duration: 0.32, ease: "power2.in", onComplete: () => {
+        advance(task.id);
+        const next = COLS[(COLS.findIndex((c) => c.id === task.col) + 1) % COLS.length].id;
+        const badge = root.current?.querySelector(`[data-tab="${next}"] [data-count]`);
+        if (badge) getGsap().gsap.fromTo(badge, { scale: 1.6 }, { scale: 1, duration: 0.6, ease: "elastic.out(1, 0.4)" });
+      } });
+    };
+    return (
+      <div
+        ref={root}
+        className="relative select-none overflow-hidden"
+        style={{ width: CW, height: CH, background: t.bg, color: t.ink, fontFamily: "var(--font-sans)", transition: "background-color 500ms ease, color 500ms ease" }}
+        aria-hidden={!interactive}
+        onPointerDownCapture={(e) => { swipeX.current = e.clientX; if (!coached) setCoached(true); }}
+        onPointerUp={(e) => {
+          const dx = (e.clientX - swipeX.current) / ((root.current?.getBoundingClientRect().width ?? CW) / CW);
+          if (Math.abs(dx) < 60) return;
+          const i = COLS.findIndex((c) => c.id === tab);
+          setTab(COLS[Math.max(0, Math.min(COLS.length - 1, i + (dx < 0 ? 1 : -1)))].id);
+        }}
+      >
+        {!coached && <Coach root={root} from="[data-card]" label="Tap a task to move it on" w={CW} tap />}
+        <div className="flex items-center justify-between px-5 pt-[62px]">
+          <span className="flex items-center gap-2 text-[17px] font-[600]">
+            <span className="grid h-7 w-7 place-items-center rounded-[8px]" style={{ background: t.ink }}>
+              <svg width="14" height="14" viewBox="0 0 14 14" aria-hidden><path d="M2 9.5c2-5 8-5 10 0" fill="none" stroke={t.bg} strokeWidth="2" strokeLinecap="round" /><circle cx="7" cy="9.5" r="1.6" fill={ACCENT} /></svg>
+            </span>
+            Cadence
+          </span>
+          <span className="flex items-center gap-2">
+            <button type="button" tabIndex={interactive ? 0 : -1} aria-label={dark ? "Light mode" : "Dark mode"} onClick={() => setDark((x) => !x)} className="grid h-9 w-9 place-items-center rounded-full" style={{ background: t.soft }}>
+              <svg width="15" height="15" viewBox="0 0 16 16" aria-hidden><path d="M13 9.6A5.5 5.5 0 0 1 6.4 3a5.5 5.5 0 1 0 6.6 6.6z" fill="currentColor" /></svg>
+            </button>
+            <Avatar p={PEOPLE[0]} ring={t.bg} />
+          </span>
+        </div>
+        <div className="px-5 pt-6">
+          <p className="text-[13px]" style={{ color: t.sub }}>Project</p>
+          <p className="text-[28px] font-[600] leading-tight tracking-[-0.02em]">Website relaunch</p>
+          <div className="mt-3 flex items-center gap-3 text-[13px]">
+            <span className="relative h-1.5 flex-1 overflow-hidden rounded-full" style={{ background: t.soft }}>
+              <span className="absolute inset-y-0 left-0 rounded-full" style={{ width: `${pct}%`, background: ACCENT, transition: "width 700ms cubic-bezier(0.23,1,0.32,1)" }} />
+            </span>
+            <span className="tabular-nums">{pct}% done</span>
+          </div>
+        </div>
+        <div className="mx-5 mt-5 grid grid-cols-4 gap-1 rounded-full p-1 text-[13px]" style={{ background: t.soft }}>
+          {COLS.map((c) => {
+            const n = tasks.filter((x) => x.col === c.id).length;
+            const on = tab === c.id;
+            return (
+              <button key={c.id} type="button" data-tab={c.id} tabIndex={interactive ? 0 : -1} onClick={() => setTab(c.id)} className="flex h-9 items-center justify-center gap-1.5 rounded-full" style={{ background: on ? t.card : "transparent", boxShadow: on ? `0 1px 3px rgb(0 0 0 / 0.1), 0 0 0 1px ${t.line}` : "none", color: on ? t.ink : t.sub, transition: "all 350ms cubic-bezier(0.23,1,0.32,1)" }}>
+                {c.id === "doing" ? "Doing" : c.name}
+                <span data-count className="inline-block tabular-nums" style={{ color: c.id === "done" ? ACCENT : undefined }}>{n}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex flex-col gap-2.5 px-5">
+          {list.length === 0 && <p className="py-10 text-center text-[14px]" style={{ color: t.sub }}>Nothing here. Swipe to the next column.</p>}
+          {list.map((task) => (
+            <article key={task.id} data-card data-flip-id={`c${task.id}`} onClick={(e) => tapCard(e, task)} className="flex items-center gap-3 rounded-[16px] p-4 active:scale-[0.98]" style={{ background: t.card, boxShadow: `0 1px 2px rgb(0 0 0 / 0.04), 0 0 0 1px ${t.line}`, transition: "transform 160ms ease, background-color 500ms ease" }}>
+              <StatusDot col={task.col} />
+              <span className="min-w-0 flex-1">
+                <span className="block truncate text-[15px] font-[500]" style={{ textDecoration: task.col === "done" ? "line-through" : "none", color: task.col === "done" ? t.sub : t.ink }}>
+                  {typing?.id === task.id ? <>{task.title.slice(0, typing.n)}<span className="cad-caret" style={{ background: ACCENT }} /></> : task.title}
+                </span>
+                <span className="mt-1.5 flex items-center gap-2 text-[12px]">
+                  <span className="rounded-full px-2 py-0.5 font-[500]" style={{ background: `${TAGS[task.tag]}22`, color: TAGS[task.tag] }}>{task.tag}</span>
+                  {task.due && <span style={{ color: task.due === "Today" ? ACCENT : t.sub }}>{task.due}</span>}
+                </span>
+              </span>
+              <Avatar p={PEOPLE[task.who]} ring={t.card} small />
+              <svg width="14" height="14" viewBox="0 0 12 12" aria-hidden style={{ color: t.sub }}><path d="M4.5 2.5L8 6l-3.5 3.5" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+            </article>
+          ))}
+        </div>
+        <div className="pointer-events-none absolute inset-x-0 bottom-[104px] z-40 flex flex-col items-center gap-2">
+          {toasts.map((x) => <Toast key={x.id} text={x.text} dark={dark} />)}
+        </div>
+        <button type="button" tabIndex={interactive ? 0 : -1} onClick={addTask} className="absolute bottom-10 left-1/2 flex h-14 -translate-x-1/2 items-center gap-2 rounded-full px-7 text-[16px] font-[600] shadow-[0_14px_30px_-10px_rgb(0_0_0/0.4)] active:scale-95" style={{ background: t.ink, color: t.bg, transition: "transform 160ms ease" }}>
+          <span aria-hidden className="text-[20px] leading-none">+</span> New task
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div
       ref={root}
@@ -216,7 +346,9 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
       aria-hidden={!interactive}
       onPointerEnter={() => (hovering.current = true)}
       onPointerLeave={() => (hovering.current = false)}
+      onPointerDownCapture={() => !coached && setCoached(true)}
     >
+      {!coached && <Coach root={root} from='[data-col="backlog"] [data-card]' to='[data-col="doing"]' label="Drag a task" w={W} />}
       <div className="flex h-full">
         {/* sidebar */}
         <aside className="flex w-[232px] shrink-0 flex-col px-4 pb-4 pt-5" style={{ background: t.side, borderRight: `1px solid ${t.line}`, transition: "background-color 500ms ease" }}>
@@ -315,7 +447,7 @@ export function ProjectApp({ interactive = false }: { interactive?: boolean }) {
                               transition: d ? "box-shadow 200ms ease" : "box-shadow 300ms ease, background-color 500ms ease",
                             }}
                           >
-                            <p className="text-[15px] font-[500] leading-[1.35]" style={{ textDecoration: task.col === "done" ? "line-through" : "none", textDecorationColor: t.sub, color: task.col === "done" ? t.sub : t.ink }}>{task.title}</p>
+                            <p className="text-[15px] font-[500] leading-[1.35]" style={{ textDecoration: task.col === "done" ? "line-through" : "none", textDecorationColor: t.sub, color: task.col === "done" ? t.sub : t.ink }}>{typing?.id === task.id ? <>{task.title.slice(0, typing.n)}<span className="cad-caret" style={{ background: ACCENT }} /></> : task.title}</p>
                             <div className="mt-3 flex items-center gap-2 text-[12.5px]">
                               <span className="rounded-full px-2 py-0.5 font-[500]" style={{ background: `${TAGS[task.tag]}22`, color: TAGS[task.tag] }}>{task.tag}</span>
                               {task.pri && <span aria-label="Priority" className="font-[700]" style={{ color: ACCENT }}>!</span>}
@@ -521,6 +653,52 @@ function Insights({ t, done, total }: { t: Theme; done: number; total: number })
           On track to launch <span style={{ color: t.ink, fontWeight: 600 }}>Friday</span>. Two tasks need review.
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Shows how to use it until you do: a pointer (or a fingertip, on a phone) presses on the first task and
+ * drags it across, or taps it, again and again, with a small label. Gone the moment you touch the app.
+ */
+export function Coach({ root, from, to, label, w, tap = false }: { root: React.RefObject<HTMLDivElement | null>; from: string; to?: string; label: string; w: number; tap?: boolean }) {
+  const ref = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const el = ref.current;
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { gsap } = getGsap();
+    let tl: gsap.core.Timeline | null = null;
+    // (read the app's box once it is on the page: its ref is set after this runs)
+    const start = window.setTimeout(() => {
+      const box = root.current;
+      if (!box) return;
+      const b = box.getBoundingClientRect();
+      const k = b.width / w;
+      const a = box.querySelector(from)?.getBoundingClientRect();
+      const z = to ? box.querySelector(to)?.getBoundingClientRect() : null;
+      if (!a) return;
+      const ax = (a.left + a.width * 0.55 - b.left) / k, ay = (a.top + a.height * 0.5 - b.top) / k;
+      const zx = z ? (z.left + z.width * 0.5 - b.left) / k : ax, zy = z ? (z.top + 90 - b.top) / k : ay;
+      const press = el.querySelector("[data-press]");
+      tl = gsap.timeline({ repeat: -1, repeatDelay: 1.2 });
+      tl.set(el, { x: ax + 60, y: ay + 70, opacity: 0 })
+        .to(el, { opacity: 1, x: ax, y: ay, duration: 0.9, ease: "power3.out" })
+        .to(el, { scale: 0.88, duration: 0.15 }, "+=0.2")
+        .fromTo(press, { scale: 0.4, opacity: 0.6 }, { scale: 2.2, opacity: 0, duration: 0.6, ease: "power2.out" }, "<");
+      if (!tap) tl.to(el, { x: zx, y: zy, duration: 1.1, ease: "power2.inOut" });
+      tl.to(el, { scale: 1, duration: 0.2 }).to(el, { opacity: 0, duration: 0.5 }, "+=0.5");
+    }, 1400);
+    return () => { clearTimeout(start); tl?.kill(); };
+  }, [root, from, to, w, tap]);
+  return (
+    <div ref={ref} aria-hidden className="pointer-events-none absolute left-0 top-0 z-[55]" style={{ opacity: 0 }}>
+      <span data-press className="absolute -left-5 -top-5 h-10 w-10 rounded-full" style={{ background: "rgb(224 131 95 / 0.35)" }} />
+      {tap ? (
+        <span className="absolute -left-4 -top-4 block h-8 w-8 rounded-full border-2 border-white/90 shadow-[0_6px_16px_rgb(0_0_0/0.3)]" style={{ background: "rgb(255 255 255 / 0.35)", backdropFilter: "blur(2px)" }} />
+      ) : (
+        <svg width="26" height="26" viewBox="0 0 24 24" className="absolute -left-1 -top-1 drop-shadow-[0_4px_8px_rgb(0_0_0/0.3)]"><path d="M4 2.5l15 8.2-6.6 1.6-3.1 6.2z" fill="#1d1b18" stroke="#fff" strokeWidth="1.5" strokeLinejoin="round" /></svg>
+      )}
+      <span className="absolute left-6 top-6 whitespace-nowrap rounded-full bg-[#1d1b18] px-3 py-1.5 text-[13px] font-[500] text-white shadow-[0_8px_20px_rgb(0_0_0/0.25)]">{label}</span>
     </div>
   );
 }

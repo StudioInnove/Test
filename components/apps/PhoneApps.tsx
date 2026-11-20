@@ -11,10 +11,13 @@
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
+import { useLive } from "@/lib/useLive";
+import { StackGame } from "./StackGame";
+import { Coach } from "./ProjectApp";
 
 const W = 390, H = 844;
 export const PHONE_SIZE = { w: W, h: H };
-const APPS = ["Ember", "Pulse", "Tide"] as const;
+const APPS = ["Ember", "Pulse", "Tide", "Stack"] as const;
 const ACCENT = "#e0835f";
 
 /** how big the phone is drawn on screen, so pointer moves can be turned into its own pixels */
@@ -27,16 +30,18 @@ export function PhoneApps({ interactive = false, notify = false, page: controlle
   const drag = useRef<{ x: number; y: number; dx: number; on: boolean } | null>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const live = useLive(rootRef);
+  const [coached, setCoached] = useState(false);
 
   // in the room: now and then a notification lights the phone up
   useEffect(() => {
     if (!notify) return;
     let t2 = 0;
-    const show = () => { setPing(true); t2 = window.setTimeout(() => setPing(false), 3600); };
+    const show = () => { if (!live()) return; setPing(true); t2 = window.setTimeout(() => setPing(false), 3600); };
     const id = window.setInterval(show, 9000);
     const first = window.setTimeout(show, 1800);
     return () => { clearInterval(id); clearTimeout(first); clearTimeout(t2); };
-  }, [notify]);
+  }, [notify]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const go = (p: number) => setPage(Math.max(0, Math.min(APPS.length - 1, p)));
 
@@ -76,6 +81,7 @@ export function PhoneApps({ interactive = false, notify = false, page: controlle
       className="app-phone relative select-none overflow-hidden"
       style={{ width: W, height: H, color: "#1d1b18", background: "#f6f2ec", fontFamily: "var(--font-sans)", touchAction: interactive ? "pan-y" : undefined }}
       onPointerDown={onDown}
+      onPointerDownCapture={() => !coached && setCoached(true)}
       onPointerMove={onMove}
       onPointerUp={onUp}
       onPointerCancel={onUp}
@@ -85,7 +91,10 @@ export function PhoneApps({ interactive = false, notify = false, page: controlle
         <div style={{ width: W }} className="relative h-full shrink-0"><Ember live={interactive} root={rootRef} /></div>
         <div style={{ width: W }} className="relative h-full shrink-0"><Pulse live={interactive} active={page === 1} root={rootRef} /></div>
         <div style={{ width: W }} className="relative h-full shrink-0"><Tide live={interactive} root={rootRef} /></div>
+        <div style={{ width: W }} className="relative h-full shrink-0"><StackGame live={interactive} active={page === 3} /></div>
       </div>
+
+      {interactive && !coached && page === 0 && <Coach root={rootRef} from='button[aria-label="Add Flat white"]' label="Tap + to order" w={W} tap />}
 
       {/* status bar and page dots */}
       <div className={`pointer-events-none absolute inset-x-0 top-0 z-30 flex h-[54px] items-center justify-between px-8 pt-1 text-[15px] font-[600] transition-colors duration-500 ${darkTop ? "text-white" : "text-[#1d1b18]"}`}>
@@ -359,6 +368,19 @@ function Pulse({ live, active, root }: { live: boolean; active: boolean; root: R
       setVals(next);
       gsap.to(self.current!.querySelectorAll("[data-ring]"), { strokeDashoffset: (i: number) => 1 - next[i], duration: 1.2, ease: "elastic.out(1, 0.6)", stagger: 0.08 });
       gsap.fromTo(self.current!.querySelector("[data-rings]"), { scale: 0.94 }, { scale: 1, duration: 0.9, ease: "elastic.out(1, 0.4)" });
+      // a little celebration from the rings
+      const box = self.current!, ring = box.querySelector("[data-rings]") as HTMLElement;
+      const cx = ring.offsetLeft + ring.offsetWidth / 2, cy = ring.offsetTop + ring.offsetHeight / 2;
+      for (let i = 0; i < 26; i++) {
+        const d = document.createElement("span");
+        const sz = 5 + Math.random() * 6;
+        d.style.cssText = `position:absolute;left:${cx}px;top:${cy}px;width:${sz}px;height:${sz}px;border-radius:99px;background:${RINGS[i % 3].c};pointer-events:none;z-index:5`;
+        box.appendChild(d);
+        const a = Math.random() * Math.PI * 2, dist = 110 + Math.random() * 70;
+        gsap.timeline({ onComplete: () => d.remove() })
+          .to(d, { x: Math.cos(a) * dist, y: Math.sin(a) * dist, duration: 0.6, ease: "power3.out", delay: 0.15 })
+          .to(d, { y: "+=90", opacity: 0, scale: 0.4, duration: 0.7, ease: "power1.in" });
+      }
     } else {
       gsap.to(knob.current, { x: 0, duration: 0.5, ease: "back.out(1.6)", clearProps: "transform" });
       track.current!.style.setProperty("--p", "0");
@@ -458,10 +480,11 @@ function Tide({ live, root }: { live: boolean; root: React.RefObject<HTMLDivElem
   const self = useRef<HTMLDivElement>(null);
   const full = useRef<HTMLDivElement>(null);
   const tr = TRACKS[cur];
+  const seen = useLive(self);
 
   useEffect(() => {
     if (!playing) return;
-    const id = window.setInterval(() => setPos((p) => { if (p + 1 >= tr.len) { setCur((c) => (c + 1) % TRACKS.length); return 0; } return p + 1; }), 1000);
+    const id = window.setInterval(() => seen() && setPos((p) => { if (p + 1 >= tr.len) { setCur((c) => (c + 1) % TRACKS.length); return 0; } return p + 1; }), 1000);
     return () => clearInterval(id);
   }, [playing, tr.len]);
 
@@ -524,7 +547,7 @@ function Tide({ live, root }: { live: boolean; root: React.RefObject<HTMLDivElem
         <button type="button" tabIndex={live ? 0 : -1} onClick={() => toggle(true)} data-flip-id="panel" className="absolute inset-x-3 bottom-8 flex items-center gap-3 rounded-[20px] bg-white/[0.1] p-2.5 pr-4 text-left backdrop-blur-xl" style={{ boxShadow: "inset 0 0 0 1px rgb(255 255 255 / 0.08)" }}>
           <div data-flip-id="art"><Art c={tr.art} className="h-12 w-12 rounded-[12px]" /></div>
           <span className="flex-1">
-            <span className="block text-[14px] font-[600]">{tr.t}</span>
+            <span className="flex items-center gap-2 text-[14px] font-[600]">{tr.t}<Eq on={playing} /></span>
             <span className="block text-[12px] text-white/55">{tr.a}</span>
           </span>
           <span role="button" tabIndex={live ? 0 : -1} aria-label={playing ? "Pause" : "Play"} onClick={(e) => { e.stopPropagation(); setPlaying((p) => !p); }} className="grid h-10 w-10 place-items-center rounded-full bg-white text-[#0e0f14]"><PlayIcon playing={playing} size={16} /></span>
@@ -539,7 +562,7 @@ function Tide({ live, root }: { live: boolean; root: React.RefObject<HTMLDivElem
           <div data-flip-id="art" className="mt-8"><Art c={tr.art} className="aspect-square w-full rounded-[22px] shadow-[0_30px_60px_-20px_rgb(0_0_0/0.6)]" /></div>
           <div data-fade className="mt-8 flex items-end justify-between">
             <div>
-              <p className="text-[24px] font-[600] tracking-[-0.02em]">{tr.t}</p>
+              <p className="flex items-center gap-3 text-[24px] font-[600] tracking-[-0.02em]">{tr.t}<Eq on={playing} /></p>
               <p className="text-[16px] text-white/60">{tr.a}</p>
             </div>
             <span className="grid h-10 w-10 place-items-center rounded-full bg-white/10" aria-hidden>♡</span>
@@ -574,5 +597,14 @@ function SkipIcon({ dir }: { dir: 1 | -1 }) {
     <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden fill="currentColor" style={{ transform: dir < 0 ? "scaleX(-1)" : undefined }}>
       <path d="M3 6.5v11c0 .7.8 1.1 1.3.7L11 13v4.5c0 .7.8 1.1 1.3.7l7.5-5.5c.5-.4.5-1.1 0-1.4L12.3 5.8c-.5-.4-1.3 0-1.3.7V11L4.3 5.8C3.8 5.4 3 5.8 3 6.5z" />
     </svg>
+  );
+}
+
+/** four bars that dance while it plays */
+function Eq({ on }: { on: boolean }) {
+  return (
+    <span aria-hidden className="inline-flex h-3.5 items-end gap-[2px]">
+      {[0, 1, 2, 3].map((i) => <span key={i} className={`tide-eq w-[3px] rounded-full bg-current ${on ? "" : "is-off"}`} style={{ animationDelay: `${i * -0.23}s` }} />)}
+    </span>
   );
 }

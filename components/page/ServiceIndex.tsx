@@ -188,17 +188,25 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
               <div key={it.title} className="col-start-1 row-start-1 transition-[opacity,transform] duration-[900ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: i === active ? 1 : 0, transform: i === active ? "none" : "translateY(10px)", pointerEvents: i === active ? "auto" : "none" }}>
                 <p className="t-lead max-w-[34ch]">{it.line}</p>
                 {it.demo?.endsWith("idea") && (
-                  <form className="mt-6 flex max-w-[420px] flex-col gap-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
+                  <form className="idea-field group mt-7 flex max-w-[440px] items-end gap-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
                     <label className="sr-only" htmlFor={`idea-${kind}`}>Your idea</label>
-                    <input
-                      id={`idea-${kind}`}
-                      value={idea}
-                      onChange={(e) => setIdea(e.target.value.slice(0, 80))}
-                      tabIndex={i === active ? 0 : -1}
-                      placeholder={kind === "mobile" ? "A fitness app for my running club" : kind === "site" ? "A website for my bakery" : "A booking platform for my salon"}
-                      className="contact-input"
-                    />
-                    <button type="submit" tabIndex={i === active ? 0 : -1} disabled={!idea.trim()} className="btn btn-primary w-max disabled:opacity-40">Send it to us</button>
+                    <span className="relative min-w-0 flex-1">
+                      <input
+                        id={`idea-${kind}`}
+                        value={idea}
+                        onChange={(e) => setIdea(e.target.value.slice(0, 80))}
+                        tabIndex={i === active ? 0 : -1}
+                        autoComplete="off"
+                        placeholder={kind === "mobile" ? "A fitness app for my running club" : kind === "site" ? "A website for my bakery" : "A booking platform for my salon"}
+                        className="h-12 w-full rounded-none border-b border-paper/25 focus-visible:outline-none bg-transparent px-0 text-[17px] tracking-[-0.01em] text-paper outline-none transition-colors duration-300 placeholder:font-serif placeholder:text-[19px] placeholder:italic placeholder:text-paper/40 focus:border-paper/70"
+                      />
+                      {/* a warm line draws along the field as you type */}
+                      <span aria-hidden className="idea-line absolute bottom-0 left-0 h-px w-full origin-left bg-[#f4b478]" style={{ transform: `scaleX(${Math.min(1, idea.length / 28)})` }} />
+                    </span>
+                    <button type="submit" tabIndex={i === active ? 0 : -1} disabled={!idea.trim()} aria-label="Send it to us" className="btn btn-primary h-12 shrink-0 gap-2 px-5 transition-opacity disabled:opacity-35">
+                      <span>Send</span>
+                      <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden><path d="M2 6h7.5M6.5 3l3 3-3 3" fill="none" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" /></svg>
+                    </button>
                   </form>
                 )}
               </div>

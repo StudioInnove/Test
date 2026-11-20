@@ -41,9 +41,12 @@ export function TryIt({ kind, copy }: { kind: "web" | "mobile" | "sites"; copy: 
   const [near, setNear] = useState(false);
   const [touch, setTouch] = useState(false);
   const [look, setLook] = useState(0);
+  const [small, setSmall] = useState(false);
+  const [accent, setAccent] = useState<string | null>(null);
 
   useEffect(() => {
     setTouch(matchMedia("(hover: none)").matches);
+    setSmall(matchMedia("(max-width: 767px)").matches);
     const io = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "600px 0px" });
     io.observe(ref.current!);
     return () => io.disconnect();
@@ -60,7 +63,8 @@ export function TryIt({ kind, copy }: { kind: "web" | "mobile" | "sites"; copy: 
     return () => ctx.revert();
   }, []);
 
-  const phone = kind === "mobile";
+  // on a phone, the web app comes as its phone-sized version, in a phone
+  const phone = kind === "mobile" || (kind === "web" && small);
   return (
     <section ref={ref} aria-label={copy.title.replace(/\*/g, "")} className="relative px-[var(--gutter)] py-[16svh]">
       <div className="mx-auto flex max-w-[1180px] flex-col items-center text-center">
@@ -75,14 +79,14 @@ export function TryIt({ kind, copy }: { kind: "web" | "mobile" | "sites"; copy: 
         <div data-ti-device className={`relative mt-14 w-full text-left will-change-transform ${phone ? "max-w-[340px] max-md:w-[78%]" : "max-w-[1100px]"}`}>
           {phone ? (
             <Fit w={FRAME_SIZE.w} h={FRAME_SIZE.h}>
-              <PhoneFrame>{near ? <PhoneApps interactive /> : <div style={{ width: PHONE_SIZE.w, height: PHONE_SIZE.h, background: "#0b0d12" }} />}</PhoneFrame>
+              <PhoneFrame>{!near ? <div style={{ width: PHONE_SIZE.w, height: PHONE_SIZE.h, background: "#0b0d12" }} /> : kind === "web" ? <ProjectApp interactive compact /> : <PhoneApps interactive />}</PhoneFrame>
             </Fit>
           ) : (
             <Fit w={LAPTOP_SIZE.w} h={LAPTOP_SIZE.h}>
-              <LaptopFrame>{near && (kind === "web" ? <ProjectApp interactive /> : <SiteLooks interactive look={look} />)}</LaptopFrame>
+              <LaptopFrame>{near && (kind === "web" ? <ProjectApp interactive /> : <SiteLooks interactive look={look} accent={accent} />)}</LaptopFrame>
             </Fit>
           )}
-          {kind === "sites" && <LookPicker look={look} onLook={setLook} />}
+          {kind === "sites" && <LookPicker look={look} onLook={setLook} accent={accent} onAccent={setAccent} />}
         </div>
       </div>
     </section>

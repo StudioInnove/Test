@@ -460,7 +460,7 @@ export function FilmStage() {
       const raw = a.getAttribute("href") || "";
       const id = raw.startsWith("#") ? raw.slice(1) : raw.startsWith("/#") ? raw.slice(2) : "";
       if (!id) return;
-      const map: Record<string, SceneKey> = { top: "hero", services: "services", web: "web", mobile: "mobile", how: "how", originals: "originals", contact: "close" };
+      const map: Record<string, SceneKey> = { top: "hero", services: "services", web: "web", mobile: "mobile", sites: "sites", how: "how", originals: "originals", contact: "close" };
       if (map[id] !== undefined) {
         e.preventDefault();
         const i = sceneIndex(map[id]);
@@ -497,8 +497,12 @@ export function FilmStage() {
     stage.addEventListener("click", onStageClick);
     // other parts of the page (the footer's "back to the top", the map) can send the film to a scene
     const onGoto = (e: Event) => {
-      const i = Number((e as CustomEvent).detail) || 0;
+      const det = (e as CustomEvent).detail;
+      // { i, fly }: glide there through every room on the way, rather than cutting
+      const fly = typeof det === "object" && det !== null && Boolean(det.fly);
+      const i = Number(typeof det === "object" && det !== null ? det.i : det) || 0;
       if (worldOpen) closeWorld();
+      if (filmMode && fly && !reduce) return head(i, true);
       if (filmMode) return cutRef.current(i);
       // from below the film: glide up to it first, then let it take over
       exiting = true;
@@ -943,9 +947,17 @@ export function FilmStage() {
             {/* the second line lights up word by word once you've arrived */}
             <span data-depth="1.3" className="svc-lit inline-block will-change-transform"><Words text={services.headline[1]} delay={180} /></span>
           </h2>
+          {/* then the three rooms land one after another, each a way into its room */}
+          <div className="svc-rooms mt-10 flex flex-wrap items-center justify-center gap-x-6 gap-y-3 md:mt-14">
+            {(["web", "mobile", "sites"] as const).map((k, i) => (
+              <button key={k} type="button" className="svc-room" style={{ ["--n" as string]: i }} onClick={() => window.dispatchEvent(new CustomEvent("film:goto", { detail: { i: sceneIndex(k), fly: true } }))}>
+                {services[k].title}
+              </button>
+            ))}
+          </div>
         </section>
 
-        {(["web", "mobile"] as const).map((k, n) => {
+        {(["web", "mobile", "sites"] as const).map((k, n) => {
           const sv = services[k];
           return (
             <section key={k} data-scene={k} aria-label={sv.title} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[96px] md:pb-[12svh]" style={sceneStyle}>
@@ -956,7 +968,6 @@ export function FilmStage() {
                 <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{sv.line}</p>
                 <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
                   <a href={href(sv.more.href)} className="more">{sv.more.link}</a>
-                  {"also" in sv && sv.also ? <a href={href((sv.also as { href: string }).href)} className="more">{(sv.also as { link: string }).link}</a> : null}
                 </div>
               </div>
             </section>

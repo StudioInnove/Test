@@ -45,7 +45,7 @@ const SHOTS: Partial<Record<WorldId, (Shot | null)[]>> = {
 };
 
 /** Words on the right (r) or left (l), per chapter. */
-const SIDES: Partial<Record<WorldId, ("l" | "r")[]>> = { web: ["r", "r", "r"], how: ["l", "l", "l"] };
+const SIDES: Partial<Record<WorldId, ("l" | "r")[]>> = { web: ["r", "r", "r"], sites: ["r", "r", "r"], how: ["l", "l", "l"] };
 
 /** The process close-up walks along the design wall: one step of the process per stop. */
 const WALL = { src: "/worlds/wall-d.webp", aspect: 3800 / 1612, k: 1.32, at: [0.355, 0.61, 0.855] };

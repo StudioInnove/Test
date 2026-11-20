@@ -16,6 +16,7 @@ const SCENE_LINK: Record<string, string> = {
   services: "/#services",
   web: "/#services",
   mobile: "/#services",
+  sites: "/#services",
   how: "/#how",
   originals: "/#originals",
   faq: "/#faq",

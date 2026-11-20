@@ -5,12 +5,14 @@
  * The section stays put while the wall slides by. The wall is drawn on a canvas, one frame at a time, from
  * a single decoded picture: a very wide image moved as a page layer gets painted in tiles, and on a fast
  * scroll some tiles arrive late and the picture blinks. A canvas can't do that.
- * GSAP ScrollTrigger scrubs the walk with a little smoothing. One caption at a time, like an exhibition
+ * GSAP ScrollTrigger scrubs the walk with a little smoothing, and when you stop scrolling the wall glides
+ * on to rest at the nearest group of sketches, so you never stop halfway between two. One caption at a time, like an exhibition
  * label: a word in the italic serif (first, then, next, finally), a title, a line. A fine thread, pinned
  * from one group of sketches to the next, is drawn along the wall as you walk.
  */
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
+import type { ScrollTrigger } from "gsap/ScrollTrigger";
 import { asset } from "@/lib/content";
 import { Words } from "../Words";
 
@@ -123,8 +125,9 @@ export function Journey({ heading, steps, titles, order, image, aspect, at }: { 
     resize();
 
     let last = 0;
+    let st: ScrollTrigger | undefined;
     const ctx = gsap.context(() => {
-      gsap.to(state, {
+      const tw = gsap.to(state, {
         p: 1,
         ease: "none",
         onUpdate: draw,
@@ -149,8 +152,30 @@ export function Journey({ heading, steps, titles, order, image, aspect, at }: { 
           },
         },
       });
+      st = tw.scrollTrigger;
     }, sec);
+
+    // settle on a step when the scrolling stops
+    const n = steps.length;
+    const settle = () => {
+      if (!st || n < 2 || !st.isActive) return;
+      const p = st.progress;
+      const step = Math.round(p * (n - 1)) / (n - 1);
+      const y = st.start + (st.end - st.start) * step;
+      if (Math.abs(y - window.scrollY) < 3) return;
+      const lenis = (window as unknown as { __lenis?: { scrollTo: (y: number, o?: object) => void } }).__lenis;
+      if (lenis) lenis.scrollTo(y, { duration: 0.9, easing: (t: number) => 1 - Math.pow(1 - t, 3) });
+      else window.scrollTo({ top: y, behavior: "smooth" });
+    };
+    let idle = 0;
+    const onScroll = () => {
+      clearTimeout(idle);
+      idle = window.setTimeout(settle, 160);
+    };
+    window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
+      window.removeEventListener("scroll", onScroll);
+      clearTimeout(idle);
       ctx.revert();
       ro.disconnect();
     };

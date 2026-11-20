@@ -18,9 +18,12 @@ const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
 const ease = (x: number) => 1 - Math.pow(1 - x, 3);
 
-export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
+type QA = { q: string; a: string };
+
+/** Each page has its own questions; the home page has the general ones. */
+export function FaqDrum({ id, warm = 0.12, set }: { id?: string; warm?: number; set?: "web" | "mobile" | "sites" }) {
   const { faq, studio } = content;
-  const items = faq.items;
+  const items: QA[] = set ? (faq as unknown as Record<string, QA[]>)[set] : faq.items;
   const n = items.length;
   const ref = useRef<HTMLElement>(null);
   const pairs = useRef<(HTMLDivElement | null)[]>([]);
@@ -122,7 +125,6 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
               ))}
             </ol>
             <div className="mt-auto hidden md:block">
-              <button type="button" onClick={skip} className="faq-skip mb-8">Skip the questions<span aria-hidden> ↓</span></button>
               <p className="t-body max-w-[30ch]">{faq.line} {studio.replyPromise}</p>
               <div className="mt-5"><EmailPill email={studio.email} /></div>
             </div>
@@ -148,6 +150,8 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
             ))}
           </div>
         </div>
+        {/* computers: past the questions, at the other side from the list */}
+        <button type="button" onClick={skip} className="faq-skip absolute bottom-[7svh] right-[var(--gutter)] hidden md:inline-flex">Skip the questions<span aria-hidden>↓</span></button>
         {/* phones: where you are, and a way to ask your own */}
         <div className="relative mt-6 flex items-center justify-between gap-4 md:hidden">
           <div aria-hidden className="flex gap-2">
@@ -155,7 +159,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
               <span key={it.q} className={`h-[2px] rounded-full transition-all duration-700 ${i === active ? "w-8 bg-paper" : "w-3 bg-paper/25"}`} />
             ))}
           </div>
-          <button type="button" onClick={skip} className="faq-skip">Skip<span aria-hidden> ↓</span></button>
+          <button type="button" onClick={skip} className="faq-skip">Skip<span aria-hidden>↓</span></button>
         </div>
         <div className="relative mt-4 md:hidden"><EmailPill email={studio.email} /></div>
       </div>

@@ -207,6 +207,84 @@
         "q": "Who do you *work* with?",
         "a": "Founders with a first idea, and businesses that need an app for their customers or their team."
       }
+    ],
+    "web": [
+      {
+        "q": "What does a web app *cost?*",
+        "a": "It depends on what it needs to do. After a free 30-minute call you get a clear, fixed quote, so there are no surprises later."
+      },
+      {
+        "q": "Will it work on *phones* too?",
+        "a": "Yes. Everything we build runs in any modern browser, on a laptop, a tablet or a phone, and feels at home on each."
+      },
+      {
+        "q": "Can it talk to our *tools?*",
+        "a": "Usually, yes. Payments, calendars, email, CRMs and spreadsheets can all be connected, so nobody types the same thing twice."
+      },
+      {
+        "q": "Is our data *safe?*",
+        "a": "It's hosted on well-known, secure infrastructure, with encrypted connections, backups, and access that you control."
+      },
+      {
+        "q": "Can it *grow* with us?",
+        "a": "It's built to. New features, more people and more data can be added later without starting again."
+      },
+      {
+        "q": "Do I *own* everything?",
+        "a": "Yes. Once the project is paid, the code, the designs and the accounts are all yours."
+      }
+    ],
+    "mobile": [
+      {
+        "q": "iPhone, Android, or *both?*",
+        "a": "Both. One app, built to feel native on each, so you don't pay for it twice."
+      },
+      {
+        "q": "What does an app *cost?*",
+        "a": "It depends on what it needs to do. After a free 30-minute call you get a clear, fixed quote, so there are no surprises later."
+      },
+      {
+        "q": "Do you handle the *App Store?*",
+        "a": "Yes. We prepare the listings and screenshots, submit to the App Store and Google Play, and see it through review."
+      },
+      {
+        "q": "Can it work *offline?*",
+        "a": "Where it makes sense, yes. The app keeps what you need on the phone and catches up when you're back online."
+      },
+      {
+        "q": "Can we try it *early?*",
+        "a": "Yes. You'll have a working build on your own phone early on, and a new one as each part is finished."
+      },
+      {
+        "q": "What happens after *launch?*",
+        "a": "We can stay on for updates, new phone versions and new features, or hand everything over cleanly. Whichever suits you."
+      }
+    ],
+    "sites": [
+      {
+        "q": "What does a website *cost?*",
+        "a": "It depends on how many pages and what they need to do. After a free 30-minute call you get a clear, fixed quote."
+      },
+      {
+        "q": "Can we *update* it ourselves?",
+        "a": "Yes. Every site comes with a simple editor for pages, posts and products. No code needed."
+      },
+      {
+        "q": "Will people *find* it?",
+        "a": "It's built for search from the start: fast pages, clean structure, and proper titles and descriptions."
+      },
+      {
+        "q": "Can we sell *online?*",
+        "a": "Yes. Shops with payments, stock and delivery, set up so your team can run them day to day."
+      },
+      {
+        "q": "Do you write the *words* too?",
+        "a": "We can. Or we shape what you already have, so every page reads clearly."
+      },
+      {
+        "q": "Do I *own* everything?",
+        "a": "Yes. Once the project is paid, the site, the designs and the accounts are all yours."
+      }
     ]
   },
   "footer": {

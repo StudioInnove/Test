@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 
 /**
- * The studio's email, set large: the address opens your mail app (its underline draws in on hover),
+ * The studio's email, set large: the address opens your mail app (it brightens, with a small arrow, on hover),
  * and a small "Copy" beside it copies it.
  */
 export function EmailPill({ email, className = "" }: { email: string; className?: string }) {
@@ -35,7 +35,7 @@ export function EmailPill({ email, className = "" }: { email: string; className?
         <a href={`mailto:${email}`} className="email-link min-w-0 break-all text-[clamp(17px,1.3vw,19px)] leading-tight tracking-[-0.012em] text-paper">
           <span ref={textRef}>{email}</span>
         </a>
-        <button type="button" onClick={copy} className="text-[13px] text-paper/55 underline decoration-paper/25 underline-offset-4 transition-colors hover:text-paper" aria-live="polite">
+        <button type="button" onClick={copy} className="text-[13px] text-paper/45 transition-colors hover:text-paper" aria-live="polite">
           {copied ? "Copied" : "Copy"}
         </button>
       </div>

@@ -32,7 +32,7 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" | "sites" }) {
 
       {/* questions, as a conversation */}
       <Handover />
-      <FaqDrum />
+      <FaqDrum set={kind} />
 
       <Finale />
     </PageShell>

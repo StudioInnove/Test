@@ -269,8 +269,10 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 @media (prefers-reduced-motion: reduce) { .spot-dot, .spot-dot::after, .build-pulse { animation: none !important; } }
 
 /* the large email: a faint underline that fills in on hover */
-.email-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0% 1px no-repeat, linear-gradient(rgb(239 233 224 / 0.22), rgb(239 233 224 / 0.22)) 0 100% / 100% 1px no-repeat; padding-bottom: 4px; transition: background-size 600ms var(--ease-out); }
-@media (hover: hover) { .email-link:hover { background-size: 100% 1px, 100% 1px; } }
+/* no underlines: the address brightens and a small arrow slides in when you point at it */
+.email-link { display: inline-flex; align-items: baseline; gap: 8px; color: rgb(239 233 224 / 0.88); transition: color 400ms ease; }
+.email-link::after { content: "›"; opacity: 0; transform: translateX(-4px); transition: opacity 400ms ease, transform 500ms var(--ease-out); }
+@media (hover: hover) { .email-link:hover { color: #fff; } .email-link:hover::after { opacity: 0.8; transform: none; } }
 
 /* phones: the nav is just the logo and "Menu", sitting on a soft shade instead of a capsule */
 @media (max-width: 767px) {
@@ -381,11 +383,13 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .sketch-paper { background-color: #0c111d; background-image: radial-gradient(rgb(239 233 224 / 0.07) 1px, transparent 1.2px); background-size: 22px 22px; background-position: 11px 11px; }
 .sketch-note { font-family: var(--font-serif); font-style: italic; fill: rgb(239 233 224 / 0.82); letter-spacing: 0.005em; }
 @media (hover: hover) and (pointer: fine) { .sketch-grain { filter: var(--grain); } }
-.faq-skip { font-size: 14px; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.6); border-bottom: 1px solid rgb(239 233 224 / 0.2); padding-bottom: 2px; transition: color 300ms ease, border-color 300ms ease; }
-.faq-skip:hover { color: #efe9e0; border-color: rgb(239 233 224 / 0.6); }
-/* footer links: a hairline draws under the one you point at */
-.foot-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: color 300ms ease, background-size 500ms var(--ease-out); }
-.foot-link:hover { background-size: 100% 1px; }
+.faq-skip { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.55); transition: color 300ms ease; }
+.faq-skip span { display: inline-block; transition: transform 500ms var(--ease-out); }
+.faq-skip:hover { color: #efe9e0; }
+.faq-skip:hover span { transform: translateY(3px); }
+/* footer links: the one you point at brightens and leans a little to the right */
+.foot-link { display: inline-block; transition: color 300ms ease, transform 500ms var(--ease-out); }
+.foot-link:hover { transform: translateX(3px); }
 /* home: "web and mobile apps." starts dim and lights word by word after the words arrive */
 .svc-lit .w { color: rgb(239 233 224 / 0.5); transition: opacity 1400ms var(--ease-film), transform 1700ms var(--ease-out), filter 1400ms var(--ease-film), color 1400ms ease; transition-delay: calc(var(--d, 0ms) + 200ms); }
 .reveal.on .svc-lit .w { color: #efe9e0; transition-delay: calc(var(--d, 0ms) + 200ms), calc(var(--d, 0ms) + 200ms), calc(var(--d, 0ms) + 200ms), calc(1500ms + var(--i) * 260ms); }

@@ -9,7 +9,8 @@
     "waitlistEndpoint": "https://formspree.io/f/xqpqbyqw",
     "linkedin": "https://www.linkedin.com/in/naseembouakkaz/",
     "youtube": "https://www.youtube.com/@NaseemBouakkaz",
-    "year": "2026"
+    "year": "2026",
+    "ideaEndpoint": "https://formspree.io/f/xqpqbyqw"
   },
   "seo": {
     "title": "Studio Innové — Websites, web and mobile apps, designed and built",
@@ -191,7 +192,15 @@
     "line": "Alongside the studio's work, we're building a product of our own. Join the list to see it first.",
     "joinLine": "Be the first through the door.",
     "teaser": "Something is being built in here.",
-    "inside": "Look inside"
+    "inside": "Look inside",
+    "reveal": {
+      "_how": "When the app is ready: set on to true and fill in name, line and url. It then replaces the mystery in the film, the room and the Originals page.",
+      "on": false,
+      "name": "",
+      "line": "",
+      "url": "",
+      "cta": "Try it"
+    }
   },
   "close": {
     "heading": "Have an *idea?*",
@@ -365,6 +374,13 @@
             "sketch": "web-blank"
           }
         ]
+      },
+      "tryit": {
+        "kicker": "Made here",
+        "title": "Go on, *try* it.",
+        "line": "A reservations app we designed and built as a demo. The bookings are pretend. Everything else works.",
+        "hint": "Tap an empty slot to book, or drag one to move it",
+        "hintPhone": "Easiest to try on a computer"
       }
     },
     "mobile": {
@@ -451,6 +467,12 @@
             "sketch": "mobile-blank"
           }
         ]
+      },
+      "tryit": {
+        "kicker": "Made here",
+        "title": "Go on, *play.*",
+        "line": "Three little demo apps we designed and built: a game, an events app and a table booking.",
+        "hint": "Catch the lights, then swipe to the next app"
       }
     },
     "originalsPage": {
@@ -522,6 +544,12 @@
             "sketch": "web-blank"
           }
         ]
+      },
+      "tryit": {
+        "kicker": "Made here",
+        "title": "Have a *look* around.",
+        "line": "Three demo sites we designed and built: a studio, a shop and a launch page. Watch someone browse them.",
+        "hint": "A new site every few seconds"
       }
     }
   },
@@ -560,7 +588,8 @@
           "title": "Built to *grow* with you.",
           "line": "Fast, secure and ready to grow."
         }
-      ]
+      ],
+      "tryHint": "The screen works. Go on, try it."
     },
     "mobile": {
       "title": "Apps people keep.",
@@ -584,7 +613,8 @@
           "title": "For iPhone *and* Android.",
           "line": "Designed for both, so it feels at home on any phone."
         }
-      ]
+      ],
+      "tryHint": "The phone works. Go on, try it."
     },
     "how": {
       "title": "From idea to launch.",
@@ -698,5 +728,37 @@
     "How we work",
     "Originals",
     "Have an idea?"
-  ]
+  ],
+  "contact": {
+    "kicker": "Let's talk",
+    "title": "How would you like to start?",
+    "close": "Close",
+    "call": {
+      "title": "Book a call",
+      "line": "Thirty minutes, at a time that suits you."
+    },
+    "write": {
+      "title": "Rather write?",
+      "line": "Tell us about your idea in a few lines.",
+      "heading": "Tell us about your *idea.*"
+    },
+    "back": "Back",
+    "fields": {
+      "idea": "What would you like to make?",
+      "ideaHint": "A few lines is plenty.",
+      "when": "Roughly when?",
+      "email": "Your email"
+    },
+    "when": [
+      "As soon as possible",
+      "In the next few months",
+      "Just exploring"
+    ],
+    "send": "Send",
+    "sending": "Sending…",
+    "error": "That didn't go through. Please try again, or write to",
+    "doneTitle": "Thank you.",
+    "doneLine": "We've got your idea and we'll reply within one working day.",
+    "doneButton": "Done"
+  }
 }

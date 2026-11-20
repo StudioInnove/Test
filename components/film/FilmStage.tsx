@@ -1026,10 +1026,15 @@ export function FilmStage() {
         <section data-scene="originals" aria-label={originals.eyebrow} className="scene-text reveal absolute inset-0 isolate flex flex-col justify-end px-[var(--gutter)] pb-[92px] md:justify-center md:pb-0" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:linear-gradient(0deg,#070a12_0%,rgb(7_10_18/0.94)_52%,rgb(7_10_18/0.55)_72%,transparent_88%)] md:[background:linear-gradient(90deg,rgb(7_10_18/0.9)_0%,rgb(7_10_18/0.6)_38%,transparent_62%)]" />
           <div className="stack max-w-[460px]">
-            <h2 className="t-title"><Words text={originals.heading} /></h2>
-            <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.line}</p>
+            {/* until the Original is out it stays a secret; one switch in the content introduces it */}
+            <h2 className="t-title"><Words text={originals.reveal.on ? `Meet *${originals.reveal.name}.*` : originals.heading} /></h2>
+            <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{originals.reveal.on ? originals.reveal.line : originals.line}</p>
             <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
-              <button type="button" onClick={() => openRef.current(0)} className="btn btn-primary">{originals.cta}</button>
+              {originals.reveal.on ? (
+                <a href={originals.reveal.url} target="_blank" rel="noopener" className="btn btn-primary">{originals.reveal.cta}</a>
+              ) : (
+                <button type="button" onClick={() => openRef.current(0)} className="btn btn-primary">{originals.cta}</button>
+              )}
               <button type="button" onClick={() => openRef.current(0)} className="more">{originals.inside}</button>
             </div>
           </div>

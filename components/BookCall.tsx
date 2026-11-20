@@ -43,30 +43,34 @@ type Props = {
   onOpen?: () => void;
 };
 
-/** Opens the calendar over the page. Without JavaScript it is a plain link to the booking page. */
-export function BookCall({ children, className = "", variant = "primary", size = "md", arrow = false, onOpen }: Props) {
+/** Opens the calendar pop-up, or the booking page in a new tab if the pop-up hasn't loaded. */
+export function openCal() {
   const { calLink, calUrl } = content.studio;
+  if (!calReady) {
+    initCal();
+    window.open(calUrl, "_blank", "noopener");
+    return;
+  }
+  initCal().then((cal) => {
+    (cal as (...a: unknown[]) => void)("modal", { calLink, config: { layout: "month_view", theme: "dark", overlayCalendar: "true" } });
+  });
+}
+
+/** Opens the contact panel (a call, or a few lines about the idea). Without JavaScript it is a plain link to the booking page. */
+export function BookCall({ children, className = "", variant = "primary", size = "md", arrow = false, onOpen }: Props) {
+  const { calUrl } = content.studio;
   return (
     <a
       href={calUrl}
       target="_blank"
       rel="noopener"
-      data-cal-namespace={NS}
-      data-cal-link={calLink}
-      data-cal-config='{"layout":"month_view","theme":"dark","overlayCalendar":"true"}'
       onPointerEnter={() => initCal()}
       onFocus={() => initCal()}
       onClick={(e) => {
         onOpen?.();
-        // Pop-up not loaded (slow network, blocked script)? Let the link open the booking page in a new tab.
-        if (!calReady) {
-          initCal();
-          return;
-        }
         e.preventDefault();
-        initCal().then((cal) => {
-          (cal as (...a: unknown[]) => void)("modal", { calLink, config: { layout: "month_view", theme: "dark", overlayCalendar: "true" } });
-        });
+        initCal();
+        window.dispatchEvent(new CustomEvent("contact:open"));
       }}
       className={`btn ${variant === "primary" ? "btn-primary" : "btn-ghost"} ${size === "sm" ? "btn-sm" : ""} ${className}`}
     >

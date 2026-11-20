@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
+import { ContactPanel } from "@/components/ContactPanel";
 import { PageFade } from "@/components/ui/PageFade";
 import "@fontsource-variable/inter/opsz.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
@@ -48,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <CalWarmup />
+        <ContactPanel />
         <PageFade />
         <Analytics />
       </body>

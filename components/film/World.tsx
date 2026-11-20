@@ -112,7 +112,9 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
     return () => clearTimeout(t);
   }, [id]);
 
-  const chapters = id ? W[id].chapters : [];
+  // once the Original is out, its room introduces it instead of keeping the secret
+  const rv = content.originals.reveal;
+  const chapters = !id ? [] : id === "originals" && rv.on ? [{ title: `Meet *${rv.name}.*`, line: rv.line }] : W[id].chapters;
   const last = chapters.length - 1;
 
   /** Move one chapter on (+1) or back (-1); past either end steps out of the close-up. */
@@ -201,8 +203,13 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
       {actions(460)}
     </>
   );
-  if (id === "originals" && chap === 1) extra = <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack /></div>;
-  if (id === "originals" && chap === 2) extra = <div className="rise mt-8 w-full" style={d(380)}><WaitlistForm source="originals-room" onJoined={() => setJoined(true)} /></div>;
+  if (id === "originals" && rv.on) extra = (
+    <div className="rise actions" style={d(380)}>
+      <a href={rv.url} target="_blank" rel="noopener" className="btn btn-primary">{rv.cta}</a>
+    </div>
+  );
+  else if (id === "originals" && chap === 1) extra = <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack /></div>;
+  else if (id === "originals" && chap === 2) extra = <div className="rise mt-8 w-full" style={d(380)}><WaitlistForm source="originals-room" onJoined={() => setJoined(true)} /></div>;
 
   const c = chapters[chap];
   // which side the words sit on, so they never cover the thing the chapter is about
@@ -316,6 +323,20 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           >
             {W.back}
           </motion.button>
+
+          {/* the screen here really works: a quiet invitation, top right, once you've arrived */}
+          {((id === "web" && !phone && chap === 0) || (id === "mobile" && chap < 2)) && (
+            <motion.p
+              key={`try-${id}`}
+              initial={{ opacity: 0, y: -6, filter: "blur(6px)" }}
+              animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+              transition={{ duration: 1.2, ease, delay: 2.4 }}
+              className="pointer-events-none absolute right-[var(--gutter)] top-[max(18px,env(safe-area-inset-top))] z-20 hidden h-11 items-center gap-2.5 text-[14px] text-paper/75 md:top-6 md:flex"
+            >
+              <span aria-hidden className="h-1.5 w-1.5 animate-pulse rounded-full bg-[#f4b478]" />
+              {W[id === "web" ? "web" : "mobile"].tryHint}
+            </motion.p>
+          )}
 
           {/* the warm light you pass through on the way in */}
           <motion.div aria-hidden className="pointer-events-none absolute inset-0 z-30 [background:radial-gradient(60%_60%_at_50%_50%,rgb(255_196_130/0.8),rgb(232_161_90/0.4)_45%,rgb(7_10_18/0.85))]" initial={{ opacity: 0.9 }} animate={{ opacity: 0 }} transition={{ duration: 1.3, ease: film }} />

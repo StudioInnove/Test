@@ -408,3 +408,12 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
   .t-body { font-size: 16px; }
 }
 :where(a, button, input, [tabindex]):focus-visible { outline: 2px solid #f4b478; outline-offset: 3px; border-radius: 8px; }
+
+/* the contact panel */
+html.panel-open, html.panel-open body { overflow: hidden; }
+.contact-choice { display: flex; width: 100%; align-items: center; justify-content: space-between; gap: 16px; border-radius: 18px; padding: 18px 20px; text-align: left; background: rgb(239 233 224 / 0.045); box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.08); transition: background-color 300ms ease, box-shadow 300ms ease, transform 160ms var(--ease-out); }
+.contact-choice:hover { background: rgb(239 233 224 / 0.08); box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.16); }
+.contact-choice:active { transform: scale(0.985); }
+.contact-input { width: 100%; border-radius: 14px; padding: 13px 16px; font-size: 16px; color: var(--color-paper, #efe9e0); background: rgb(239 233 224 / 0.05); box-shadow: inset 0 0 0 1px rgb(239 233 224 / 0.1); outline: none; transition: box-shadow 300ms ease, background-color 300ms ease; }
+.contact-input::placeholder { color: rgb(239 233 224 / 0.35); }
+.contact-input:focus { background: rgb(239 233 224 / 0.07); box-shadow: inset 0 0 0 1px rgb(244 180 120 / 0.55); }

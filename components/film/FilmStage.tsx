@@ -10,6 +10,7 @@ import { Words } from "../Words";
 import { BuildScreen, BUILD_SIZE } from "../apps/BuildScreen";
 import { Dashboard, DASH_SIZE } from "../apps/Dashboard";
 import { PhoneApps, PHONE_SIZE } from "../apps/PhoneApps";
+import { SiteScreen, SITE_SIZE } from "../apps/SiteScreen";
 import { FilmEngine, type Manifest, type Shot, type Single } from "./engine";
 import { LivingLight } from "./living";
 import { SCENES, sceneIndex, type SceneKey } from "./scenes";
@@ -576,7 +577,9 @@ export function FilmStage() {
         const a = (vel !== 0 && Math.sign(want) !== Math.sign(vel) ? ACC * 2.6 : ACC) * (flying ? 1.6 : 1);
         vel += clamp(want - vel, -a * dt, a * dt);
         const dir = Math.sign(vel) || Math.sign(d) || 1;
-        pos = clamp(pos + vel * dt, 0, LAST);
+        // a move with a longer camera path takes proportionally longer, so every move feels the same pace
+        const seg = Math.floor(vel < 0 ? pos - 1e-6 : pos) + 1;
+        pos = clamp(pos + (vel * dt) / (SCENES[seg]?.len ?? 1), 0, LAST);
         // text: hide as soon as we leave a scene, show just before we arrive
         if (shown !== null && Math.abs(pos - shown) > 0.02) showText(null);
         if (Math.abs(target - pos) < TEXT_AT) showText(target);
@@ -704,10 +707,10 @@ export function FilmStage() {
           const next = cur + (amt - cur) * Math.min(1, dt * (amt ? 1.4 : 7));
           if (Math.abs(next - cur) > 0.001 || painted) {
             el.dataset.amt = String(next < 0.003 && !amt ? 0 : next);
-            el.style.opacity = String(next * 0.97);
+            el.style.opacity = String(next * (scr?.app === "site" ? 1 : 0.97));
             if (scr && (painted || screenKey !== still)) {
               screenKey = still;
-              const size = scr.app === "dash" ? DASH_SIZE : scr.app === "phone" ? PHONE_SIZE : BUILD_SIZE;
+              const size = scr.app === "dash" ? DASH_SIZE : scr.app === "phone" ? PHONE_SIZE : scr.app === "site" ? SITE_SIZE : BUILD_SIZE;
               el.style.width = size.w + "px";
               el.style.height = size.h + "px";
               el.style.transform = quadMatrix(size.w, size.h, scr.quad.map(([u, v]) => map(u, v)));
@@ -917,6 +920,7 @@ export function FilmStage() {
               {screen?.app === "dash" && <Dashboard />}
               {screen?.app === "phone" && <PhoneApps notify />}
               {screen?.app === "build" && <BuildScreen />}
+              {screen?.app === "site" && <SiteScreen />}
               <div className="absolute inset-0 [background:linear-gradient(115deg,rgb(255_255_255/0.1),transparent_45%)]" />
             </div>
           </div>

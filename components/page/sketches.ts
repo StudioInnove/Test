@@ -177,16 +177,16 @@ export function sketch(kind: SketchKind): Sketch {
   switch (kind) {
     case "web-landing":
       site(SITES.landing as SiteEl[]);
-      spaceV(30, 66, 132, "64");
-      note(232, 578, "one clear action", 196, 520);
+      spaceV(30, 60, 104, "44");
+      note(60, 420, "one clear action", 452, 394);
       break;
     case "web-brand":
       site(SITES.brand as SiteEl[]);
-      note(48, 252, "let the light do the talking", 650, 220);
+      note(48, 300, "let the light do the talking", 640, 260);
       break;
     case "web-shop":
       site(SITES.shop as SiteEl[]);
-      note(292, 300, "straight to the shop", 264, 292);
+      note(70, 190, "photography first", 330, 330);
       break;
     case "web-platforms": {
       guideV(262, H); guideV(1156, H); guideH(48, W); guideH(668, W);

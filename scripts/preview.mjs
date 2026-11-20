@@ -20,7 +20,7 @@ for (const f of walk(OUT)) {
     s = s.replaceAll('"/_next/', `"${up}_next/`).replaceAll("'/_next/", `'${up}_next/`);
     if (depth && ext === ".html") {
       // files from /public (film, brand) live at the root of the preview
-      s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('"./worlds/', `"${up}worlds/`).replaceAll('"./closeups/', `"${up}closeups/`).replaceAll('"./services/', `"${up}services/`).replaceAll('srcSet="./', `srcSet="${up}`);
+      s = s.replaceAll('"./film/', `"${up}film/`).replaceAll('"./brand/', `"${up}brand/`).replaceAll('"./worlds/', `"${up}worlds/`).replaceAll('"./closeups/', `"${up}closeups/`).replaceAll('"./services/', `"${up}services/`).replaceAll('"./sites/', `"${up}sites/`).replaceAll('srcSet="./', `srcSet="${up}`);
       s = s.replace("<head>", `<head><script>window.__B=${JSON.stringify(up)}</script>`);
       // links between pages: from one folder down, "./x/" and "#faq" must go up first
       s = s.replace(/href="(\.\/[^"]*|#[^"]*)"/g, (m, h) => `href="${h.startsWith("#") ? up + h : up + h.slice(2)}"`);

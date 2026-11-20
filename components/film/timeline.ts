@@ -44,7 +44,7 @@ export type Quad = [[number, number], [number, number], [number, number], [numbe
 export const SCREENS: Partial<Record<StillId, { app: "dash" | "phone" | "build" | "site"; quad: Quad }>> = {
   s3: { app: "dash", quad: [[0.3925, 0.5006], [0.6075, 0.5006], [0.6075, 0.697], [0.3925, 0.697]] },
   s4: { app: "phone", quad: [[0.5147, 0.6699], [0.6259, 0.6417], [0.8384, 0.7392], [0.7256, 0.7861]] },
-  s7: { app: "site", quad: [[0.3692, 0.3717], [0.6083, 0.401], [0.6083, 0.6348], [0.3692, 0.651]] },
+  s7: { app: "site", quad: [[0.3677, 0.3708], [0.6085, 0.3975], [0.609, 0.6374], [0.3685, 0.6523]] },
   s6: { app: "build", quad: [[0.3963, 0.431], [0.607, 0.431], [0.607, 0.6288], [0.3963, 0.6288]] },
 };
 

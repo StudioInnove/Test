@@ -70,7 +70,7 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
       last = now;
       // the light comes up as the photo settles in
       living.amount = Math.min(1, Math.max(0, (now - t0 - 900) / 1600));
-      if (screenRef.current) screenRef.current.style.opacity = String(Math.min(0.97, Math.max(0, (now - t0 - 600) / 1400)));
+      if (screenRef.current) screenRef.current.style.opacity = String(Math.min(scr?.app === "site" ? 1 : 0.97, Math.max(0, (now - t0 - 600) / 1400)));
       const [x0] = map(0, 0.5), [x1] = map(1, 0.5);
       living.draw(now / 1000, map, x1 - x0, reduce);
     };

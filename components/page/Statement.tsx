@@ -20,7 +20,7 @@ export function Statement({ text }: { text: string }) {
   const pieces = useMemo<Piece[]>(
     () =>
       text.split(/\s+/).filter(Boolean).map((raw) =>
-        /^\[.*\]$/.test(raw) ? { kind: "img", src: raw.slice(1, -1) } : { kind: "w", t: raw.replace(/\*/g, ""), a: /^\*.*\*[.,!?—]?$/.test(raw) },
+        /^\[[^\]]+\][.,;:!?]?$/.test(raw) ? { kind: "img", src: raw.slice(1, raw.lastIndexOf("]")) } : { kind: "w", t: raw.replace(/\*/g, ""), a: /^\*.*\*[.,!?—]?$/.test(raw) },
       ),
     [text],
   );

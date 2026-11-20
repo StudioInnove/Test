@@ -21,14 +21,18 @@ export function ContactPanel() {
   const [mode, setMode] = useState<"choose" | "write">("choose");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [when, setWhen] = useState(0);
+  const [prefill, setPrefill] = useState("");
   const reduce = useReducedMotion() ?? false;
   const panel = useRef<HTMLDivElement>(null);
   const back = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    const on = () => {
+    const on = (e: Event) => {
       back.current = document.activeElement as HTMLElement;
-      setMode("choose");
+      // coming from "Your idea": straight to writing, with the idea already filled in
+      const idea = String((e as CustomEvent).detail?.idea ?? "").trim();
+      setPrefill(idea);
+      setMode(idea ? "write" : "choose");
       setState("idle");
       setOpen(true);
     };
@@ -167,7 +171,7 @@ export function ContactPanel() {
 
                   <label className="mt-7 block">
                     <span className="t-label block">{c.fields.idea}</span>
-                    <textarea data-first name="idea" required rows={3} placeholder={c.fields.ideaHint} className="contact-input mt-2 resize-none" />
+                    <textarea data-first name="idea" required rows={3} defaultValue={prefill} placeholder={c.fields.ideaHint} className="contact-input mt-2 resize-none" />
                   </label>
 
                   <fieldset className="mt-6">

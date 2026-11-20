@@ -8,7 +8,7 @@ import { Soundscape } from "@/lib/sound";
 import { BookCall } from "../BookCall";
 import { Words } from "../Words";
 import { BuildScreen, BUILD_SIZE } from "../apps/BuildScreen";
-import { Dashboard, DASH_SIZE } from "../apps/Dashboard";
+import { ProjectApp as Dashboard, PROJECT_SIZE as DASH_SIZE } from "../apps/ProjectApp";
 import { PhoneApps, PHONE_SIZE } from "../apps/PhoneApps";
 import { SiteScreen, SITE_SIZE } from "../apps/SiteScreen";
 import { FilmEngine, type Manifest, type Shot, type Single } from "./engine";

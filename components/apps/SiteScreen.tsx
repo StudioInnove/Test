@@ -1,13 +1,13 @@
 "use client";
 
 /*
- * The display in the websites room: the studio's sites, live in a browser window, filling the glass edge to
- * edge (see LiveSites).
+ * The display in the websites room: one demo site that changes its look every few seconds, filling the
+ * glass edge to edge (see SiteLooks).
  */
-import { LiveSites, LIVE_SITES_SIZE } from "./LiveSites";
+import { SiteLooks, SITE_LOOKS_SIZE } from "./SiteLooks";
 
 export function SiteScreen() {
-  return <LiveSites />;
+  return <SiteLooks />;
 }
 
-export const SITE_SIZE = LIVE_SITES_SIZE;
+export const SITE_SIZE = SITE_LOOKS_SIZE;

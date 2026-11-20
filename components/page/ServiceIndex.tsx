@@ -1,37 +1,79 @@
 "use client";
 
 /*
- * What we build, told one at a time, and drawn from idea to screen. The section holds still while you
- * scroll. The three lines turn past a reading line like the drum of a rolodex: the one you are on is sharp
- * and bright; the last one lifts away, smaller and out of focus, as the next one rises into place.
- * Beside it, the app is drawn the way a designer works: faint layout guides, then the boxes, then the
- * details, a few handwritten notes with arrows and a dab of amber highlighter, with the pencil's point
- * moving along each stroke. The colour fills in box by box behind the pencil, the whole screen settles,
- * and the pencil lifts away. From idea to launch, in one moment. Everything is scrubbed by GSAP ScrollTrigger, so it
- * happens at your pace, on a computer and a phone alike.
+ * Anything you can imagine: a few examples, told one at a time, on a device that stays put while its
+ * screen changes. The section holds still while you scroll; the titles turn past a reading line like the
+ * drum of a rolodex, and each example's screen builds itself in front of you (GSAP): its pieces settle into
+ * place one after another, charts draw on, numbers count up. On the phone, the apps slide across as on a
+ * real phone; on the websites page, one site re-dresses itself for each kind of site.
+ * The last one is yours: type your idea and its first screen appears, then send it to us.
  */
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
-import { asset } from "@/lib/content";
-import { sketch, SKETCH_SIZE, FILL_ALL, PENCIL_OUT, type SketchKind, type Sketch } from "./sketches";
+import { LaptopFrame, LAPTOP_SIZE } from "../ui/LaptopFrame";
+import { PhoneFrame, FRAME_SIZE } from "../ui/PhoneFrame";
+import { ProjectApp } from "../apps/ProjectApp";
+import { PhoneApps } from "../apps/PhoneApps";
+import { SiteLooks } from "../apps/SiteLooks";
+import { PlatformScreen, AnalyticsScreen, IdeaScreen, PhoneIdea } from "../apps/ExampleScreens";
 
-type Item = { title: string; phrase: string; line: string; image?: string; sketch?: string };
+type Item = { title: string; phrase: string; line: string; demo?: string };
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
-const ease = (x: number) => 1 - Math.pow(1 - x, 3);
 const smooth = (x: number) => x * x * (3 - 2 * x);
+const PHONE_PAGE: Record<string, number> = { "mobile-food": 0, "mobile-fitness": 1, "mobile-music": 2 };
+const SITE_LOOK: Record<string, number> = { "site-landing": 2, "site-brand": 0, "site-shop": 1 };
+
+/** something drawn at a fixed size, scaled to the width it is given */
+function Fit({ w, h, children }: { w: number; h: number; children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [s, setS] = useState(0);
+  useIso(() => {
+    const el = ref.current!;
+    const ro = new ResizeObserver(() => setS(el.clientWidth / w));
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [w]);
+  return (
+    <div ref={ref} className="relative w-full" style={{ aspectRatio: `${w} / ${h}` }}>
+      {s > 0 && <div className="absolute left-0 top-0 origin-top-left" style={{ width: w, height: h, transform: `scale(${s})` }}>{children}</div>}
+    </div>
+  );
+}
+
+/** build a screen in front of you: pieces settle in, charts draw, numbers count */
+function build(el: Element | null) {
+  if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  const { gsap } = getGsap();
+  gsap.fromTo(el.querySelectorAll("[data-b]"), { opacity: 0, y: 22, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out", stagger: 0.045, overwrite: true });
+  el.querySelectorAll("[data-draw]").forEach((p) => gsap.fromTo(p, { drawSVG: "0%" }, { drawSVG: "100%", duration: 1.6, ease: "power2.inOut", delay: 0.4 }));
+  el.querySelectorAll("[data-fade]").forEach((p) => gsap.fromTo(p, { opacity: 0 }, { opacity: 1, duration: 1.2, delay: 1 }));
+  el.querySelectorAll<HTMLElement>("[data-grow]").forEach((p) => gsap.fromTo(p, { scaleX: 0 }, { scaleX: 1, transformOrigin: "0 50%", duration: 1.2, ease: "power3.out", delay: 0.5 }));
+  el.querySelectorAll<HTMLElement>("[data-count]").forEach((p) => {
+    const end = +p.dataset.count!;
+    const o = { v: 0 };
+    gsap.to(o, { v: end, duration: 1.4, ease: "power2.out", delay: 0.3, onUpdate: () => { p.textContent = Math.round(o.v).toLocaleString("en-GB"); } });
+  });
+}
 
 export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] }) {
   const ref = useRef<HTMLElement>(null);
   const rows = useRef<(HTMLDivElement | null)[]>([]);
-  const frames = useRef<(HTMLDivElement | null)[]>([]);
+  const screens = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(0);
+  const [near, setNear] = useState(false);
+  const [idea, setIdea] = useState("");
   const n = items.length;
-  const web = (items[0]?.sketch ?? "web").startsWith("web");
-  const [vw, vh] = web ? SKETCH_SIZE.web : SKETCH_SIZE.mobile;
-  const empty: Sketch = { strokes: [], fills: [], notes: [], size: 20 };
-  const drawings = useMemo(() => items.map((it) => (it.sketch ? sketch(it.sketch as SketchKind) : empty)), [items]); // eslint-disable-line react-hooks/exhaustive-deps
+  const kind = (items[0]?.demo ?? "web").split("-")[0] as "web" | "mobile" | "site";
+  const phone = kind === "mobile";
+
+  // the demos only mount once the section is close
+  useEffect(() => {
+    const io = new IntersectionObserver(([e]) => e.isIntersecting && setNear(true), { rootMargin: "800px 0px" });
+    io.observe(ref.current!);
+    return () => io.disconnect();
+  }, []);
 
   useIso(() => {
     const { gsap } = getGsap();
@@ -39,25 +81,8 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
     if (!root) return;
     const state = { t: 0 };
     let last = -1;
-    // what each frame holds, looked up once
-    const parts = frames.current.map((el, i) => {
-      if (!el) return null;
-      // with no screen to reveal (your idea), the pencil's drawing stays on the page
-      const keep = !items[i]?.image;
-      const strokes = Array.from(el.querySelectorAll<SVGPathElement>("[data-stroke]")).map((p) => ({ p, s: +p.dataset.s!, e: +p.dataset.e!, len: p.getTotalLength() }));
-      return {
-        strokes,
-        fills: Array.from(el.querySelectorAll<SVGRectElement>("[data-fill]")).map((r) => ({ r, s: +r.dataset.s!, e: +r.dataset.e! })),
-        notes: Array.from(el.querySelectorAll<SVGTextElement>("[data-note]")).map((n) => ({ n, s: +n.dataset.s!, e: +n.dataset.e! })),
-        all: el.querySelector<SVGRectElement>("[data-fill-all]"),
-        pencil: el.querySelector<SVGGElement>("[data-pencil]"),
-        keep,
-        ink: el.querySelector<SVGGElement>("[data-ink]"),
-      };
-    });
     const apply = () => {
       const t = state.t;
-      // the drum turns near the end of each item's stretch
       const fl = Math.min(n - 1, Math.floor(t));
       const pos = Math.min(n - 1, fl + smooth(clamp((t - fl - 0.8) / 0.2)));
       rows.current.forEach((el, i) => {
@@ -68,49 +93,10 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         el.style.opacity = String(Math.max(0, 1 - Math.abs(d) * 1.15));
         el.style.filter = a > 0.02 ? `blur(${a * 5}px)` : "none";
       });
-      frames.current.forEach((el, i) => {
-        if (!el) return;
-        const local = t - i;
-        // in view from the start of its stretch until the drum turns past it
-        const out = i === n - 1 ? 0 : smooth(clamp((local - 0.82) / 0.16));
-        const into = i === 0 ? 1 : smooth(clamp((local + 0.06) / 0.1));
-        el.style.opacity = String(into * (1 - out));
-        el.style.transform = `translate3d(0, ${(1 - into) * 24 - out * 24}px, 0)`;
-        el.style.visibility = into <= 0 || out >= 1 ? "hidden" : "visible";
-        const pt = parts[i];
-        if (!pt) return;
-        // the pencil draws, stroke after stroke; its point rides the stroke being drawn
-        let tip: { x: number; y: number } | null = null, tipAt = -1;
-        pt.strokes.forEach(({ p, s, e, len }) => {
-          const k = clamp((local - s) / (e - s));
-          p.style.strokeDashoffset = String(1 - smooth(k));
-          if (k > 0 && k < 1 && s > tipAt) {
-            const q = p.getPointAtLength(len * smooth(k));
-            tip = { x: q.x, y: q.y };
-            tipAt = s;
-          }
-        });
-        // the colour follows the pencil, box by box, then the whole screen settles
-        pt.fills.forEach(({ r, s, e }) => r.setAttribute("opacity", String(ease(clamp((local - s) / (e - s))))));
-        pt.all?.setAttribute("opacity", String(ease(clamp((local - FILL_ALL[0]) / (FILL_ALL[1] - FILL_ALL[0])))));
-        // the handwriting
-        const lifted = ease(clamp((local - PENCIL_OUT[0]) / (PENCIL_OUT[1] - PENCIL_OUT[0])));
-        const lift = pt.keep ? 0 : lifted;
-        pt.notes.forEach(({ n, s, e }) => {
-          const k = ease(clamp((local - s) / (e - s)));
-          n.style.opacity = String(k * (1 - lift));
-          n.style.clipPath = `inset(-20% ${(1 - k) * 100}% -20% -4%)`;
-        });
-        if (pt.ink) pt.ink.style.opacity = String(1 - lift);
-        if (pt.pencil) {
-          const t0 = tip as { x: number; y: number } | null;
-          pt.pencil.style.opacity = t0 && lifted < 1 ? "1" : "0";
-          if (t0) pt.pencil.setAttribute("transform", `translate(${t0.x.toFixed(1)} ${t0.y.toFixed(1)})`);
-        }
-      });
-      if (fl !== last) {
-        last = fl;
-        setActive(Math.round(pos));
+      const now = Math.round(pos);
+      if (now !== last) {
+        last = now;
+        setActive(now);
       }
     };
     apply();
@@ -120,13 +106,75 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
     return () => ctx.revert();
   }, [n]);
 
+  // each time you arrive at an example, its screen builds itself
+  useEffect(() => {
+    if (!near) return;
+    const id = requestAnimationFrame(() => build(screens.current[active]));
+    return () => cancelAnimationFrame(id);
+  }, [active, near]);
+
+  const cur = items[active]?.demo ?? "";
+  const isIdea = cur.endsWith("idea");
+  const send = () => window.dispatchEvent(new CustomEvent("contact:open", { detail: { idea } }));
+
+  // what's on the device for each example
+  const screenFor = (demo: string) => {
+    if (demo === "web-platform") return <PlatformScreen />;
+    if (demo === "web-dashboard") return <AnalyticsScreen />;
+    if (demo === "web-tool") return <ProjectApp />;
+    if (demo === "web-idea") return <IdeaScreen idea={idea} kind="web" />;
+    if (demo === "site-idea") return <IdeaScreen idea={idea} kind="site" />;
+    if (demo === "mobile-idea") return <PhoneIdea idea={idea} />;
+    return null;
+  };
+
+  const device = (() => {
+    if (!near) return null;
+    if (kind === "mobile") {
+      const page = PHONE_PAGE[cur] ?? 2;
+      return (
+        <Fit w={FRAME_SIZE.w} h={FRAME_SIZE.h}>
+          <PhoneFrame>
+            <div ref={(el) => { items.forEach((it, i) => { if (!it.demo?.endsWith("idea")) screens.current[i] = el; }); }} className="relative h-full w-full">
+              <PhoneApps page={page} />
+            </div>
+            <div ref={(el) => { screens.current[n - 1] = el; }} className="absolute inset-0 z-40 transition-opacity duration-700" style={{ opacity: isIdea ? 1 : 0, pointerEvents: "none" }}>
+              <PhoneIdea idea={idea} />
+            </div>
+          </PhoneFrame>
+        </Fit>
+      );
+    }
+    return (
+      <Fit w={LAPTOP_SIZE.w} h={LAPTOP_SIZE.h}>
+        <LaptopFrame>
+          {kind === "site" ? (
+            <>
+              <div ref={(el) => { items.forEach((it, i) => { if (!it.demo?.endsWith("idea")) screens.current[i] = el; }); }} className="absolute inset-0">
+                <SiteLooks look={SITE_LOOK[cur] ?? 1} />
+              </div>
+              <div ref={(el) => { screens.current[n - 1] = el; }} className="absolute inset-0 z-10 transition-opacity duration-700" style={{ opacity: isIdea ? 1 : 0 }}>
+                <IdeaScreen idea={idea} kind="site" />
+              </div>
+            </>
+          ) : (
+            items.map((it, i) => (
+              <div key={it.title} ref={(el) => { screens.current[i] = el; }} className="absolute inset-0 transition-[opacity,visibility] duration-700" style={{ opacity: i === active ? 1 : 0, visibility: Math.abs(i - active) > 1 ? "hidden" : "visible" }}>
+                {screenFor(it.demo ?? "")}
+              </div>
+            ))
+          )}
+        </LaptopFrame>
+      </Fit>
+    );
+  })();
+
   return (
     <section ref={ref} className="relative" style={{ height: `${n * 110 + 40}svh` }} aria-label={kicker}>
-      <div className={`sticky top-0 flex h-[100svh] flex-col justify-center gap-8 overflow-hidden px-[var(--gutter)] md:grid md:content-center md:items-center md:justify-center md:gap-[5vw] ${web ? "md:grid-cols-[minmax(0,520px)_minmax(0,600px)]" : "md:grid-cols-[minmax(0,560px)_minmax(0,320px)]"}`}>
+      <div className={`sticky top-0 flex h-[100svh] flex-col justify-center gap-8 overflow-hidden px-[var(--gutter)] md:grid md:content-center md:items-center md:justify-center md:gap-[4vw] ${phone ? "md:grid-cols-[minmax(0,520px)_minmax(0,320px)]" : "md:grid-cols-[minmax(0,460px)_minmax(0,820px)]"}`}>
         {/* the words */}
         <div className="relative max-md:pt-14">
           <p className="kicker">{kicker}</p>
-          {/* the drum: one line in focus, its neighbours above and below */}
           <div className="relative mt-6 h-[1.9em] si-title md:mt-10">
             {items.map((it, i) => (
               <div key={it.title} ref={(el) => { rows.current[i] = el; }} aria-hidden={i !== active} className="absolute inset-x-0 top-0 origin-left will-change-transform">
@@ -135,19 +183,27 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
               </div>
             ))}
           </div>
-          {/* what it is, for the one in focus */}
           <div className="relative mt-8 grid md:mt-12">
             {items.map((it, i) => (
-              <p
-                key={it.title}
-                className="t-lead col-start-1 row-start-1 max-w-[34ch] transition-[opacity,transform] duration-[900ms] [transition-timing-function:var(--ease-out)]"
-                style={{ opacity: i === active ? 1 : 0, transform: i === active ? "none" : "translateY(10px)" }}
-              >
-                {it.line}
-              </p>
+              <div key={it.title} className="col-start-1 row-start-1 transition-[opacity,transform] duration-[900ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: i === active ? 1 : 0, transform: i === active ? "none" : "translateY(10px)", pointerEvents: i === active ? "auto" : "none" }}>
+                <p className="t-lead max-w-[34ch]">{it.line}</p>
+                {it.demo?.endsWith("idea") && (
+                  <form className="mt-6 flex max-w-[420px] flex-col gap-3" onSubmit={(e) => { e.preventDefault(); send(); }}>
+                    <label className="sr-only" htmlFor={`idea-${kind}`}>Your idea</label>
+                    <input
+                      id={`idea-${kind}`}
+                      value={idea}
+                      onChange={(e) => setIdea(e.target.value.slice(0, 80))}
+                      tabIndex={i === active ? 0 : -1}
+                      placeholder={kind === "mobile" ? "A fitness app for my running club" : kind === "site" ? "A website for my bakery" : "A booking platform for my salon"}
+                      className="contact-input"
+                    />
+                    <button type="submit" tabIndex={i === active ? 0 : -1} disabled={!idea.trim()} className="btn btn-primary w-max disabled:opacity-40">Send it to us</button>
+                  </form>
+                )}
+              </div>
             ))}
           </div>
-          {/* where you are, quietly */}
           <div aria-hidden className="mt-10 flex gap-2">
             {items.map((it, i) => (
               <span key={it.title} className={`h-[2px] rounded-full transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === active ? "w-8 bg-paper" : "w-3 bg-paper/25"}`} />
@@ -155,51 +211,9 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
           </div>
         </div>
 
-        {/* the drawing: pencil first, then the real screen */}
-        <div className={`relative mx-auto grid w-full md:mx-0 ${web ? "max-w-[600px] max-md:w-[88%]" : "max-w-[300px] max-md:w-[46%]"}`}>
-          {items.map((it, i) => (
-            <div
-              key={it.title + i}
-              ref={(el) => { frames.current[i] = el; }}
-              className={`sketch-paper col-start-1 row-start-1 relative overflow-hidden border border-paper/12 ${web ? "rounded-[14px]" : "rounded-[34px]"}`}
-              style={{ aspectRatio: `${vw} / ${vh}`, opacity: i === 0 ? 1 : 0 }}
-            >
-              <svg role="img" aria-label={it.image ? `${it.title}: an example screen, drawn first as a sketch` : "A blank page with a pencil sketch, waiting for your idea"} viewBox={`0 0 ${vw} ${vh}`} className="absolute inset-0 h-full w-full" fill="none" strokeLinecap="round" strokeLinejoin="round">
-                <defs>
-                  {/* the colour comes in where the pencil has been */}
-                  <mask id={`si-m-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width={vw} height={vh}>
-                    <rect data-fill-all x="0" y="0" width={vw} height={vh} fill="#fff" opacity="0" />
-                    {drawings[i].fills.map((fl, k) => (
-                      <rect key={k} data-fill data-s={fl.s} data-e={fl.e} x={fl.x} y={fl.y} width={fl.w} height={fl.h} rx={fl.r} fill="#fff" opacity="0" />
-                    ))}
-                  </mask>
-                  {/* a little tooth to the graphite */}
-                  <filter id={`si-g-${i}`} x="-2%" y="-2%" width="104%" height="104%">
-                    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed={i + 3} />
-                    <feDisplacementMap in="SourceGraphic" scale={web ? 2.2 : 1.4} />
-                  </filter>
-                </defs>
-                {it.image && <image href={asset(it.image)} x="0" y="0" width={vw} height={vh} preserveAspectRatio="xMidYMid slice" mask={`url(#si-m-${i})`} />}
-                <g data-ink>
-                  <g className="sketch-grain" style={{ ["--grain" as string]: `url(#si-g-${i})` }}>
-                    {drawings[i].strokes.map((st, k) => (
-                      <path key={k} data-stroke data-s={st.s} data-e={st.e} d={st.d} pathLength={1} stroke={st.amber ? "rgb(232 161 90)" : "rgb(239 233 224)"} strokeOpacity={st.o} strokeWidth={st.w} style={{ strokeDasharray: 1, strokeDashoffset: 1 }} />
-                    ))}
-                  </g>
-                  {drawings[i].notes.map((nt, k) => (
-                    <text key={k} data-note data-s={nt.s} data-e={nt.e} x={nt.x} y={nt.y} textAnchor={nt.anchor ?? "start"} transform={`rotate(${nt.rot} ${nt.x} ${nt.y})`} className="sketch-note" fontSize={drawings[i].size} style={{ opacity: 0 }}>
-                      {nt.t}
-                    </text>
-                  ))}
-                </g>
-                {/* the pencil's point */}
-                <g data-pencil style={{ opacity: 0 }}>
-                  <circle r={web ? 14 : 9} fill="rgb(239 233 224 / 0.08)" />
-                  <circle r={web ? 3.2 : 2.2} fill="rgb(239 233 224 / 0.95)" />
-                </g>
-              </svg>
-            </div>
-          ))}
+        {/* the device */}
+        <div className={`relative mx-auto w-full md:mx-0 ${phone ? "max-w-[300px] max-md:w-[52%]" : "max-w-[860px]"}`}>
+          {device}
         </div>
       </div>
     </section>

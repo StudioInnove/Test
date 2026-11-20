@@ -9,7 +9,7 @@ import { motion } from "motion/react";
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { asset } from "@/lib/content";
 import { coverPoint, quadMatrix } from "@/lib/quad";
-import { Dashboard, DASH_SIZE } from "../apps/Dashboard";
+import { ProjectApp as Dashboard, PROJECT_SIZE as DASH_SIZE } from "../apps/ProjectApp";
 import { LivingLight } from "./living";
 import type { Quad, WorldId } from "./timeline";
 

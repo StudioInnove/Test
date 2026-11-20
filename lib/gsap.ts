@@ -5,12 +5,14 @@
  */
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { Flip } from "gsap/Flip";
+import { DrawSVGPlugin } from "gsap/DrawSVGPlugin";
 
 let ready = false;
 export function getGsap() {
-  if (ready || typeof window === "undefined") return { gsap, ScrollTrigger };
+  if (ready || typeof window === "undefined") return { gsap, ScrollTrigger, Flip };
   ready = true;
-  gsap.registerPlugin(ScrollTrigger);
+  gsap.registerPlugin(ScrollTrigger, Flip, DrawSVGPlugin);
   let h = 0, t = 0;
   const ro = new ResizeObserver(() => {
     const nh = document.documentElement.scrollHeight;
@@ -21,5 +23,5 @@ export function getGsap() {
   });
   ro.observe(document.body);
   document.fonts?.ready.then(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); });
-  return { gsap, ScrollTrigger };
+  return { gsap, ScrollTrigger, Flip };
 }

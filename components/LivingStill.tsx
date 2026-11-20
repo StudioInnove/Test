@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 import { asset } from "@/lib/content";
 import { coverPoint, quadMatrix } from "@/lib/quad";
 import { BuildScreen, BUILD_SIZE } from "./apps/BuildScreen";
-import { Dashboard, DASH_SIZE } from "./apps/Dashboard";
+import { ProjectApp as Dashboard, PROJECT_SIZE as DASH_SIZE } from "./apps/ProjectApp";
 import { PhoneApps, PHONE_SIZE } from "./apps/PhoneApps";
 import { SiteScreen, SITE_SIZE } from "./apps/SiteScreen";
 import { LivingLight } from "./film/living";

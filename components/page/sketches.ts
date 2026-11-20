@@ -177,8 +177,8 @@ export function sketch(kind: SketchKind): Sketch {
   switch (kind) {
     case "web-landing":
       site(SITES.landing as SiteEl[]);
-      spaceV(30, 60, 104, "44");
-      note(60, 420, "one clear action", 452, 394);
+      spaceV(22, 64, 150, "88");
+      note(60, 590, "one clear action", 104, 500);
       break;
     case "web-brand":
       site(SITES.brand as SiteEl[]);
@@ -186,7 +186,7 @@ export function sketch(kind: SketchKind): Sketch {
       break;
     case "web-shop":
       site(SITES.shop as SiteEl[]);
-      note(70, 190, "photography first", 330, 330);
+      note(300, 250, "photography first", 560, 380);
       break;
     case "web-platforms": {
       guideV(262, H); guideV(1156, H); guideH(48, W); guideH(668, W);

@@ -12,15 +12,16 @@
     "year": "2026"
   },
   "seo": {
-    "title": "Studio Innové — Web and mobile app design and development",
-    "description": "Studio Innové designs and builds web and mobile apps for founders and businesses worldwide. From first idea to launch. Book a call.",
+    "title": "Studio Innové — Websites, web and mobile apps, designed and built",
+    "description": "Studio Innové designs and builds websites, web apps and mobile apps for founders and businesses worldwide. From first idea to launch. Book a call.",
     "keywords": [
       "app development agency",
       "custom web app development",
       "mobile app developers",
       "MVP development",
       "hire app developers",
-      "iPhone and Android app development"
+      "iPhone and Android app development",
+      "website design studio"
     ]
   },
   "nav": {
@@ -30,7 +31,7 @@
         "href": "/#services"
       },
       {
-        "label": "Process",
+        "label": "How we work",
         "href": "/#how"
       },
       {
@@ -46,7 +47,7 @@
   },
   "hero": {
     "headline": "Ideas, *made* into apps.",
-    "line": "An independent studio designing and building web and mobile apps, from first sketch to launch day.",
+    "line": "An independent studio designing and building websites, web and mobile apps, from first sketch to launch day.",
     "primary": "Book a call"
   },
   "services": {
@@ -81,7 +82,7 @@
       "more": {
         "spot": "Look closer",
         "title": "Mobile apps",
-        "line": "Native-feeling apps for iPhone and Android, built once for both.",
+        "line": "Native-feeling apps for iPhone and Android.",
         "items": [
           "Apps for your customers",
           "Booking, loyalty and memberships",
@@ -98,7 +99,7 @@
     "cta": "Book a call",
     "sites": {
       "title": "Websites",
-      "line": "Landing pages, brand sites and shops that people remember, and your team can update.",
+      "line": "Landing pages, brand sites and shops that people remember. Need a change later? We make it.",
       "more": {
         "spot": "Look closer",
         "title": "Websites",
@@ -139,12 +140,12 @@
     "drag": "Scroll to follow the steps",
     "more": {
       "spot": "Look closer",
-      "title": "Process",
+      "title": "How we work",
       "line": "Every screen is sketched, tested and agreed on the wall before a line of code is written.",
       "items": [
         "A call to understand the idea",
         "Sketches and clickable designs",
-        "Weekly builds you can try",
+        "Builds you can try along the way",
         "Launch, then updates and support"
       ],
       "link": "How we work",
@@ -236,7 +237,7 @@
     "mobile": [
       {
         "q": "iPhone or *Android?*",
-        "a": "Both, from one build."
+        "a": "Both."
       },
       {
         "q": "What does an app *cost?*",
@@ -248,7 +249,7 @@
       },
       {
         "q": "What about after *launch?*",
-        "a": "We stay on for updates, or hand over cleanly."
+        "a": "We stay on. Tell us what you need and it's done."
       }
     ],
     "sites": [
@@ -257,12 +258,12 @@
         "a": "A fixed quote after a free 30-minute call."
       },
       {
-        "q": "Can we *update* it ourselves?",
-        "a": "Yes. Every site comes with a simple editor."
+        "q": "Who makes *changes* later?",
+        "a": "We do. Tell us what you need and it's done."
       },
       {
-        "q": "Can we sell *online?*",
-        "a": "Yes. Payments, stock and delivery, built in."
+        "q": "Do you build *shops?*",
+        "a": "Yes. Online shops, designed around your products."
       },
       {
         "q": "Do I *own* it?",
@@ -365,7 +366,7 @@
       "points": [
         {
           "title": "iPhone and Android.",
-          "line": "One app, both stores."
+          "line": "Your app, in both stores."
         },
         {
           "title": "Designed first.",
@@ -408,7 +409,7 @@
           ]
         }
       ],
-      "statement": "Apps people open every day [/worlds/mobile-both-m.webp] and *keep.* Designed screen by screen, built once for iPhone [/worlds/mobile-m.webp] and *Android.*",
+      "statement": "Apps people open every day [/worlds/mobile-both-m.webp] and *keep.* Designed screen by screen for iPhone [/worlds/mobile-m.webp] and *Android.*",
       "index": {
         "kicker": "What we build",
         "items": [
@@ -444,7 +445,7 @@
     "process": {
       "title": "How we work",
       "metaTitle": "How we work — Studio Innové",
-      "metaDescription": "How Studio Innové designs and builds web and mobile apps: a call, clickable designs, weekly builds you can try, then launch and support.",
+      "metaDescription": "How Studio Innové designs and builds websites, web and mobile apps: a call, clickable designs, builds you can try along the way, then launch and support.",
       "headline": "From first call to *launch* day.",
       "intro": "Four simple steps. You see and try everything along the way.",
       "steps": [
@@ -458,11 +459,11 @@
         },
         {
           "title": "Build",
-          "line": "We build in small steps and send you a working version every week, so you can try it and steer as it takes shape."
+          "line": "We build in small steps and share working versions as it takes shape, so you can try it and steer."
         },
         {
           "title": "Launch",
-          "line": "We ship it to the web, the App Store and Google Play, then stay on for updates and support if you want us to."
+          "line": "We launch it on the web, the App Store and Google Play, then stay on for changes and support."
         }
       ],
       "statement": "Four steps, no surprises. You see and *try* everything, all the way to *launch.*"
@@ -470,10 +471,10 @@
     "sites": {
       "title": "Website design",
       "metaTitle": "Website design and build — Studio Innové",
-      "metaDescription": "Landing pages, brand sites and online shops, designed and built by Studio Innové. Fast, memorable and easy for your team to update. Book a call.",
+      "metaDescription": "Landing pages, brand sites and online shops, designed and built by Studio Innové. Fast, memorable, and looked after when you need a change. Book a call.",
       "headline": "Websites people *remember.*",
-      "intro": "Landing pages, brand sites and shops that load fast, feel considered, and that your team can update themselves.",
-      "statement": "We design and build websites [/services/screens/web-brand.webp] that people *remember.* Landing pages, shops [/services/screens/web-shop.webp] and brand sites you can update *yourself.*",
+      "intro": "Landing pages, brand sites and shops that load fast and feel considered. Need a change later? Tell us and it's done.",
+      "statement": "We design and build websites [/services/screens/web-brand.webp] that people *remember.* Landing pages, shops [/services/screens/web-shop.webp] and brand sites, looked after when you need a *change.*",
       "index": {
         "kicker": "What we build",
         "items": [
@@ -494,7 +495,7 @@
           {
             "title": "Shops",
             "phrase": "people enjoy browsing",
-            "line": "Online shops with an editor simple enough to run without us.",
+            "line": "Online shops designed around your products, and kept up to date for you.",
             "image": "/services/screens/web-shop.webp",
             "sketch": "web-shop"
           }
@@ -542,24 +543,24 @@
     "mobile": {
       "title": "Apps people keep.",
       "lines": [
-        "For iPhone and Android, from a single build.",
+        "For iPhone and Android.",
         "Events, bookings, memberships, even games.",
-        "Events, bookings and games, designed here."
+        "Games, events and bookings, designed here."
       ],
       "link": "Explore mobile apps",
       "href": "/mobile-app-development",
       "chapters": [
         {
           "title": "Apps people *keep.*",
-          "line": "For iPhone and Android, from a single build."
+          "line": "For iPhone and Android, designed screen by screen."
         },
         {
           "title": "Made in *this* room.",
-          "line": "An events app, a table booking and a little game, designed here."
+          "line": "A little game, an events app and a table booking, designed here."
         },
         {
           "title": "Ready for *both* stores.",
-          "line": "We design every screen, build it once and launch it on the App Store and Google Play."
+          "line": "We design every screen and launch it on the App Store and Google Play."
         }
       ]
     },
@@ -574,8 +575,8 @@
           "line": "Price and plan, before we start."
         },
         {
-          "title": "Try it *every* week.",
-          "line": "A working version every Friday."
+          "title": "Try it as it *takes shape.*",
+          "line": "You see working versions along the way."
         },
         {
           "title": "It's all *yours.*",
@@ -658,7 +659,7 @@
         },
         {
           "title": "Right on every *screen.*",
-          "line": "Every site feels at home on a phone, and your team can update it without us."
+          "line": "Every site feels at home on a phone. Need a change? Tell us and it's done."
         }
       ]
     }
@@ -672,7 +673,7 @@
     "Web apps",
     "Mobile apps",
     "Websites",
-    "Process",
+    "How we work",
     "Originals",
     "Have an idea?"
   ]

@@ -36,8 +36,14 @@ function skyline() {
     blds.push({ x, w, h, win });
     x += w + 2 + rnd() * 6;
   }
+  const far: { x: number; w: number; h: number }[] = [];
+  for (let fx = -20; fx < W + 20; ) {
+    const w = 26 + rnd() * 40;
+    far.push({ x: fx, w, h: 150 + rnd() * 190 });
+    fx += w + rnd() * 4;
+  }
   const stars = Array.from({ length: 70 }, () => ({ x: rnd() * W, y: rnd() * (SKY - 60), r: 0.4 + rnd() * 1.1, ph: rnd() * 6.28 }));
-  return { blds, stars };
+  return { blds, far, stars };
 }
 
 export function LightsGame({ live, active }: { live: boolean; active: boolean }) {
@@ -57,7 +63,7 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
     cv.width = W * dpr;
     cv.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    const { blds, stars } = skyline();
+    const { blds, far, stars } = skyline();
     const g = game.current;
     let raf = 0, last = 0;
     const spawn = (now: number, attract: boolean) => {
@@ -162,6 +168,14 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
       }
       ctx.globalAlpha = 1;
       ctx.globalCompositeOperation = "source-over";
+      // the far city, softer, a little hazy
+      ctx.fillStyle = "#141626";
+      for (const b of far) ctx.fillRect(b.x, H - 90 - b.h, b.w, b.h + 90);
+      const fade = ctx.createLinearGradient(0, H - 380, 0, H);
+      fade.addColorStop(0, "rgba(42,29,44,0)");
+      fade.addColorStop(1, "rgba(42,29,44,0.35)");
+      ctx.fillStyle = fade;
+      ctx.fillRect(0, H - 380, W, 380);
       // the city
       for (const b of blds) {
         ctx.fillStyle = "#0a0b12";
@@ -255,12 +269,13 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#070912] text-white">
       <canvas ref={ref} onPointerDown={tap} className="absolute inset-0 h-full w-full" style={{ touchAction: "none", willChange: "transform", transform: "translateZ(0)" }} />
-      {/* the score and the clock */}
+      {/* the title screen: the name, centred over the night; the clock and score while playing */}
+      <div className={`pointer-events-none absolute inset-x-0 top-[180px] text-center transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "idle" ? "opacity-100" : "-translate-y-3 opacity-0"}`}>
+        <p className="text-[13px] font-[500] uppercase tracking-[0.32em] text-[#ffd6a0]/80">A little game</p>
+        <p className="mt-3 text-[64px] font-[600] leading-none tracking-[-0.05em]" style={{ textShadow: "0 0 40px rgba(255,190,120,.45)" }}>Lights</p>
+        <p className="mx-auto mt-4 max-w-[250px] text-[15px] leading-[1.4] text-white/60 [text-wrap:balance]">Catch the city&rsquo;s lights before they fade.</p>
+      </div>
       <div className="pointer-events-none absolute inset-x-6 top-[58px]">
-        <div className={`transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "play" ? "-translate-y-2 opacity-0" : "opacity-100"}`}>
-          <p className="text-[34px] font-[600] tracking-[-0.035em]">Lights</p>
-          <p className="mt-1 text-[14px] text-white/55">Catch the city&rsquo;s lights before they fade.</p>
-        </div>
         <div className={`absolute inset-x-0 top-0 transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "play" ? "opacity-100" : "translate-y-2 opacity-0"}`}>
           <div className="flex items-end justify-between">
             <p className="text-[46px] font-[600] leading-none tracking-[-0.04em] tabular-nums">{score}</p>
@@ -272,17 +287,18 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
         </div>
       </div>
       {/* start, and the end of a round */}
-      <div className={`absolute inset-x-6 bottom-[96px] flex flex-col items-center gap-4 transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "play" ? "pointer-events-none translate-y-4 opacity-0" : "opacity-100"}`}>
+      <div className={`absolute inset-x-0 bottom-[86px] flex flex-col items-center gap-4 px-10 transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "play" ? "pointer-events-none translate-y-4 opacity-0" : "opacity-100"}`}>
         {phase === "done" && (
-          <div className="text-center">
-            <p className="text-[13px] uppercase tracking-[0.12em] text-white/50">Lights caught</p>
-            <p className="text-[64px] font-[600] leading-none tracking-[-0.05em] tabular-nums">{score}</p>
+          <div className="mb-2 text-center">
+            <p className="text-[12px] uppercase tracking-[0.24em] text-white/50">Lights caught</p>
+            <p className="mt-1 text-[72px] font-[600] leading-none tracking-[-0.05em] tabular-nums" style={{ textShadow: "0 0 40px rgba(255,190,120,.45)" }}>{score}</p>
             <p className="mt-2 text-[14px] text-white/55">{score >= best ? "A new best." : `Best ${best}`}</p>
           </div>
         )}
-        <button type="button" tabIndex={live ? 0 : -1} onClick={start} className="h-14 w-full rounded-full bg-white text-[16px] font-[600] text-[#0b0d18] shadow-[0_10px_40px_rgb(255_180_120/0.35)] transition-transform duration-150 active:scale-[0.97]">
-          {phase === "done" ? "Play again" : "Play · 20 seconds"}
+        <button type="button" tabIndex={live ? 0 : -1} onClick={start} className="h-[60px] w-[220px] rounded-full bg-white text-[17px] font-[600] tracking-[-0.01em] text-[#0b0d18] shadow-[0_0_0_6px_rgb(255_255_255/0.08),0_14px_50px_rgb(255_180_120/0.45)] transition-transform duration-150 active:scale-[0.97]">
+          {phase === "done" ? "Play again" : "Play"}
         </button>
+        <p className="text-[12.5px] text-white/45">{phase === "idle" && best ? `Best ${best} · ` : ""}20 seconds · tap to catch</p>
       </div>
     </div>
   );

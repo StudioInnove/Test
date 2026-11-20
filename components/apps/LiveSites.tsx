@@ -105,7 +105,15 @@ function Brand() {
   );
 }
 
-/* ---------- Kiln & Co.: a ceramics shop ---------- */
+/* ---------- Kiln & Co.: a ceramics shop. One grotesk, white pills, the photograph does the work ---------- */
+function Pills({ items, dark = "#151412" }: { items: string[]; dark?: string }) {
+  return (
+    <span className="flex gap-[2px] rounded-full bg-white p-1 text-[13px] shadow-[0_0_0_1px_rgba(0,0,0,.05)]">
+      {items.map((t, i) => <span key={t} className="rounded-full px-[14px] py-[7px]" style={i === 0 ? { background: dark, color: "#fff" } : { color: "#5f5b55" }}>{t}</span>)}
+    </span>
+  );
+}
+
 function Shop() {
   const items = [
     ["prod1", "Ember vase", "£48"],
@@ -114,100 +122,113 @@ function Shop() {
     ["prod4", "Moon jar", "£64"],
   ];
   return (
-    <div data-page="shop" className="absolute inset-0 overflow-hidden" style={{ background: "#f4eee6", color: "#1d1b18", opacity: 0 }}>
+    <div data-page="shop" className="absolute inset-0 overflow-hidden" style={{ background: "#f2efe9", color: "#151412", opacity: 0, letterSpacing: "-0.01em" }}>
       <Chrome />
       <div data-scroll className="absolute inset-x-0 will-change-transform" style={{ top: BAR }}>
-        <div className="flex h-[26px] items-center justify-center bg-[#1d1b18] text-[11.5px] tracking-[0.02em] text-[#efe7dc]">Free delivery on orders over £60</div>
-        <div className="relative flex h-[62px] items-center justify-between px-12 text-[13px] text-[#5f5952]">
-          <span className="flex gap-[26px]"><span>Shop</span><span>Collections</span><span>Journal</span></span>
-          <span className="absolute left-1/2 -translate-x-1/2 text-[27px] text-[#1d1b18]" style={serif}>Kiln &amp; Co.</span>
-          <span className="flex items-center gap-[26px]"><span>Search</span><span className="flex items-center gap-1.5">Bag <span data-bag className="inline-flex h-[20px] min-w-[20px] items-center justify-center rounded-full bg-[#1d1b18] px-1.5 text-[11px] font-[600] text-white">2</span></span></span>
+        <div className="relative flex h-[64px] items-center justify-between px-10">
+          <span className="text-[20px] font-[600] tracking-[-0.045em]">Kiln&amp;Co.</span>
+          <span className="absolute left-1/2 -translate-x-1/2"><Pills items={["Shop", "Collections", "Journal", "About"]} /></span>
+          <span className="flex items-center gap-6 text-[13.5px] text-[#5f5b55]">Search<span className="inline-flex h-10 items-center gap-2 rounded-full bg-[#151412] px-5 text-[13px] font-[500] text-white">Bag <b data-bag className="inline-flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-white px-1 text-[11px] text-[#151412]">2</b></span></span>
         </div>
-        <div className="relative flex" style={{ height: 600 }}>
-          <div className="relative w-[640px] overflow-hidden">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img data-kb src={img("ceramics")} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "57% 50%" }} />
-          </div>
-          <div className="flex-1 px-12 pt-14">
-            <p data-fade className="text-[11.5px] uppercase tracking-[0.05em] text-[#8a7f72]">Autumn collection</p>
-            <h1 className="mt-3 text-[64px] font-[500] leading-[0.98] tracking-[-0.05em]">
+        {/* the hero: one photograph, the words at its foot */}
+        <div className="relative mx-6 overflow-hidden rounded-[22px]" style={{ height: 600 }}>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img data-kb src={img("ceramics")} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "58% 50%" }} />
+          <div className="absolute inset-0" style={{ background: "linear-gradient(0deg,rgba(20,14,8,.55),rgba(20,14,8,.12) 45%,transparent 70%)" }} />
+          <p data-fade className="absolute right-8 top-7 text-[12px] text-white/85">01 — 03</p>
+          <div className="absolute bottom-8 left-10 text-white">
+            <p data-fade className="inline-flex items-center gap-2 rounded-full bg-white/90 px-3 py-1.5 text-[12.5px] text-[#151412]"><i className="block h-1.5 w-1.5 rounded-full bg-[#c8743f]" />Autumn collection · 24 pieces</p>
+            <h1 className="mt-4 text-[66px] font-[500] leading-[0.98] tracking-[-0.05em]">
               <Mask>Glazed slowly,</Mask>
-              <Mask><em style={serif}>fired</em> by hand.</Mask>
+              <Mask>fired by hand.</Mask>
             </h1>
-            <p data-fade className="mt-6 max-w-[380px] text-[15px] leading-[1.5] text-[#5f5952]">Small batches from our studio in Devon. Each piece a little different.</p>
-            <div data-fade className="mt-8 flex gap-3">
-              <span data-cta className="inline-flex h-[46px] items-center rounded-full bg-[#1d1b18] px-6 text-[13.5px] font-[500] text-white">Shop the collection</span>
-              <span className="inline-flex h-[46px] items-center rounded-full px-6 text-[13.5px] font-[500]" style={{ boxShadow: "inset 0 0 0 1px rgba(29,27,24,.18)" }}>Lookbook</span>
-            </div>
+            <span data-fade data-cta className="mt-6 inline-flex h-11 items-center gap-3 rounded-full bg-white pl-5 pr-1.5 text-[14px] font-[500] text-[#151412]">Shop the collection <b className="flex h-8 w-8 items-center justify-center rounded-full bg-[#151412] text-white">→</b></span>
+          </div>
+          <div data-fade className="absolute bottom-8 right-8 flex items-center gap-3 rounded-[16px] bg-white/90 p-3 text-[13px] shadow-[0_20px_40px_-20px_rgba(0,0,0,.35)]">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={img("prod4")} alt="" className="h-[72px] w-[72px] rounded-[10px] object-cover" />
+            <span className="flex flex-col gap-1 pr-4"><span className="font-[500]">Moon jar</span><span className="text-[#77716a]">£64 · Add to bag</span></span>
           </div>
         </div>
-        <div className="px-12 pt-[72px]">
+        {/* new in */}
+        <div className="px-10 pt-16">
           <div className="flex items-end justify-between">
-            <p className="text-[44px] font-[500] leading-none tracking-[-0.045em]">New <em style={serif}>in</em></p>
-            <p className="text-[13px] text-[#5f5952]">View all →</p>
+            <div>
+              <p className="text-[12px] text-[#77716a]">02 — New in</p>
+              <p className="mt-2 text-[40px] font-[500] leading-none tracking-[-0.045em]">Pieces for slow mornings.</p>
+            </div>
+            <p className="text-[13px] text-[#5f5b55]">View all (24)</p>
           </div>
-          <div className="mt-8 grid grid-cols-4 gap-5">
+          <div className="mt-8 grid grid-cols-4 gap-5 pb-20">
             {items.map(([i, n, p], k) => (
               <div key={n} data-card={k}>
-                <div className="relative overflow-hidden rounded-[14px] bg-[#e9e1d6]" style={{ height: 300 }}>
+                <div className="relative overflow-hidden rounded-[16px] bg-[#e7e1d8]" style={{ height: 300 }}>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img data-zoom src={img(i)} alt="" className="h-full w-full object-cover will-change-transform" />
-                  <span data-add className="absolute inset-x-3 bottom-3 flex h-[40px] items-center justify-center rounded-full bg-[#1d1b18] text-[13px] font-[500] text-white" style={{ opacity: 0, transform: "translateY(12px)" }}>Add to bag</span>
+                  <span data-add className="absolute inset-x-3 bottom-3 flex h-10 items-center justify-center rounded-full bg-[#151412] text-[13px] font-[500] text-white" style={{ opacity: 0, transform: "translateY(12px)" }}>Add to bag</span>
                 </div>
-                <div className="mt-3 flex justify-between text-[14px]"><span>{n}</span><span className="text-[#6b655d]">{p}</span></div>
+                <div className="mt-3 flex justify-between text-[14px]"><span className="font-[500]">{n}</span><span className="text-[#77716a]">{p}</span></div>
               </div>
             ))}
           </div>
         </div>
       </div>
-      <div data-toast className="absolute right-6 top-[96px] z-10 flex items-center gap-3 rounded-[14px] bg-[#1d1b18] px-4 py-3 text-[13px] text-white shadow-[0_14px_40px_rgba(0,0,0,.25)]" style={{ opacity: 0, transform: "translateY(-10px)" }}>
+      <div data-toast className="absolute right-6 top-[100px] z-10 flex items-center gap-3 rounded-full bg-[#151412] py-2 pl-2 pr-5 text-[13px] text-white shadow-[0_14px_40px_rgba(0,0,0,.25)]" style={{ opacity: 0, transform: "translateY(-10px)" }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={img("prod4")} alt="" className="h-9 w-9 rounded-[8px] object-cover" />
+        <img src={img("prod4")} alt="" className="h-8 w-8 rounded-full object-cover" />
         <span>Moon jar · added to your bag</span>
       </div>
     </div>
   );
 }
 
-/* ---------- Lumen: a landing page for a booking tool ---------- */
+/* ---------- Lumen: a landing page for a booking tool. Same grotesk, a split hero ---------- */
 function Landing() {
   const rows = [["#f3b38e", "Portrait session", "10:00"], ["#c9c4ee", "Studio hire, Nord", "13:30"], ["#e8a6b4", "Client review", "16:00"]];
-  const feats = [["1,240", "bookings a month, on average"], ["4.9", "rating from 600 studios"], ["2 min", "to set up your first page"]];
+  const feats = [["01", "Bookings", "1,240", "a month, on average"], ["02", "Payments", "£48k", "taken last month"], ["03", "Clients", "4.9", "rating from 600 studios"]];
   return (
-    <div data-page="landing" className="absolute inset-0 overflow-hidden" style={{ background: "#f6f1ea", color: "#1b1916", opacity: 0 }}>
+    <div data-page="landing" className="absolute inset-0 overflow-hidden" style={{ background: "#f5f3ee", color: "#121212", opacity: 0, letterSpacing: "-0.01em" }}>
       <Chrome />
       <div data-scroll className="absolute inset-x-0 will-change-transform" style={{ top: BAR }}>
-        <div className="flex h-[70px] items-center justify-between px-12 text-[13.5px] text-[#6b655d]">
-          <span className="flex items-center gap-2 text-[19px] font-[600] tracking-[-0.035em] text-[#1b1916]"><i className="block h-4 w-4 rounded-full" style={{ background: "conic-gradient(#e9935a,#e8a6b4,#b6b3e6,#e9935a)" }} />Lumen</span>
-          <span className="flex gap-[30px]"><span>Product</span><span>Pricing</span><span>Stories</span></span>
-          <span className="flex items-center gap-5"><span>Sign in</span><span className="inline-flex h-[38px] items-center rounded-full bg-[#1b1916] px-5 font-[500] text-white">Start free</span></span>
+        <div className="relative flex h-[64px] items-center justify-between px-10">
+          <span className="flex items-center gap-2 text-[19px] font-[600] tracking-[-0.04em]"><i className="block h-4 w-4 rounded-full" style={{ background: "conic-gradient(#e9935a,#e8a6b4,#b6b3e6,#e9935a)" }} />Lumen</span>
+          <span className="absolute left-1/2 -translate-x-1/2"><Pills items={["Product", "Pricing", "Stories", "Journal"]} dark="#121212" /></span>
+          <span className="flex items-center gap-6 text-[13.5px] text-[#5c5a55]">Sign in<span className="inline-flex h-10 items-center rounded-full bg-[#121212] px-5 text-[14px] font-[500] text-white">Start free</span></span>
         </div>
-        <div className="text-center">
-          <p data-fade className="mx-auto mt-6 inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[12.5px] text-[#6b655d] shadow-[0_0_0_1px_rgba(0,0,0,.06)]"><i className="block h-1.5 w-1.5 rounded-full bg-[#e9935a]" />New · Lumen 2.0</p>
-          <h1 className="mx-auto mt-5 w-[820px] text-[80px] font-[500] leading-[0.98] tracking-[-0.055em]">
-            <Mask>The calm way to</Mask>
-            <Mask>run your <em style={serif}>studio.</em></Mask>
-          </h1>
-          <p data-fade className="mt-5 text-[17px] text-[#6b655d]">Bookings, clients and payments in one quiet place.</p>
-        </div>
-        <div className="relative mx-12 mt-10 overflow-hidden rounded-[24px]" style={{ height: 420 }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img data-kb src={img("studio")} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "50% 38%" }} />
-          <div data-card="cal" className="absolute left-12 top-10 w-[300px] rounded-[18px] bg-white/95 p-[18px] shadow-[0_30px_60px_-24px_rgba(60,30,10,.45)]">
-            <p className="mb-3.5 text-[12px] text-[#8a847b]">Today · Thursday</p>
+        <div className="relative" style={{ height: 620 }}>
+          <div className="absolute left-10 top-[86px] w-[600px]">
+            <p data-fade className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-1.5 text-[12.5px] text-[#5c5a55] shadow-[0_0_0_1px_rgba(0,0,0,.06)]"><i className="block h-1.5 w-1.5 rounded-full bg-[#e9935a]" />New · Lumen 2.0</p>
+            <h1 className="mt-5 text-[74px] font-[500] leading-[0.98] tracking-[-0.055em]">
+              <Mask>The calm way to</Mask>
+              <Mask>run your studio.</Mask>
+            </h1>
+            <p data-fade className="mt-6 w-[440px] text-[17px] leading-[1.45] text-[#6a6761]">Bookings, clients and payments in one quiet place. Set up in two minutes.</p>
+            <div data-fade className="mt-8 flex gap-2.5">
+              <span className="inline-flex h-[46px] items-center rounded-full bg-[#121212] px-6 text-[14px] font-[500] text-white">Start free</span>
+              <span className="inline-flex h-[46px] items-center rounded-full bg-white px-6 text-[14px] font-[500] shadow-[0_0_0_1px_rgba(0,0,0,.08)]">See how it works</span>
+            </div>
+          </div>
+          <p data-fade className="absolute bottom-6 left-10 text-[12px] text-[#8a867f]">600 studios · 4.9 average rating</p>
+          <div className="absolute right-10 top-[20px] overflow-hidden rounded-[22px]" style={{ width: 496, height: 596 }}>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img data-kb src={img("studio")} alt="" className="absolute inset-0 h-full w-full object-cover" style={{ objectPosition: "46% 40%" }} />
+            <div data-paid className="absolute bottom-8 right-6 flex items-center gap-3 rounded-[14px] px-4 py-3 text-[12.5px] text-white" style={{ background: "rgba(18,18,18,.9)", opacity: 0 }}>
+              <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#7fbf8e] text-[12px]">✓</span>Paid · £240 · Nord
+            </div>
+          </div>
+          <div data-card="cal" className="absolute left-[604px] top-[266px] w-[290px] rounded-[18px] bg-white/[0.97] p-[18px] shadow-[0_30px_60px_-24px_rgba(40,25,10,.4)]">
+            <p className="mb-3.5 text-[12px] text-[#8a867f]">Today · Thursday</p>
             {rows.map(([c, n, t]) => (
-              <div key={n} data-cal className="mb-2.5 flex items-center gap-[11px] text-[12.5px]"><b className="block h-[26px] w-[26px] rounded-[8px]" style={{ background: c }} /><span>{n}</span><small className="ml-auto text-[11.5px] text-[#8a847b]">{t}</small></div>
+              <div key={n} data-cal className="mb-2.5 flex items-center gap-[11px] text-[12.5px]"><b className="block h-[26px] w-[26px] rounded-[8px]" style={{ background: c }} /><span>{n}</span><small className="ml-auto text-[11.5px] text-[#8a867f]">{t}</small></div>
             ))}
           </div>
-          <div data-paid className="absolute right-12 top-[150px] flex items-center gap-3 rounded-[14px] px-4 py-3 text-[12.5px] text-white" style={{ background: "rgba(27,25,22,.88)", backdropFilter: "blur(8px)", opacity: 0 }}>
-            <span className="flex h-[22px] w-[22px] items-center justify-center rounded-full bg-[#7fbf8e] text-[12px]">✓</span>Paid · £240 · Nord
-          </div>
         </div>
-        <div className="mx-12 mt-16 grid grid-cols-3 gap-6 pb-24">
-          {feats.map(([n, l]) => (
-            <div key={l} data-feat className="rounded-[20px] bg-white p-7 shadow-[0_0_0_1px_rgba(0,0,0,.05)]">
-              <p className="text-[48px] font-[500] leading-none tracking-[-0.05em]">{n}</p>
-              <p className="mt-3 text-[14px] text-[#6b655d]">{l}</p>
+        <div className="mx-10 mt-14 grid grid-cols-3 gap-5 pb-24">
+          {feats.map(([i, k, n, l]) => (
+            <div key={k} data-feat className="rounded-[20px] bg-white p-7 shadow-[0_0_0_1px_rgba(0,0,0,.05)]">
+              <p className="flex justify-between text-[12px] text-[#8a867f]"><span>{k}</span><span>{i}</span></p>
+              <p className="mt-10 text-[52px] font-[500] leading-none tracking-[-0.05em]">{n}</p>
+              <p className="mt-3 text-[14px] text-[#6a6761]">{l}</p>
             </div>
           ))}
         </div>
@@ -266,14 +287,14 @@ export function LiveSites() {
       open("brand", "shop", 10.8);
       kb("shop", 10.8, 10);
       arrive("shop", 10.8);
-      move(812, 470, 12.4, 1.4);
+      move(170, 642, 12.4, 1.4);
       click(14);
-      tl.to(one("shop", "[data-scroll]"), { y: -662, duration: 1.7 }, 14.3);
+      tl.to(one("shop", "[data-scroll]"), { y: -650, duration: 1.7 }, 14.3);
       tl.from(q("shop", "[data-card]"), { y: 36, opacity: 0, duration: 1, ease: "expo.out", stagger: 0.08 }, 15);
-      move(1010, 330, 15.8, 1.2);
+      move(1027, 330, 15.8, 1.2);
       tl.to(q("shop", "[data-card='3'] [data-zoom]"), { scale: 1.06, duration: 1, ease: "power2.out" }, 16.8);
       tl.to(q("shop", "[data-card='3'] [data-add]"), { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }, 16.9);
-      move(1010, 365, 17.5, 0.4);
+      move(1027, 478, 17.5, 0.4);
       click(18.1);
       tl.to(one("shop", "[data-bag]"), { scale: 1.35, duration: 0.18, yoyo: true, repeat: 1, ease: "power2.out" }, 18.3);
       tl.call(() => { const b = one("shop", "[data-bag]"); if (b) b.textContent = "3"; }, undefined, 18.35);
@@ -290,8 +311,8 @@ export function LiveSites() {
       tl.from(q("landing", "[data-cal]"), { x: -14, opacity: 0, duration: 0.8, ease: "expo.out", stagger: 0.14 }, 23);
       tl.to(one("landing", "[data-paid]"), { opacity: 1, duration: 0.01 }, 24);
       tl.fromTo(one("landing", "[data-paid]"), { y: 16, scale: 0.94 }, { y: 0, scale: 1, duration: 0.7, ease: "back.out(1.8)" }, 24);
-      move(600, 560, 24.4, 1.4);
-      tl.to(one("landing", "[data-scroll]"), { y: -560, duration: 1.8 }, 26);
+      move(540, 520, 24.4, 1.4);
+      tl.to(one("landing", "[data-scroll]"), { y: -600, duration: 1.8 }, 26);
       tl.from(q("landing", "[data-feat]"), { y: 30, opacity: 0, duration: 1, ease: "expo.out", stagger: 0.1 }, 26.9);
       move(1090, 70, 28.8, 1.3);
       tl.to(one("landing", "[data-scroll]"), { y: 0, duration: 1.6 }, 29.2);

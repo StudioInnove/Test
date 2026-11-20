@@ -953,7 +953,7 @@ export function FilmStage() {
             <span data-depth="1.3" className="svc-lit inline-block will-change-transform"><Words text={services.headline[1]} delay={180} /></span>
           </h2>
           {/* then the three rooms land one after another, each a way into its room */}
-          <ServiceRooms rooms={(["web", "mobile", "sites"] as const).map((k) => ({ key: k, title: services[k].title, onGo: () => window.dispatchEvent(new CustomEvent("film:goto", { detail: { i: sceneIndex(k), fly: true } })) }))} />
+          <ServiceRooms rooms={(["web", "mobile", "sites"] as const).map((k) => ({ key: k, title: services[k].title, still: SCENES[sceneIndex(k)].still, onGo: () => window.dispatchEvent(new CustomEvent("film:goto", { detail: { i: sceneIndex(k), fly: true } })) }))} />
         </section>
 
         {(["web", "mobile", "sites"] as const).map((k, n) => {

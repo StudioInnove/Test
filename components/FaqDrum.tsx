@@ -6,7 +6,7 @@
  * little out of the dark; then "We answer" appears and the reply comes up slowly, at your pace. Scroll on
  * and the pair lifts gently away for the next. Everything is scrubbed by GSAP ScrollTrigger with a soft
  * lag. On a computer all the questions are listed down the side: the one you're on is bright, and a click
- * takes you straight to it.
+ * takes you straight to it. Anyone who'd rather not read them all can skip straight past.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
@@ -92,8 +92,18 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
     window.scrollTo({ top: top + span * Math.min(1, (i + 0.8) / (n - 0.1)), behavior: "smooth" });
   };
 
+  // past the questions altogether
+  const skip = () => {
+    const root = ref.current;
+    if (!root) return;
+    const top = root.getBoundingClientRect().top + window.scrollY + root.offsetHeight;
+    const lenis = (window as unknown as { __lenis?: { scrollTo: (y: number, o?: object) => void } }).__lenis;
+    if (lenis) lenis.scrollTo(top, { duration: 1.6 });
+    else window.scrollTo({ top, behavior: "smooth" });
+  };
+
   return (
-    <section ref={ref} id={id} className="relative" style={{ height: `${n * 125 + 40}svh` }} aria-label={faq.heading.replace(/\*/g, "")}>
+    <section ref={ref} id={id} className="relative" style={{ height: `${n * 95 + 40}svh` }} aria-label={faq.heading.replace(/\*/g, "")}>
       <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden px-[var(--gutter)] pb-[7svh] pt-[max(96px,12svh)]">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%]" style={{ background: `radial-gradient(80% 60% at 70% 0%, rgb(244 170 110 / ${warm}), transparent 75%)` }} />
 
@@ -112,6 +122,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
               ))}
             </ol>
             <div className="mt-auto hidden md:block">
+              <button type="button" onClick={skip} className="faq-skip mb-8">Skip the questions<span aria-hidden> ↓</span></button>
               <p className="t-body max-w-[30ch]">{faq.line} {studio.replyPromise}</p>
               <div className="mt-5"><EmailPill email={studio.email} /></div>
             </div>
@@ -121,7 +132,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
           <div className="relative grid items-center">
             {split.map((s, i) => (
               <div key={items[i].q} ref={(el) => { pairs.current[i] = el; }} aria-hidden={i !== active} className="col-start-1 row-start-1 max-w-[720px] will-change-transform" style={{ opacity: i === 0 ? 1 : 0 }}>
-                <p data-ask className="kicker">You ask</p>
+                <p data-ask className="kicker flex items-baseline gap-4">You ask<span className="text-[0.8em] text-paper/40">{i + 1} of {n}</span></p>
                 <h3 className="faq-q-size relative mt-3" aria-label={plain(items[i].q)}>
                   {s.q.map((w, k) => (
                     <span key={k} data-q aria-hidden className={`inline-block ${w.a ? "accent" : ""}`} style={{ opacity: 0 }}>{w.t}{k < s.q.length - 1 ? "\u00a0" : ""}</span>
@@ -144,6 +155,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
               <span key={it.q} className={`h-[2px] rounded-full transition-all duration-700 ${i === active ? "w-8 bg-paper" : "w-3 bg-paper/25"}`} />
             ))}
           </div>
+          <button type="button" onClick={skip} className="faq-skip">Skip<span aria-hidden> ↓</span></button>
         </div>
         <div className="relative mt-4 md:hidden"><EmailPill email={studio.email} /></div>
       </div>

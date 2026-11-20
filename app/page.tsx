@@ -25,6 +25,7 @@ export default function Home() {
       sameAs: [studio.linkedin, studio.youtube],
       makesOffer: [
         { "@type": "Offer", itemOffered: { "@type": "Service", name: "Web app development", url: `${SITE_URL}/web-app-development` } },
+        { "@type": "Offer", itemOffered: { "@type": "Service", name: "Website design", url: `${SITE_URL}/website-design` } },
         { "@type": "Offer", itemOffered: { "@type": "Service", name: "Mobile app development", url: `${SITE_URL}/mobile-app-development` } },
       ],
     },

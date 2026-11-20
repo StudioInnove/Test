@@ -69,9 +69,8 @@ export function CityLights({ text }: { text: string }) {
       o.letterSpacing = "-5px";
       const w100 = o.measureText(text).width;
       const gutter = Math.max(16, Math.min(69, W * 0.048));
-      // the name across about half the width (more on a phone), sitting on the bottom left
-      const share = W < 700 ? 0.8 : 0.5;
-      const size = ((W * share - gutter) * 100) / w100;
+      // the name across the full width, sitting on the bottom
+      const size = ((W - gutter * 2) * 100) / w100;
       o.font = `400 ${size}px ${family}`;
       o.letterSpacing = `${-0.05 * size}px`;
       o.fillStyle = "#fff";
@@ -207,7 +206,7 @@ export function CityLights({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <div ref={wrapRef} aria-hidden className="relative h-[clamp(60px,7.4vw,118px)] w-full select-none">
+    <div ref={wrapRef} aria-hidden className="relative h-[clamp(72px,11vw,168px)] w-full select-none">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
     </div>
   );

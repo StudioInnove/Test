@@ -3,13 +3,16 @@ import { BookCall } from "../BookCall";
 import { InView } from "../InView";
 import { LivingStill } from "../LivingStill";
 import { MaskText } from "../ui/MaskText";
+import { Opening } from "./Opening";
 
 /** Every page ends the way the site's story does: the city at sunrise, and an open door. */
 export function Finale() {
   const { close, studio } = content;
   return (
-    <section className="relative flex h-[100svh] min-h-[560px] items-center justify-center overflow-hidden">
-      <LivingStill still="s1d" alt="The city at sunrise, seen from the studio" />
+    <section className="relative flex h-[100svh] bg-ink min-h-[560px] items-center justify-center overflow-hidden">
+      <Opening>
+        <LivingStill still="s1d" alt="The city at sunrise, seen from the studio" />
+      </Opening>
       <div aria-hidden className="absolute inset-0 [background:radial-gradient(60%_55%_at_50%_50%,rgb(20_14_10/0.62),rgb(20_14_10/0.2)_70%,transparent),linear-gradient(0deg,#070a12_0%,transparent_22%)]" />
       <InView threshold={0.3} className="stack center relative px-[var(--gutter)]">
         <MaskText className="t-display" text={close.heading} />

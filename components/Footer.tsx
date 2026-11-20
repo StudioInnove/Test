@@ -4,8 +4,11 @@
  * A compact footer over a field of tiny warm lights, like the city at night seen from very high up.
  * The studio's name isn't drawn: it is the gap in the lights. Windows flicker now and then, a train passes.
  * The idea of a name cut out of lights comes from the 21st.dev "Dithered Footer" (otatechie).
+ * As you reach it, the footer rises out from under the page above (GSAP ScrollTrigger, scrubbed), and
+ * its links arrive one after another.
  */
-import { type MouseEvent } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
+import { getGsap } from "@/lib/gsap";
 import { CityLights } from "./ui/CityLights";
 import { asset, content, href } from "@/lib/content";
 
@@ -22,8 +25,26 @@ export function Footer() {
     ...nav.links.map((l) => ({ label: l.label, href: href(l.href) })),
     { label: "Web apps", href: href("/web-app-development") },
     { label: "Mobile apps", href: href("/mobile-app-development") },
+    { label: "Websites", href: href("/website-design") },
     { label: "How we work", href: href("/#how") },
   ];
+
+  const ref = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { gsap } = getGsap();
+    const inner = el.querySelector("[data-foot-inner]");
+    const ctx = gsap.context(() => {
+      // it sits a little lower and darker, as if underneath the page, and rises into place as you arrive
+      gsap.fromTo(inner, { yPercent: -18, opacity: 0.35 }, { yPercent: 0, opacity: 1, ease: "none", scrollTrigger: { trigger: el, start: "top bottom", end: "bottom bottom", scrub: 0.6 } });
+      gsap.from(el.querySelectorAll("[data-foot-item]"), {
+        y: 14, opacity: 0, duration: 1.1, ease: "power3.out", stagger: 0.05,
+        scrollTrigger: { trigger: el, start: "top 85%", once: true },
+      });
+    }, el);
+    return () => ctx.revert();
+  }, []);
 
   const toTop = (e: MouseEvent) => {
     // on the home page the film flies you back to the start; elsewhere it's a link home
@@ -34,17 +55,18 @@ export function Footer() {
   };
 
   return (
-    <footer className="relative overflow-hidden bg-ink-2">
+    <footer ref={ref} className="relative overflow-hidden bg-ink-2">
+      <div data-foot-inner className="will-change-transform">
 
       <div className="flex flex-col gap-10 border-t-[0.5px] border-white/10 px-[var(--gutter)] pb-10 pt-14 md:flex-row md:items-start md:justify-between md:pt-16">
         <div className="max-w-[300px]">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />
-          <p className="t-body mt-4">{footer.tagline}</p>
+          <img data-foot-item src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[58px] opacity-90" />
+          <p data-foot-item className="t-body mt-4">{footer.tagline}</p>
         </div>
         <nav aria-label="Footer" className="grid grid-cols-2 gap-x-10 gap-y-2.5 sm:grid-cols-3 md:gap-x-14">
           {links.map((l) => (
-            <a key={l.label} href={l.href} className="text-[14px] text-paper/70 transition-colors duration-300 hover:text-paper">
+            <a key={l.label} data-foot-item href={l.href} className="foot-link text-[14px] text-paper/70 transition-colors duration-300 hover:text-paper">
               {l.label}
             </a>
           ))}
@@ -62,9 +84,14 @@ export function Footer() {
           <a href={studio.youtube} target="_blank" rel="noopener" aria-label="YouTube" className="transition-colors hover:text-paper"><Icon d={YOUTUBE} /></a>
           <a href={href("/")} onClick={toTop} aria-label={footer.top} className="group inline-flex items-center gap-1.5 transition-colors hover:text-paper">
             <span className="max-sm:hidden">{footer.top}</span>
+            <span aria-hidden className="relative inline-block">
+              {/* a fine line draws up from the arrow, towards the top of the page */}
+              <span className="absolute bottom-[9px] left-1/2 h-4 w-px origin-bottom -translate-x-1/2 scale-y-0 bg-current transition-transform duration-500 [transition-timing-function:var(--ease-out)] group-hover:scale-y-100" />
             <svg viewBox="0 0 24 24" className="h-3 w-3 transition-transform duration-300 group-hover:-translate-y-0.5" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden><path d="M12 19V5m-6 6 6-6 6 6" /></svg>
+            </span>
           </a>
         </div>
+      </div>
       </div>
     </footer>
   );

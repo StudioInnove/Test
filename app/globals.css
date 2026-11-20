@@ -376,3 +376,17 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .statement-text { font-weight: 320; font-size: clamp(34px, 4.4vw, 68px); line-height: 1.12; letter-spacing: -0.035em; color: #efe9e0; }
 .statement-img { display: inline-block; vertical-align: -0.08em; height: 0.82em; width: 0; overflow: hidden; border-radius: 0.2em; opacity: 0; }
 .statement-img img { display: block; width: 100%; height: 100%; object-fit: cover; transform-origin: center; }
+
+/* the sketch pad behind the drawings in What we build: dark paper with a faint dot grid */
+.sketch-paper { background-color: #0c111d; background-image: radial-gradient(rgb(239 233 224 / 0.07) 1px, transparent 1.2px); background-size: 22px 22px; background-position: 11px 11px; }
+.sketch-note { font-family: var(--font-serif); font-style: italic; fill: rgb(239 233 224 / 0.82); letter-spacing: 0.005em; }
+@media (hover: hover) and (pointer: fine) { .sketch-grain { filter: var(--grain); } }
+.faq-skip { font-size: 14px; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.6); border-bottom: 1px solid rgb(239 233 224 / 0.2); padding-bottom: 2px; transition: color 300ms ease, border-color 300ms ease; }
+.faq-skip:hover { color: #efe9e0; border-color: rgb(239 233 224 / 0.6); }
+/* footer links: a hairline draws under the one you point at */
+.foot-link { background: linear-gradient(currentColor, currentColor) 0 100% / 0 1px no-repeat; padding-bottom: 2px; transition: color 300ms ease, background-size 500ms var(--ease-out); }
+.foot-link:hover { background-size: 100% 1px; }
+/* home: "web and mobile apps." starts dim and lights word by word after the words arrive */
+.svc-lit .w { color: rgb(239 233 224 / 0.5); transition: opacity 1400ms var(--ease-film), transform 1700ms var(--ease-out), filter 1400ms var(--ease-film), color 1400ms ease; transition-delay: calc(var(--d, 0ms) + 200ms); }
+.reveal.on .svc-lit .w { color: #efe9e0; transition-delay: calc(var(--d, 0ms) + 200ms), calc(var(--d, 0ms) + 200ms), calc(var(--d, 0ms) + 200ms), calc(1500ms + var(--i) * 260ms); }
+.reveal:not(.on) .svc-lit .w { transition-duration: 300ms; transition-delay: 0ms; }

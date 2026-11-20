@@ -1,17 +1,18 @@
 /*
- * The studio's dark ground as a reusable shader: near-black night navy, a faint warm light leak drifting
- * through it, fine film grain; the haze gathers a little around the cursor. Adapted from the 21st.dev
+ * The studio's dark ground as a reusable shader: near-black night navy, a haze of city-night blue drifting
+ * through it with one faint ember of warm lamp light, fine film grain; the haze gathers a little around the cursor. Adapted from the 21st.dev
  * "Grainy Light Leak Shader Background" (Velvet Haze, by kedhareswer), recoloured and turned right down.
  * runHaze(canvas) starts it and returns a function that stops it.
  */
 export const INK = "#070a12";
 
 const P = {
-  lightX: 0.3, lightY: 0.16, exposure: 0.2, bloom: 0.38, ember: 0.42,
+  lightX: 0.3, lightY: 0.16, exposure: 0.28, bloom: 0.4, ember: 0.5,
   shadow: 1, fold: 0.48, softness: 1.2, flow: 1,
   grain: 0.05, grainSize: 1, jitter: 0.4, vignette: 0.6,
   lens: 0.5, drag: 0.8, reach: 0.4,
-  ink: [7, 10, 18], shade: [3, 5, 10], emberC: [120, 78, 44], violet: [38, 52, 96], lavender: [90, 98, 128], silver: [196, 178, 150],
+  // night blue: the haze is the city's sky through the studio glass; the ember is the desk lamp
+  ink: [6, 9, 18], shade: [3, 5, 11], emberC: [236, 138, 40], violet: [26, 44, 102], lavender: [64, 88, 150], silver: [80, 104, 158],
 };
 const rgb = (c: number[]) => c.map((v) => v / 255) as [number, number, number];
 
@@ -55,16 +56,17 @@ void main(){
   float silver = (min(haze*1.18, 1.0)*folded + under) * uExposure;
   float violet = lobe(q, vec2(0.7, 0.0), vec2(0.27, 0.24)) * uBloom;
   float lavender = lobe(q, vec2(0.5, 0.02), vec2(0.3, 0.24));
-  float ember = lobe(q, vec2(0.66, 0.28), vec2(0.18, 0.09)) * uEmber;
+  float ember = lobe(q, vec2(0.66, 0.22), vec2(0.15, 0.075)) * uEmber;
   vec3 col = uInk;
   vec3 lightCol = mix(uSilver, uLavender, lavender*0.8);
   col = mix(col, lightCol, clamp(silver, 0.0, 1.0));
   col = mix(col, uViolet, clamp(violet, 0.0, 1.0)*0.6);
-  col = mix(col, uEmberC, clamp(ember, 0.0, 1.0)*0.5);
   float push = 1.0 - fall*0.55*uLampOn;
   float sd = dot(q - vec2(0.6, 0.37), vec2(0.874, 0.486)) + sway*0.8;
   col = mix(col, uShade, clamp(smoothstep(-0.14, 0.26, sd)*uShadow*push, 0.0, 1.0)*0.97);
   col += uSilver * lobe(q, vec2(0.67, 0.53), vec2(0.13, 0.05)) * 0.05 * uExposure;
+  // the lamp glows on top of the blue (added after the shade, so it stays warm rather than greying)
+  col += uEmberC * clamp(ember, 0.0, 1.0) * 0.3;
   col = mix(col, uInk, smoothstep(0.55, 0.95, uv.y)*0.85);
   col += uSilver * fall * 0.035 * uLampOn;
   vec2 v = (uv - vec2(0.36, 0.3)) * vec2(1.0, 1.1);

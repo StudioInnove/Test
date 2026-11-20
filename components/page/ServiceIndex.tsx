@@ -4,15 +4,16 @@
  * What we build, told one at a time, and drawn from idea to screen. The section holds still while you
  * scroll. The three lines turn past a reading line like the drum of a rolodex: the one you are on is sharp
  * and bright; the last one lifts away, smaller and out of focus, as the next one rises into place.
- * Beside it, the app is drawn: a pencil wireframe sketches itself stroke by stroke, in the hand of the
- * sketches on the studio's wall, then the real, finished screen resolves underneath it and the pencil
- * fades away. From idea to launch, in one moment. Everything is scrubbed by GSAP ScrollTrigger, so it
+ * Beside it, the app is drawn the way a designer works: faint layout guides, then the boxes, then the
+ * details, a few handwritten notes with arrows and a dab of amber highlighter, with the pencil's point
+ * moving along each stroke. The colour fills in box by box behind the pencil, the whole screen settles,
+ * and the pencil lifts away. From idea to launch, in one moment. Everything is scrubbed by GSAP ScrollTrigger, so it
  * happens at your pace, on a computer and a phone alike.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
 import { asset } from "@/lib/content";
-import { sketch, SKETCH_SIZE, type SketchKind } from "./sketches";
+import { sketch, SKETCH_SIZE, FILL_ALL, PENCIL_OUT, type SketchKind, type Sketch } from "./sketches";
 
 type Item = { title: string; phrase: string; line: string; image: string; sketch?: string };
 
@@ -29,7 +30,8 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
   const n = items.length;
   const web = (items[0]?.sketch ?? "web").startsWith("web");
   const [vw, vh] = web ? SKETCH_SIZE.web : SKETCH_SIZE.mobile;
-  const drawings = useMemo(() => items.map((it) => (it.sketch ? sketch(it.sketch as SketchKind) : [])), [items]);
+  const empty: Sketch = { strokes: [], fills: [], notes: [], size: 20 };
+  const drawings = useMemo(() => items.map((it) => (it.sketch ? sketch(it.sketch as SketchKind) : empty)), [items]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useIso(() => {
     const { gsap } = getGsap();
@@ -37,6 +39,19 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
     if (!root) return;
     const state = { t: 0 };
     let last = -1;
+    // what each frame holds, looked up once
+    const parts = frames.current.map((el) => {
+      if (!el) return null;
+      const strokes = Array.from(el.querySelectorAll<SVGPathElement>("[data-stroke]")).map((p) => ({ p, s: +p.dataset.s!, e: +p.dataset.e!, len: p.getTotalLength() }));
+      return {
+        strokes,
+        fills: Array.from(el.querySelectorAll<SVGRectElement>("[data-fill]")).map((r) => ({ r, s: +r.dataset.s!, e: +r.dataset.e! })),
+        notes: Array.from(el.querySelectorAll<SVGTextElement>("[data-note]")).map((n) => ({ n, s: +n.dataset.s!, e: +n.dataset.e! })),
+        all: el.querySelector<SVGRectElement>("[data-fill-all]"),
+        pencil: el.querySelector<SVGGElement>("[data-pencil]"),
+        ink: el.querySelector<SVGGElement>("[data-ink]"),
+      };
+    });
     const apply = () => {
       const t = state.t;
       // the drum turns near the end of each item's stretch
@@ -59,19 +74,35 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
         el.style.opacity = String(into * (1 - out));
         el.style.transform = `translate3d(0, ${(1 - into) * 24 - out * 24}px, 0)`;
         el.style.visibility = into <= 0 || out >= 1 ? "hidden" : "visible";
-        // the pencil draws, stroke after stroke
-        const strokes = el.querySelectorAll<SVGPathElement>("path");
-        const drawn = clamp(local / 0.42) * (strokes.length + 6);
-        strokes.forEach((p, k) => (p.style.strokeDashoffset = String(1 - ease(clamp((drawn - k) / 6)))));
-        // then the finished screen comes through, and the pencil lifts away
-        const done = ease(clamp((local - 0.4) / 0.26));
-        const scr = el.querySelector<HTMLElement>("[data-screen]");
-        if (scr) {
-          scr.style.opacity = String(done);
-          scr.style.clipPath = `inset(0% 0% ${(1 - done) * 100}% 0%)`;
+        const pt = parts[i];
+        if (!pt) return;
+        // the pencil draws, stroke after stroke; its point rides the stroke being drawn
+        let tip: { x: number; y: number } | null = null, tipAt = -1;
+        pt.strokes.forEach(({ p, s, e, len }) => {
+          const k = clamp((local - s) / (e - s));
+          p.style.strokeDashoffset = String(1 - smooth(k));
+          if (k > 0 && k < 1 && s > tipAt) {
+            const q = p.getPointAtLength(len * smooth(k));
+            tip = { x: q.x, y: q.y };
+            tipAt = s;
+          }
+        });
+        // the colour follows the pencil, box by box, then the whole screen settles
+        pt.fills.forEach(({ r, s, e }) => r.setAttribute("opacity", String(ease(clamp((local - s) / (e - s))))));
+        pt.all?.setAttribute("opacity", String(ease(clamp((local - FILL_ALL[0]) / (FILL_ALL[1] - FILL_ALL[0])))));
+        // the handwriting
+        const lift = ease(clamp((local - PENCIL_OUT[0]) / (PENCIL_OUT[1] - PENCIL_OUT[0])));
+        pt.notes.forEach(({ n, s, e }) => {
+          const k = ease(clamp((local - s) / (e - s)));
+          n.style.opacity = String(k * (1 - lift));
+          n.style.clipPath = `inset(-20% ${(1 - k) * 100}% -20% -4%)`;
+        });
+        if (pt.ink) pt.ink.style.opacity = String(1 - lift);
+        if (pt.pencil) {
+          const t0 = tip as { x: number; y: number } | null;
+          pt.pencil.style.opacity = t0 && lift < 1 ? "1" : "0";
+          if (t0) pt.pencil.setAttribute("transform", `translate(${t0.x.toFixed(1)} ${t0.y.toFixed(1)})`);
         }
-        const svg = el.querySelector<SVGElement>("svg");
-        if (svg) svg.style.opacity = String(1 - done * 0.92);
       });
       if (fl !== last) {
         last = fl;
@@ -126,15 +157,42 @@ export function ServiceIndex({ kicker, items }: { kicker: string; items: Item[] 
             <div
               key={it.image + i}
               ref={(el) => { frames.current[i] = el; }}
-              className={`col-start-1 row-start-1 relative overflow-hidden border border-paper/12 bg-[#0b0f1a] ${web ? "rounded-[14px]" : "rounded-[34px]"}`}
+              className={`sketch-paper col-start-1 row-start-1 relative overflow-hidden border border-paper/12 ${web ? "rounded-[14px]" : "rounded-[34px]"}`}
               style={{ aspectRatio: `${vw} / ${vh}`, opacity: i === 0 ? 1 : 0 }}
             >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img data-screen src={asset(it.image)} alt={`${it.title}: a working screen we built`} loading="lazy" className="absolute inset-0 h-full w-full object-cover" style={{ opacity: 0 }} />
-              <svg aria-hidden viewBox={`0 0 ${vw} ${vh}`} className="absolute inset-0 h-full w-full" fill="none" stroke="rgb(239 233 224 / 0.78)" strokeWidth={web ? 2.4 : 1.8} strokeLinecap="round" strokeLinejoin="round">
-                {drawings[i].map((d, k) => (
-                  <path key={k} d={d} pathLength={1} style={{ strokeDasharray: 1, strokeDashoffset: 1 }} />
-                ))}
+              <svg role="img" aria-label={`${it.title}: a working screen we built, drawn first as a sketch`} viewBox={`0 0 ${vw} ${vh}`} className="absolute inset-0 h-full w-full" fill="none" strokeLinecap="round" strokeLinejoin="round">
+                <defs>
+                  {/* the colour comes in where the pencil has been */}
+                  <mask id={`si-m-${i}`} maskUnits="userSpaceOnUse" x="0" y="0" width={vw} height={vh}>
+                    <rect data-fill-all x="0" y="0" width={vw} height={vh} fill="#fff" opacity="0" />
+                    {drawings[i].fills.map((fl, k) => (
+                      <rect key={k} data-fill data-s={fl.s} data-e={fl.e} x={fl.x} y={fl.y} width={fl.w} height={fl.h} rx={fl.r} fill="#fff" opacity="0" />
+                    ))}
+                  </mask>
+                  {/* a little tooth to the graphite */}
+                  <filter id={`si-g-${i}`} x="-2%" y="-2%" width="104%" height="104%">
+                    <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="1" seed={i + 3} />
+                    <feDisplacementMap in="SourceGraphic" scale={web ? 2.2 : 1.4} />
+                  </filter>
+                </defs>
+                <image href={asset(it.image)} x="0" y="0" width={vw} height={vh} preserveAspectRatio="xMidYMid slice" mask={`url(#si-m-${i})`} />
+                <g data-ink>
+                  <g className="sketch-grain" style={{ ["--grain" as string]: `url(#si-g-${i})` }}>
+                    {drawings[i].strokes.map((st, k) => (
+                      <path key={k} data-stroke data-s={st.s} data-e={st.e} d={st.d} pathLength={1} stroke={st.amber ? "rgb(232 161 90)" : "rgb(239 233 224)"} strokeOpacity={st.o} strokeWidth={st.w} style={{ strokeDasharray: 1, strokeDashoffset: 1 }} />
+                    ))}
+                  </g>
+                  {drawings[i].notes.map((nt, k) => (
+                    <text key={k} data-note data-s={nt.s} data-e={nt.e} x={nt.x} y={nt.y} textAnchor={nt.anchor ?? "start"} transform={`rotate(${nt.rot} ${nt.x} ${nt.y})`} className="sketch-note" fontSize={drawings[i].size} style={{ opacity: 0 }}>
+                      {nt.t}
+                    </text>
+                  ))}
+                </g>
+                {/* the pencil's point */}
+                <g data-pencil style={{ opacity: 0 }}>
+                  <circle r={web ? 14 : 9} fill="rgb(239 233 224 / 0.08)" />
+                  <circle r={web ? 3.2 : 2.2} fill="rgb(239 233 224 / 0.95)" />
+                </g>
               </svg>
             </div>
           ))}

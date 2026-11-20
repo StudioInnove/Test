@@ -53,7 +53,7 @@
     "intro": "What we do",
     "headline": [
       "We design and build",
-      "web and mobile *apps.*"
+      "websites and *apps.*"
     ],
     "web": {
       "title": "Web apps",
@@ -73,7 +73,11 @@
         "image": "/closeups/web.webp"
       },
       "kicker": "What we build",
-      "heading": "Web *apps*"
+      "heading": "Web *apps*",
+      "also": {
+        "link": "Or a website",
+        "href": "/website-design"
+      }
     },
     "mobile": {
       "title": "Mobile apps",
@@ -206,7 +210,7 @@
     ]
   },
   "footer": {
-    "tagline": "Web and mobile apps, designed and built with care.",
+    "tagline": "Websites, web and mobile apps, designed and built with care.",
     "privacy": "Privacy",
     "top": "Back to the top"
   },
@@ -401,6 +405,40 @@
         }
       ],
       "statement": "Four steps, no surprises. You see and *try* everything, all the way to *launch.*"
+    },
+    "sites": {
+      "title": "Website design",
+      "metaTitle": "Website design and build — Studio Innové",
+      "metaDescription": "Landing pages, brand sites and online shops, designed and built by Studio Innové. Fast, memorable and easy for your team to update. Book a call.",
+      "headline": "Websites people *remember.*",
+      "intro": "Landing pages, brand sites and shops that load fast, feel considered, and that your team can update themselves.",
+      "statement": "We design and build websites [/services/screens/web-brand.webp] that people *remember.* Landing pages, shops [/services/screens/web-shop.webp] and brand sites you can update *yourself.*",
+      "index": {
+        "kicker": "What we build",
+        "items": [
+          {
+            "title": "Landing pages",
+            "phrase": "with one clear job",
+            "line": "Launch pages and campaign sites that turn a visit into a sign-up.",
+            "image": "/services/screens/web-landing.webp",
+            "sketch": "web-landing"
+          },
+          {
+            "title": "Brand sites",
+            "phrase": "that feel like you",
+            "line": "Company and studio sites that say who you are in a single scroll.",
+            "image": "/services/screens/web-brand.webp",
+            "sketch": "web-brand"
+          },
+          {
+            "title": "Shops",
+            "phrase": "people enjoy browsing",
+            "line": "Online shops with an editor simple enough to run without us.",
+            "image": "/services/screens/web-shop.webp",
+            "sketch": "web-shop"
+          }
+        ]
+      }
     }
   },
   "privacyPage": {

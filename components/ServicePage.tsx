@@ -12,16 +12,17 @@ import { EmailPill } from "./ui/EmailPill";
 import { Words } from "./Words";
 
 /**
- * Web apps and Mobile apps. One continuous atmosphere from top to bottom: the room, then what we build
+ * Web apps, Mobile apps and Websites. One continuous atmosphere from top to bottom: the room, then what we build
  * (the device stays while its screen changes), a walk along the design wall from idea to launch,
  * questions, and the sunrise.
  */
-export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
+export function ServicePage({ kind }: { kind: "web" | "mobile" | "sites" }) {
   const p = content.pages[kind];
   const { how, faq, studio } = content;
-  const still = kind === "web" ? "s3" : "s4";
+  // websites: the design wall, until the room of their own is made
+  const still = kind === "web" ? "s3" : kind === "mobile" ? "s4" : "s5";
   return (
-    <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} title={p.headline} intro={p.intro}>
+    <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : kind === "mobile" ? "A phone lighting up on an oak table in a warm studio at night" : "Sketches for every page pinned along a walnut wall in the studio at night"} title={p.headline} intro={p.intro}>
       <Haze />
       <Statement text={p.statement} />
       <Handover />

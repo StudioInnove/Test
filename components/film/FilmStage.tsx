@@ -541,6 +541,12 @@ export function FilmStage() {
     strip?.addEventListener("pointercancel", sUp);
 
     const opts = { mouse: [0, 0] as [number, number], pointer: [0.5, 0.5] as [number, number], motion: 0 };
+    // "We design and build web and mobile apps": the words ride the camera. As the film glides in they
+    // come into focus, the wide tracking closing up; while you rest there the two lines sit at slightly
+    // different depths and drift with the pointer.
+    const svcAt = SCENES.findIndex((sc) => sc.key === "services");
+    const svcLines = Array.from(stage.querySelectorAll<HTMLElement>('[data-scene="services"] [data-depth]'));
+    let svcKey = "";
     let liveAt = 0;
     let screenKey = "";
 
@@ -597,6 +603,20 @@ export function FilmStage() {
       }
 
       // below the film (FAQ, footer) there's nothing to draw: leave the GPU free for scrolling
+      if (svcAt >= 0 && svcLines.length) {
+        const a = clamp(Math.abs(pos - svcAt) / TEXT_AT);
+        const key = `${a.toFixed(3)}${look.x.toFixed(3)}${look.y.toFixed(3)}`;
+        if (a < 1 && key !== svcKey) {
+          svcKey = key;
+          const e = a * a * (3 - 2 * a);
+          svcLines.forEach((el) => {
+            const depth = +(el.dataset.depth || 1);
+            el.style.transform = `translate3d(${(-look.x * 10 * depth).toFixed(2)}px, ${(-look.y * 6 * depth + e * 18 * depth).toFixed(2)}px, 0) scale(${(1 + e * 0.06 * depth).toFixed(4)})`;
+            el.style.letterSpacing = `${(e * 0.08).toFixed(4)}em`;
+          });
+        }
+      }
+
       const visible = filmMode || window.scrollY < stage.clientHeight;
       if (engine?.ready && visible) {
         let shot: Single;
@@ -918,9 +938,10 @@ export function FilmStage() {
         <section data-scene="services" aria-label="What we do" className="scene-text reveal absolute inset-0 isolate flex flex-col items-center justify-center px-[var(--gutter)] text-center" style={sceneStyle}>
           <div aria-hidden className="absolute inset-0 -z-10 [background:radial-gradient(80%_65%_at_50%_50%,rgb(7_10_18/0.78),rgb(7_10_18/0.35)_70%,rgb(7_10_18/0.15)_100%)]" />
           <h2 className="t-mono max-w-[16ch] text-[clamp(44px,7.4vw,112px)]">
-            <Words text={services.headline[0]} />
+            <span data-depth="0.7" className="inline-block will-change-transform"><Words text={services.headline[0]} /></span>
             <br />
-            <span className="text-paper/60"><Words text={services.headline[1]} delay={180} /></span>
+            {/* the second line lights up word by word once you've arrived */}
+            <span data-depth="1.3" className="svc-lit inline-block will-change-transform"><Words text={services.headline[1]} delay={180} /></span>
           </h2>
         </section>
 
@@ -935,6 +956,7 @@ export function FilmStage() {
                 <p className="rise t-lead" style={{ ["--d" as string]: "250ms" }}>{sv.line}</p>
                 <div className="rise actions" style={{ ["--d" as string]: "380ms" }}>
                   <a href={href(sv.more.href)} className="more">{sv.more.link}</a>
+                  {"also" in sv && sv.also ? <a href={href((sv.also as { href: string }).href)} className="more">{(sv.also as { link: string }).link}</a> : null}
                 </div>
               </div>
             </section>

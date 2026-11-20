@@ -42,6 +42,7 @@ export type Bg = {
 export const BG: Record<WorldId, Bg> = {
   web: { d: "/worlds/web-d.webp", m: "/worlds/web-m.webp", iw: 2400, ih: 1792, mx0: 0.2079, mw: 0.56, mi: [1080, 1440], fy: 0.62, shift: 0.3, live: "w-web", screen: { app: "dash", quad: [[0.2583, 0.4234], [0.7184, 0.4404], [0.7184, 0.748], [0.2593, 0.8104]] } },
   mobile: { d: "/worlds/mobile-d.webp", m: "/worlds/mobile-m.webp", iw: 2400, ih: 1792, mx0: 0.14, mw: 0.56, mi: [1080, 1440], fy: 0.5, dim: 0.12, live: "w-mobile" },
+  sites: { d: "/worlds/sites-d.webp", m: "/worlds/sites-m.webp", iw: 2400, ih: 1340, mx0: 0.24, mw: 0.41875, mi: [1080, 1440], fy: 0.4, shift: 0.18, live: "w-sites" },
   how: { d: "/worlds/how-d.webp", m: "/worlds/how-m.webp", iw: 2400, ih: 1792, mx0: 0.22, mw: 0.56, mi: [1080, 1440], fy: 0.45, live: "w-how" },
   originals: { d: "/worlds/originals-d.webp", m: "/worlds/originals-m.webp", iw: 2400, ih: 1340, mx0: 0.2906, mw: 0.4185, mi: [1080, 1440], fy: 0.5, live: "w-orig", glow: [[0.2232, 0.2484], [0.792, 0.2484], [0.792, 0.7977], [0.2232, 0.7977]] },
   think: { d: "/film/stills/s3-d.webp", m: "/film/stills/s3-m.webp", iw: 3200, ih: 1786, mx0: 0.299, mw: 0.4019, mi: [1152, 1600], fy: 0.3, zoom: { s: 1.45, u: 0.5, v: 0.32 }, dim: 0.22, live: "s3" },

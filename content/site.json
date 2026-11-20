@@ -73,11 +73,7 @@
         "image": "/closeups/web.webp"
       },
       "kicker": "What we build",
-      "heading": "Web *apps*",
-      "also": {
-        "link": "Or a website",
-        "href": "/website-design"
-      }
+      "heading": "Web *apps*"
     },
     "mobile": {
       "title": "Mobile apps",
@@ -99,7 +95,26 @@
       "kicker": "For every pocket",
       "heading": "Mobile *apps*"
     },
-    "cta": "Book a call"
+    "cta": "Book a call",
+    "sites": {
+      "title": "Websites",
+      "line": "Landing pages, brand sites and shops that people remember, and your team can update.",
+      "more": {
+        "spot": "Look closer",
+        "title": "Websites",
+        "line": "From a single launch page to a full shop.",
+        "items": [
+          "Landing pages",
+          "Brand and company sites",
+          "Online shops"
+        ],
+        "link": "Explore websites",
+        "href": "/website-design",
+        "image": "/worlds/sites-d.webp"
+      },
+      "kicker": "For every visitor",
+      "heading": "*Websites*"
+    }
   },
   "how": {
     "heading": "From idea to *launch*",
@@ -656,7 +671,29 @@
       ]
     },
     "backHome": "Back to the studio",
-    "next": "Scroll to continue"
+    "next": "Scroll to continue",
+    "sites": {
+      "title": "Websites people remember.",
+      "lines": [
+        "Landing pages, brand sites and shops, designed to be remembered and built to be fast."
+      ],
+      "link": "Explore websites",
+      "href": "/website-design",
+      "chapters": [
+        {
+          "title": "Websites people *remember.*",
+          "line": "Landing pages, brand sites and shops, designed to be remembered and built to be fast."
+        },
+        {
+          "title": "Designed to the *last* detail.",
+          "line": "Type, colour and photography chosen for you, sketched first, then built to load in a blink."
+        },
+        {
+          "title": "Right on every *screen.*",
+          "line": "Every site feels at home on a phone, and your team can update it without us."
+        }
+      ]
+    }
   },
   "entrance": {
     "enter": "Enter"

@@ -27,6 +27,7 @@ const W = content.worlds;
 const CAMS: Record<WorldId, Cam[]> = {
   web: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.18, u: 0.72, v: 0.62 }, { z: 1.04, u: 0.72, v: 0.55 }],
   mobile: [{ z: 1, u: 0.5, v: 0.5 }, { z: 1.06, u: 0.6, v: 0.45 }, { z: 1.02, u: 0.5, v: 0.5 }],
+  sites: [{ z: 1, u: 0.5, v: 0.45 }, { z: 1.16, u: 0.42, v: 0.3 }, { z: 1, u: 0.5, v: 0.5 }],
   how: [{ z: 1.25, u: 0.15, v: 0.35 }, { z: 1.25, u: 0.36, v: 0.32 }, { z: 1.25, u: 0.58, v: 0.48 }, { z: 1.25, u: 0.92, v: 0.8 }],
   think: [{ z: 1, u: 0.5, v: 0.32 }, { z: 1.08, u: 0.5, v: 0.32 }, { z: 1.16, u: 0.5, v: 0.32 }],
   world: [{ z: 1, u: 0.45, v: 0.32 }, { z: 1.12, u: 0.45, v: 0.32 }],
@@ -38,6 +39,7 @@ type Shot = { d: string; m?: string; x?: number; y?: number };
 const SHOTS: Partial<Record<WorldId, (Shot | null)[]>> = {
   web: [null, null, { d: "/worlds/web-grow-d.webp", m: "/worlds/web-grow-m.webp", x: 38 }],
   mobile: [null, null, { d: "/worlds/mobile-both-d.webp", m: "/worlds/mobile-both-m.webp", x: 64 }],
+  sites: [null, null, { d: "/worlds/sites-phone-d.webp", m: "/worlds/sites-phone-m.webp", x: 36 }],
   think: [null, { d: "/worlds/think-designs-d.webp", m: "/worlds/think-designs-m.webp", x: 62 }, { d: "/worlds/think-fast-d.webp", m: "/worlds/think-fast-m.webp", x: 56 }],
   originals: [null, { d: "/worlds/orig-cloth-d.webp", m: "/worlds/orig-cloth-m.webp", x: 62 }, { d: "/worlds/orig-door-d.webp", m: "/worlds/orig-door-m.webp", x: 64 }],
 };
@@ -190,7 +192,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   // what each chapter adds under its title and line
   let extra: ReactNode = null;
   if (id && chap === last && id !== "originals") {
-    const link = id === "web" || id === "mobile" ? W[id] : undefined;
+    const link = id === "web" || id === "mobile" || id === "sites" ? W[id] : undefined;
     extra = actions(380, link);
   }
   if (id === "world" && chap === 1) extra = (

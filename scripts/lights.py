@@ -15,7 +15,10 @@ REGIONS = {
     "s2": dict(win=[(0.0, 0.28, 0.35, 0.62), (0.82, 0.33, 1.0, 0.6), (0.08, 0.66, 0.45, 0.82), (0.7, 0.8, 0.98, 0.97)], skip=[], max=120, bokeh=False),
     # sunrise: the windows still lit in the towers
     "s1d": dict(win=[(0.0, 0.45, 1.0, 1.0)], skip=[(0.86, 0.3, 1.0, 0.5)], max=90, bokeh=False, thr=0.5),
+    # the websites room: the city through the windows on the right
+    "s7": dict(win=[(0.66, 0.2, 1.0, 0.76)], skip=[(0.6, 0.42, 0.72, 0.75), (0.69, 0.3, 0.73, 0.55)], max=110, bokeh=False),
     # the close-ups
+    "w-sites": dict(win=[(0.68, 0.05, 1.0, 0.66)], skip=[(0.84, 0.0, 1.0, 0.3)], max=70, bokeh=True, src="public/worlds/sites-d.webp"),
     "w-web": dict(win=[(0.0, 0.15, 0.25, 0.8), (0.72, 0.2, 0.87, 0.75)], skip=[(0.24, 0.4, 0.74, 0.86)], max=90, bokeh=False, src="public/worlds/web-d.webp"),
     "w-mobile": dict(win=[(0.08, 0.3, 0.72, 0.62)], skip=[], max=50, bokeh=True, src="public/worlds/mobile-d.webp"),
     "w-orig": dict(win=[(0.0, 0.0, 1.0, 0.24), (0.0, 0.0, 0.2, 0.6), (0.82, 0.0, 1.0, 0.6)], skip=[(0.42, 0.0, 0.52, 0.26), (0.3, 0.0, 0.37, 0.24)], max=50, bokeh=True, src="public/worlds/originals-d.webp"),

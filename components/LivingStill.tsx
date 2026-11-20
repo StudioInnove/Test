@@ -12,6 +12,7 @@ import { coverPoint, quadMatrix } from "@/lib/quad";
 import { BuildScreen, BUILD_SIZE } from "./apps/BuildScreen";
 import { Dashboard, DASH_SIZE } from "./apps/Dashboard";
 import { PhoneApps, PHONE_SIZE } from "./apps/PhoneApps";
+import { SiteScreen, SITE_SIZE } from "./apps/SiteScreen";
 import { LivingLight } from "./film/living";
 import { DepthPhoto } from "@/lib/depthPhoto";
 import { MFOCUS, SCREENS, type StillId } from "./film/timeline";
@@ -53,7 +54,7 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
       living.resize(box.clientWidth, box.clientHeight);
       const el = screenRef.current;
       if (el && scr) {
-        const size = scr.app === "dash" ? DASH_SIZE : scr.app === "phone" ? PHONE_SIZE : BUILD_SIZE;
+        const size = scr.app === "dash" ? DASH_SIZE : scr.app === "phone" ? PHONE_SIZE : scr.app === "site" ? SITE_SIZE : BUILD_SIZE;
         el.style.transform = quadMatrix(size.w, size.h, scr.quad.map(([u, v]) => map(u, v)));
       }
     };
@@ -161,6 +162,7 @@ export function LivingStill({ still, alt }: { still: StillId; alt: string }) {
             {scr.app === "dash" && <Dashboard />}
             {scr.app === "phone" && <PhoneApps notify />}
             {scr.app === "build" && <BuildScreen />}
+            {scr.app === "site" && <SiteScreen />}
             <div className="absolute inset-0 [background:linear-gradient(115deg,rgb(255_255_255/0.1),transparent_45%)]" />
           </div>
         </div>

@@ -1,6 +1,6 @@
 /** The film's stills and clips, and where the subject sits in each still. */
-export type StillId = "s1" | "s1n" | "s1d" | "s2" | "s3" | "s4" | "s5" | "s6";
-export type ClipId = "c0" | "c1" | "c2" | "c3" | "c4" | "c5" | "c6" | "cl";
+export type StillId = "s1" | "s1n" | "s1d" | "s2" | "s3" | "s4" | "s5" | "s6" | "s7";
+export type ClipId = "c0" | "c1" | "c2" | "c3" | "c4" | "c5" | "c6" | "c7" | "c8" | "cl";
 
 /** Where the subject sits in each still (0..1, x / y). Used to crop for tall screens. */
 export const FOCUS: Record<StillId, [number, number]> = {
@@ -12,12 +12,13 @@ export const FOCUS: Record<StillId, [number, number]> = {
   s4: [0.66, 0.6],
   s5: [0.42, 0.5],
   s6: [0.5, 0.5],
+  s7: [0.49, 0.5],
 };
 
 /** Phones: the horizontal centre of the portrait crop for each still. Keep in step with MFOCUS in scripts/film.py. */
-export const MFOCUS: Partial<Record<StillId, number>> = { s1n: 0.62, s1d: 0.62, s2: 0.5, s3: 0.5, s4: 0.64, s5: 0.45, s6: 0.5 };
+export const MFOCUS: Partial<Record<StillId, number>> = { s1n: 0.62, s1d: 0.62, s2: 0.5, s3: 0.5, s4: 0.64, s5: 0.45, s6: 0.5, s7: 0.49 };
 
-export type WorldId = "web" | "mobile" | "how" | "originals" | "think" | "world";
+export type WorldId = "web" | "mobile" | "sites" | "how" | "originals" | "think" | "world";
 
 /**
  * Things in the rooms you can step into (u, v on the full 16:9 still). `area` is the object itself:
@@ -33,15 +34,17 @@ export const SPOTS: Partial<Record<StillId, Spot[]>> = {
     { id: "mobile", u: 0.68, v: 0.71, area: [0.5, 0.62, 0.86, 0.82], label: "Look closer", main: true },
     { id: "world", u: 0.53, v: 0.33, area: [0.44, 0.15, 0.68, 0.5], label: "Worldwide" },
   ],
+  s7: [{ id: "sites", u: 0.49, v: 0.52, area: [0.36, 0.36, 0.62, 0.67], label: "Look closer", main: true }],
   s5: [{ id: "how", u: 0.33, v: 0.42, area: [0.02, 0.28, 0.58, 0.56], label: "Look closer", main: true }],
   s6: [{ id: "originals", u: 0.6, v: 0.62, area: [0.39, 0.42, 0.61, 0.64], label: "Look inside", main: true, pm: [0.45, 0.47] }],
 };
 
 /** Live screens fitted onto the stills: corners TL, TR, BR, BL (u, v on the full still). */
 export type Quad = [[number, number], [number, number], [number, number], [number, number]];
-export const SCREENS: Partial<Record<StillId, { app: "dash" | "phone" | "build"; quad: Quad }>> = {
+export const SCREENS: Partial<Record<StillId, { app: "dash" | "phone" | "build" | "site"; quad: Quad }>> = {
   s3: { app: "dash", quad: [[0.3925, 0.5006], [0.6075, 0.5006], [0.6075, 0.697], [0.3925, 0.697]] },
   s4: { app: "phone", quad: [[0.5147, 0.6699], [0.6259, 0.6417], [0.8384, 0.7392], [0.7256, 0.7861]] },
+  s7: { app: "site", quad: [[0.3692, 0.3717], [0.6083, 0.401], [0.6083, 0.6348], [0.3692, 0.651]] },
   s6: { app: "build", quad: [[0.3963, 0.431], [0.607, 0.431], [0.607, 0.6288], [0.3963, 0.6288]] },
 };
 

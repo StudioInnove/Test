@@ -19,10 +19,9 @@ import { Words } from "./Words";
 export function ServicePage({ kind }: { kind: "web" | "mobile" | "sites" }) {
   const p = content.pages[kind];
   const { how, faq, studio } = content;
-  // websites: the design wall, until the room of their own is made
-  const still = kind === "web" ? "s3" : kind === "mobile" ? "s4" : "s5";
+  const still = kind === "web" ? "s3" : kind === "mobile" ? "s4" : "s7";
   return (
-    <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : kind === "mobile" ? "A phone lighting up on an oak table in a warm studio at night" : "Sketches for every page pinned along a walnut wall in the studio at night"} title={p.headline} intro={p.intro}>
+    <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : kind === "mobile" ? "A phone lighting up on an oak table in a warm studio at night" : "A website being designed on a wide display beside a pinboard of page layouts, in a warm studio at night"} title={p.headline} intro={p.intro}>
       <Haze />
       <Statement text={p.statement} />
       <Handover />

@@ -811,7 +811,7 @@ export function FilmStage() {
           if (!alive) return;
           const have = Math.min(1, engine!.loadedRatio(need) / 0.6);
           setProgress(0.5 + have * 0.5);
-          if ((have >= 1 && performance.now() - t0 > (entered ? 400 : 1200)) || performance.now() - t0 > 7000) {
+          if ((have >= 1 && performance.now() - t0 > (entered ? 300 : 400)) || performance.now() - t0 > 7000) {
             setLoaded(true);
             remember();
             begin();
@@ -1042,14 +1042,13 @@ export function FilmStage() {
         {/* ---------------- Entrance: the city surfaces, the world's clocks tick, then you come in ---------------- */}
         {/* once you choose, it opens from the middle, like blinds parting on the city */}
         <div aria-hidden={ready} className={`entrance-wrap fixed inset-0 z-[60] overflow-hidden bg-ink transition-[clip-path,visibility,opacity] duration-[1500ms] [transition-timing-function:cubic-bezier(0.77,0,0.175,1)] ${ready ? "invisible" : ""}`} style={skipEntrance ? { opacity: ready ? 0 : 1 } : { clipPath: ready ? "inset(50% 0 50% 0)" : "inset(0 0 0 0)" }}>
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={asset("/film/stills/s1n-m.webp")}
-            alt=""
-            className="absolute inset-0 h-full w-full object-cover object-[60%_55%] transition-[opacity,filter,transform] duration-[1400ms] [transition-timing-function:var(--ease-film)]"
-            style={{ opacity: 0.1 + progress * 0.35, filter: `blur(${16 - progress * 10}px)`, transform: `scale(${1.12 - progress * 0.08})` }}
-          />
-          <div className="absolute inset-0 [background:radial-gradient(80%_70%_at_50%_50%,rgb(7_10_18/0.35),rgb(7_10_18/0.94))]" />
+          {/* while the film loads, its first frame is already there: no dark loading moment */}
+          <picture>
+            <source media="(max-width: 899px)" srcSet={asset("/film/stills/s1n-m.webp")} />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src={asset("/film/stills/s1n-d.webp")} alt="" fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
+          </picture>
+          <div className="absolute inset-0 [background:linear-gradient(0deg,rgb(7_10_18/0.55)_0%,transparent_45%)]" />
           <div className={`entrance absolute inset-0 flex flex-col items-center justify-center px-[var(--gutter)] text-center ${skipEntrance ? "invisible" : ""}`}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={asset("/brand/logo.svg")} alt={studio.name} width={64} height={25} className="h-auto w-[84px] opacity-90" />

@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { CloseUp } from "@/components/CloseUp";
 import { PageShell } from "@/components/PageShell";
-import { Backdrop } from "@/components/page/Backdrop";
+import { Haze } from "@/components/page/Haze";
 import { Finale } from "@/components/page/Finale";
 import { LaunchTrack, WaitlistForm } from "@/components/Originals";
 import { Words } from "@/components/Words";
@@ -22,7 +22,7 @@ export default function Page() {
   const w = content.worlds.originals;
   return (
     <PageShell still="s6" alt="A row of screens in a quiet room, one glowing amber" title={o.heading} intro={o.line}>
-      <Backdrop still="s6" />
+      <Haze />
       <CloseUp id="originals">
         <h2 className="t-title"><Words text={w.title} /></h2>
         <p className="rise t-lead" style={d(250)}>{w.line}</p>

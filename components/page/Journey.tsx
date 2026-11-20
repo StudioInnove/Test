@@ -12,7 +12,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
 import { asset } from "@/lib/content";
-import { MaskText } from "../ui/MaskText";
+import { Words } from "../Words";
 
 type Step = { title: string; line: string };
 
@@ -131,7 +131,12 @@ export function Journey({ heading, steps, titles, order, image, aspect, at }: { 
         scrollTrigger: {
           trigger: sec,
           start: "top top",
-          end: "bottom bottom",
+          // held in place by GSAP's own pin (not CSS sticky) while you walk the wall
+          end: () => "+=" + window.innerHeight * 3.2,
+          pin: true,
+          refreshPriority: 1,
+          anticipatePin: 1,
+          invalidateOnRefresh: true,
           scrub: 0.6,
           onUpdate: (st) => {
             // which step you're on, with a little give so it never flickers between two
@@ -152,14 +157,14 @@ export function Journey({ heading, steps, titles, order, image, aspect, at }: { 
   }, [aspect, steps.length, image]);
 
   return (
-    <section ref={ref} className="relative" style={{ height: "420svh" }} aria-label={heading.replace(/\*/g, "")}>
-      <div ref={boxRef} className="sticky top-0 h-[100svh] overflow-hidden bg-ink">
+    <section ref={ref} className="relative h-[100svh] overflow-hidden bg-ink" aria-label={heading.replace(/\*/g, "")}>
+      <div ref={boxRef} className="absolute inset-0 overflow-hidden bg-ink">
         <canvas ref={canvasRef} role="img" aria-label="Sketches and designs for every screen, pinned along the studio wall" className="absolute inset-0 h-full w-full" />
         <div aria-hidden className="pointer-events-none absolute inset-0 [background:linear-gradient(0deg,rgb(7_10_18/0.94)_0%,rgb(7_10_18/0.55)_30%,transparent_55%),linear-gradient(180deg,rgb(7_10_18/0.6)_0%,transparent_26%)]" />
 
         {/* the heading stays */}
         <div className="absolute left-[var(--gutter)] top-[max(104px,14svh)]">
-          <MaskText className="t-title" text={heading} />
+          <h2 className="t-title"><Words text={heading} /></h2>
         </div>
 
         {/* one caption at a time */}
@@ -168,9 +173,9 @@ export function Journey({ heading, steps, titles, order, image, aspect, at }: { 
             const on = i === active;
             return (
               <div key={s.title} aria-hidden={!on} className="col-start-1 row-start-1 max-w-[560px]" style={{ pointerEvents: on ? "auto" : "none" }}>
-                <p className="kicker transition-[opacity,filter] duration-[1200ms]" style={{ opacity: on ? 1 : 0, filter: on ? "none" : "blur(6px)" }}>{order?.[i] ?? s.title}</p>
-                <MaskText as="h3" className="journey-title mt-2" text={titles?.[i] ?? s.title} play={on} delay={80} />
-                <p className="t-lead mt-4 max-w-[36ch] transition-[opacity,transform,filter] duration-[1400ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(8px)", filter: on ? "none" : "blur(6px)", transitionDelay: on ? "550ms" : "0ms" }}>
+                <p className="kicker transition-opacity duration-[1000ms]" style={{ opacity: on ? 1 : 0 }}>{order?.[i] ?? s.title}</p>
+                <h3 className="journey-title mt-2 transition-[opacity,transform] duration-[1100ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(14px)", transitionDelay: on ? "120ms" : "0ms" }}><Words text={titles?.[i] ?? s.title} /></h3>
+                <p className="t-lead mt-4 max-w-[36ch] transition-[opacity,transform] duration-[1200ms] [transition-timing-function:var(--ease-out)]" style={{ opacity: on ? 1 : 0, transform: on ? "none" : "translateY(8px)", transitionDelay: on ? "380ms" : "0ms" }}>
                   {s.line}
                 </p>
               </div>

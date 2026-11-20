@@ -2,7 +2,7 @@ import { content } from "@/lib/content";
 import { FaqDrum } from "./FaqDrum";
 import { InView } from "./InView";
 import { PageShell } from "./PageShell";
-import { Backdrop } from "./page/Backdrop";
+import { Haze } from "./page/Haze";
 import { Finale } from "./page/Finale";
 import { Journey } from "./page/Journey";
 import { ServiceIndex } from "./page/ServiceIndex";
@@ -21,7 +21,7 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
   const still = kind === "web" ? "s3" : "s4";
   return (
     <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} title={p.headline} intro={p.intro}>
-      <Backdrop still={still} />
+      <Haze />
       <Statement text={p.statement} />
       <ServiceIndex kicker={p.index.kicker} items={p.index.items} />
       <Journey heading={how.heading} steps={how.steps} titles={how.walk} order={how.order} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />

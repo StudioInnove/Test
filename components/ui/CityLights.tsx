@@ -65,13 +65,13 @@ export function CityLights({ text }: { text: string }) {
       const o = off.getContext("2d")!;
       o.scale(dpr, dpr);
       const family = '"Inter Variable", Inter, system-ui, sans-serif';
-      o.font = `500 100px ${family}`;
+      o.font = `400 100px ${family}`;
       o.letterSpacing = "-5px";
       const w100 = o.measureText(text).width;
       const gutter = Math.max(16, Math.min(69, W * 0.048));
-      // the name at a modest width, sitting on the bottom at the left
-      const size = (Math.min(W - gutter * 2, Math.max(240, W * 0.36)) * 100) / w100;
-      o.font = `500 ${size}px ${family}`;
+      // the name across the full width, sitting on the bottom
+      const size = ((W - gutter * 2) * 100) / w100;
+      o.font = `400 ${size}px ${family}`;
       o.letterSpacing = `${-0.05 * size}px`;
       o.fillStyle = "#fff";
       o.textBaseline = "alphabetic";
@@ -80,10 +80,11 @@ export function CityLights({ text }: { text: string }) {
       maskW = off.width;
 
       // the lights: sparse at the top, dense near the bottom
-      const step = W < 700 ? 4 : 5;
+      // denser on phones, so the name still reads at a small size
+      const step = W < 700 ? 3 : 4;
       dots = [];
       for (let y = step; y < H - 1; y += step) {
-        const p = Math.pow(y / H, 1.2) * 0.95;
+        const p = 0.22 + Math.pow(y / H, 1.2) * 0.73;
         for (let x = step / 2; x < W; x += step) {
           if (Math.random() > p || inText(x, y)) continue;
           const base = 0.3 + Math.random() * 0.45;
@@ -205,7 +206,7 @@ export function CityLights({ text }: { text: string }) {
   }, [text]);
 
   return (
-    <div ref={wrapRef} aria-hidden className="relative h-[clamp(84px,8.5vw,132px)] w-full select-none">
+    <div ref={wrapRef} aria-hidden className="relative h-[clamp(72px,11vw,168px)] w-full select-none">
       <canvas ref={canvasRef} className="absolute inset-0 h-full w-full" />
     </div>
   );

@@ -17,9 +17,9 @@ export function getGsap() {
     if (Math.abs(nh - h) < 2) return;
     h = nh;
     clearTimeout(t);
-    t = window.setTimeout(() => ScrollTrigger.refresh(), 120);
+    t = window.setTimeout(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); }, 120);
   });
   ro.observe(document.body);
-  document.fonts?.ready.then(() => ScrollTrigger.refresh());
+  document.fonts?.ready.then(() => { ScrollTrigger.sort(); ScrollTrigger.refresh(); });
   return { gsap, ScrollTrigger };
 }

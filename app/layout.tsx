@@ -3,7 +3,6 @@ import { Analytics } from "@vercel/analytics/next";
 import { content, SITE_URL } from "@/lib/content";
 import { CalWarmup } from "@/components/BookCall";
 import { PageFade } from "@/components/ui/PageFade";
-import { Polish } from "@/components/ui/Polish";
 import "@fontsource-variable/inter/opsz.css";
 import "@fontsource/instrument-serif/latin-400-italic.css";
 import "./globals.css";
@@ -40,6 +39,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       <head>
+        {/* arriving from another page of the site: start under the curtain, which then lifts */}
+        <script dangerouslySetInnerHTML={{ __html: `try{if(sessionStorage.getItem("si-curtain")==="1"){document.documentElement.classList.add("curtain-in");sessionStorage.removeItem("si-curtain")}}catch(e){}` }} />
         <noscript>
           <style>{`.reveal .w,.rise{opacity:1!important;filter:none!important;transform:none!important}[data-scene="hero"]{opacity:1!important}`}</style>
         </noscript>
@@ -48,7 +49,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {children}
         <CalWarmup />
         <PageFade />
-        <Polish />
         <Analytics />
       </body>
     </html>

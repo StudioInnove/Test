@@ -142,7 +142,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
   // the floating phone's size: as large as fits
   const [ps, setPs] = useState(0.7);
   useEffect(() => {
-    const f = () => setPs(phone ? Math.min(0.5, (window.innerHeight * 0.44) / 874) : Math.min(0.8, (window.innerHeight * 0.72) / 874));
+    const f = () => setPs(phone ? Math.min(0.5, (window.innerHeight * 0.48) / 874) : Math.min(0.8, (window.innerHeight * 0.72) / 874));
     f();
     window.addEventListener("resize", f);
     return () => window.removeEventListener("resize", f);
@@ -228,7 +228,7 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           transition={{ duration: 0.6, ease: film }}
         >
           {/* the picture: full screen on a computer, the top of the screen on a phone */}
-          <div className={`absolute inset-x-0 top-0 ${phone ? "h-[56svh]" : "h-full"}`}>
+          <div className={`absolute inset-x-0 top-0 ${phone ? "h-[58svh]" : "h-full"}`}>
             {id === "how" ? <Wall chap={chap} phone={phone} right={right} /> : <Scenery bg={bg} phone={phone} interactive glowOn={joined} cam={CAMS[id][chap]} />}
             {/* other shots crossfade in over the room */}
             {SHOTS[id]?.map((sh, i) =>
@@ -280,15 +280,15 @@ export function World({ id, onClose, cue }: { id: WorldId | null; onClose: () =>
           )}
 
           {/* the words: placed like a scene's, bottom-left on a computer, below the picture on a phone */}
-          <div className={`pointer-events-none relative z-[5] flex h-full flex-col px-[var(--gutter)] ${phone ? `justify-end pb-[max(28px,env(safe-area-inset-bottom))]` : `justify-end pb-[12svh] ${right ? "items-end" : ""}`}`}>
-            <div className={`pointer-events-auto w-full ${right ? "max-w-[400px] mr-[2vw]" : "max-w-[460px]"}`}>
+          <div className={`pointer-events-none relative z-[5] flex h-full flex-col px-[var(--gutter)] ${phone ? `justify-start pt-[calc(58svh+20px)] pb-[max(24px,env(safe-area-inset-bottom))]` : `justify-end pb-[12svh] ${right ? "items-end" : ""}`}`}>
+            <div className={`pointer-events-auto flex w-full flex-col ${phone ? "flex-1" : ""} ${right ? "max-w-[400px] mr-[2vw]" : "max-w-[460px]"}`}>
               <Story key={chap}>
                 <MaskText className="t-title" text={c.title} play />
                 {line && <p className="rise t-lead" style={d(250)}>{line}</p>}
                 {extra}
               </Story>
               {/* where you are in the story, and how to go on */}
-              <div className="mt-10 flex items-center gap-4">
+              <div className={`flex items-center gap-4 ${phone ? "mt-auto pt-6" : "mt-10"}`}>
                 <div className="flex items-center">
                   {chapters.map((_, i) => (
                     <button key={i} type="button" aria-label={`Part ${i + 1} of ${chapters.length}`} aria-current={i === chap ? "step" : undefined} onClick={() => { busyUntil.current = 0; setChap(i); }} className="flex h-8 items-center pr-2">

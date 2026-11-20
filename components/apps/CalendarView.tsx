@@ -12,11 +12,12 @@ const DAYS = ["Thu 12", "Fri 13", "Sat 14", "Sun 15", "Mon 16"];
 const START = 17; // 17:00
 const SLOTS = 12; // to 23:00, every half hour
 const NAMES = ["Elena Rossi", "Tom Becker", "Aiko Mori", "Noah Clarke", "Inès Laurent", "Ravi Shah", "Mia Jensen", "Leo Duarte"];
+// one warm accent and the ink, like the rest of the studio's screens
 const TINTS = [
-  ["#fbe3cf", "#e8915f"],
-  ["#e3e8fb", "#6f86d6"],
-  ["#f9dcdc", "#d9726b"],
-  ["#dff0ea", "#4f9a7c"],
+  ["#fdf3ec", "#e0835f"],
+  ["#ffffff", "#1d1b18"],
+  ["#f6f2ec", "#8a7f72"],
+  ["#ffffff", "#c8743f"],
 ];
 type Bk = { id: number; day: number; slot: number; len: number; name: string; party: number; tint: number; seated: boolean };
 const SEED: Bk[] = [
@@ -151,7 +152,7 @@ export function CalendarView({ live }: { live: boolean }) {
                 onPointerMove={(e) => move(e, b)}
                 onPointerUp={() => up(b)}
                 onPointerCancel={() => setDrag(null)}
-                className={`pointer-events-auto absolute z-10 overflow-hidden rounded-[12px] px-3 py-2 transition-[top,left,box-shadow,transform] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${live ? "cursor-grab active:cursor-grabbing" : ""} ${drag?.id === b.id ? "scale-[1.03] shadow-[0_12px_30px_rgb(80_50_30/0.22)]" : "shadow-[0_2px_8px_rgb(80_50_30/0.06)]"}`}
+                className={`pointer-events-auto absolute z-10 overflow-hidden rounded-[12px] px-3 py-2 transition-[top,left,box-shadow,transform] duration-200 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${live ? "cursor-grab active:cursor-grabbing" : ""} ${drag?.id === b.id ? "scale-[1.03] shadow-[0_12px_30px_rgb(80_50_30/0.22)]" : "shadow-[0_0_0_1px_rgb(43_37_34/0.08),0_2px_8px_rgb(80_50_30/0.05)]"}`}
                 style={{ left: `calc(${day} * ((100% - 32px) / 5 + 8px) + 2px)`, width: `calc((100% - 32px) / 5 - 4px)`, top: `calc(${(slot * 100) / SLOTS}% + 2px)`, height: `calc(${(b.len * 100) / SLOTS}% - 4px)`, background: bg, touchAction: "none" }}
               >
                 <span className="absolute inset-y-2 left-0 w-[3px] rounded-full" style={{ background: fg }} />

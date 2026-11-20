@@ -25,13 +25,13 @@ function Tonight({ live }: { live: boolean }) {
   return (
     <div className="flex h-full flex-col px-5 pt-16">
       <div className="flex items-center justify-between">
-        <p className="text-[30px] font-[600] tracking-[-0.03em]">Tonight</p>
-        <span className="rounded-full bg-black/[0.06] px-3 py-1.5 text-[13px]">Worldwide</span>
+        <p className="text-[32px] font-[600] tracking-[-0.045em]">Tonight</p>
+        <span className="flex gap-[2px] rounded-full bg-white p-1 text-[12.5px] shadow-[0_0_0_1px_rgb(0_0_0/0.05)]"><span className="rounded-full bg-[#1d1b18] px-3 py-1 text-white">Near</span><span className="px-3 py-1 text-black/55">All</span></span>
       </div>
       <p className="mt-1 text-[14px] text-black/45">Things worth leaving the house for</p>
       <div className="mt-5 flex flex-col gap-4">
         {EVENTS.map((e, i) => (
-          <div key={e.t} className="overflow-hidden rounded-[22px] bg-white shadow-[0_6px_20px_rgb(80_50_30/0.08)]">
+          <div key={e.t} className="overflow-hidden rounded-[22px] bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.04),0_6px_20px_rgb(80_50_30/0.06)]">
             <div className="relative h-[118px] overflow-hidden bg-[#e9e1d6]">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img src={asset(`/sites/img/${e.img}.webp`)} alt="" className="h-full w-full object-cover" style={{ objectPosition: e.pos }} />
@@ -43,14 +43,14 @@ function Tonight({ live }: { live: boolean }) {
             <div className="flex items-end justify-between gap-3 p-4">
               <div className="min-w-0">
                 <p className="text-[12px] text-black/45">{e.w}</p>
-                <p className="truncate text-[17px] font-[600] tracking-[-0.02em]">{e.t}</p>
+                <p className="truncate text-[17px] font-[600] tracking-[-0.03em]">{e.t}</p>
                 <p className="text-[13px] text-black/45">{e.p} · {e.n + (going[i] ? 1 : 0)} going</p>
               </div>
               <button
                 type="button"
                 tabIndex={live ? 0 : -1}
                 onClick={() => setGoing((g) => ({ ...g, [i]: !g[i] }))}
-                className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-[500] transition-colors duration-300 ${going[i] ? "bg-[#231d1a] text-white" : "bg-black/[0.06]"}`}
+                className={`shrink-0 rounded-full px-4 py-2 text-[14px] font-[500] transition-[background-color,color,transform] duration-300 active:scale-[0.96] ${going[i] ? "bg-[#e0835f] text-white" : "bg-[#1d1b18] text-white"}`}
               >
                 {going[i] ? "Going ✓" : "Join"}
               </button>
@@ -71,13 +71,13 @@ function Table({ live }: { live: boolean }) {
   return (
     <div className="flex h-full flex-col px-5 pt-16">
       <p className="text-[14px] text-black/45">Maison Ora · Oslo</p>
-      <p className="text-[30px] font-[600] tracking-[-0.03em]">Book a table</p>
+      <p className="text-[32px] font-[600] tracking-[-0.045em]">Book a table</p>
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={asset("/sites/img/int2.webp")} alt="" className="mt-5 h-[150px] w-full rounded-[22px] object-cover" style={{ objectPosition: "50% 60%" }} />
       <p className="mt-6 text-[13px] text-black/45">Day</p>
       <div className="mt-2 flex gap-2">
         {days.map((x, i) => (
-          <button key={x} type="button" tabIndex={live ? 0 : -1} onClick={() => { setD(i); setBooked(false); }} className={`flex-1 rounded-2xl py-3 text-[14px] transition-colors duration-300 ${d === i ? "bg-[#231d1a] text-white" : "bg-black/[0.05]"}`}>
+          <button key={x} type="button" tabIndex={live ? 0 : -1} onClick={() => { setD(i); setBooked(false); }} className={`flex-1 rounded-full py-3 text-[14px] transition-colors duration-300 ${d === i ? "bg-[#1d1b18] text-white" : "bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.06)]"}`}>
             {x}
           </button>
         ))}
@@ -85,12 +85,12 @@ function Table({ live }: { live: boolean }) {
       <p className="mt-5 text-[13px] text-black/45">Time · for 2</p>
       <div className="mt-2 grid grid-cols-3 gap-2">
         {times.map((x, i) => (
-          <button key={x} type="button" tabIndex={live ? 0 : -1} onClick={() => { setT(i); setBooked(false); }} className={`rounded-2xl py-3 text-[14px] tabular-nums transition-colors duration-300 ${t === i ? "bg-[#f0a36b] text-white" : "bg-black/[0.05]"}`}>
+          <button key={x} type="button" tabIndex={live ? 0 : -1} onClick={() => { setT(i); setBooked(false); }} className={`rounded-full py-3 text-[14px] tabular-nums transition-colors duration-300 ${t === i ? "bg-[#e0835f] text-white" : "bg-white shadow-[0_0_0_1px_rgb(0_0_0/0.06)]"}`}>
             {x}
           </button>
         ))}
       </div>
-      <button type="button" tabIndex={live ? 0 : -1} onClick={() => t !== null && setBooked(true)} className={`mt-auto mb-12 h-14 rounded-full text-[16px] font-[500] transition-colors duration-500 ${booked ? "bg-[#6aa77f] text-white" : "bg-[#231d1a] text-white"}`}>
+      <button type="button" tabIndex={live ? 0 : -1} onClick={() => t !== null && setBooked(true)} className={`mt-auto mb-12 h-14 rounded-full text-[16px] font-[500] transition-[background-color,transform] duration-500 active:scale-[0.98] ${booked ? "bg-[#e0835f] text-white" : "bg-[#1d1b18] text-white"}`}>
         {booked ? `Booked · ${days[d]} ${t !== null ? times[t] : ""} ✓` : "Reserve"}
       </button>
     </div>

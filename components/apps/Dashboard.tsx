@@ -7,6 +7,7 @@
  */
 import { useEffect, useMemo, useState } from "react";
 import { CalendarView } from "./CalendarView";
+import { asset } from "@/lib/content";
 
 const W = 1200, H = 720;
 
@@ -29,14 +30,6 @@ function path(pts: number[], w: number, h: number) {
   return { d, xy };
 }
 
-const BOOKINGS = [
-  ["18:00", "Amara Okafor", 2, "Seated"],
-  ["18:30", "The Lindqvist party", 6, "Confirmed"],
-  ["19:00", "Kenji Watanabe", 4, "Confirmed"],
-  ["19:15", "Sofia Marchetti", 2, "Waiting"],
-  ["19:45", "Daniel Reyes", 3, "Confirmed"],
-  ["20:30", "Priya Nair", 2, "New"],
-] as const;
 const GUESTS = [
   ["Amara Okafor", "12 visits", "#f6c27a,#f19a62"],
   ["Kenji Watanabe", "8 visits", "#a8b8ef,#7f95dd"],
@@ -73,9 +66,9 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
 
   const nav = ["Overview", "Bookings", "Guests", "Reports"];
   const stats = [
-    { k: "Bookings today", v: String(bookings), c: "from-[#f6c27a] to-[#f19a62]" },
-    { k: "Revenue", v: `$${revenue}k`, c: "from-[#f3a28d] to-[#ea7d6e]" },
-    { k: "Occupancy", v: "92%", c: "from-[#a8b8ef] to-[#7f95dd]" },
+    { k: "Bookings today", v: String(bookings), dlt: "+12%" },
+    { k: "Revenue", v: `$${revenue}k`, dlt: "+8%" },
+    { k: "Occupancy", v: "92%", dlt: "+3%" },
   ];
 
   return (
@@ -95,9 +88,8 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
             type="button"
             tabIndex={interactive ? 0 : -1}
             onClick={() => interactive && setView(i)}
-            className={`flex items-center gap-3 rounded-xl px-3 py-2.5 text-left text-[17px] transition-colors duration-300 ${view === i ? "bg-white/70 text-[#2b2522] shadow-[0_2px_10px_rgb(120_80_50/0.08)]" : "text-[#2b2522]/55 hover:text-[#2b2522]/80"}`}
+            className={`flex items-center rounded-full px-4 py-2.5 text-left text-[16px] tracking-[-0.01em] transition-colors duration-300 ${view === i ? "bg-[#1d1b18] text-white" : "text-[#2b2522]/55 hover:text-[#2b2522]/85"}`}
           >
-            <span className={`h-4 w-4 rounded-full border-[2px] ${view === i ? "border-[#2b2522]/70" : "border-[#2b2522]/35"}`} />
             {n}
           </button>
         ))}
@@ -107,10 +99,10 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
       {/* three figures */}
       <div className="absolute left-[262px] top-[48px] flex gap-[22px]">
         {stats.map((st, i) => (
-          <div key={st.k} className="w-[170px] rounded-[22px] bg-white/75 p-5 shadow-[0_6px_24px_rgb(120_80_50/0.08)]" style={{ width: i === 0 ? 166 : 170 }}>
-            <div className={`mb-4 h-10 w-10 rounded-[11px] bg-gradient-to-br ${st.c}`} />
+          <div key={st.k} className="flex h-[188px] flex-col rounded-[22px] bg-white/85 p-5 shadow-[0_0_0_1px_rgb(43_37_34/0.05),0_6px_24px_rgb(120_80_50/0.06)]" style={{ width: i === 0 ? 166 : 170 }}>
             <p className="text-[13px] text-[#2b2522]/55">{st.k}</p>
-            <p className="mt-0.5 text-[26px] font-[500] tabular-nums tracking-[-0.02em]">{st.v}</p>
+            <p className="mt-auto text-[34px] font-[500] leading-none tabular-nums tracking-[-0.04em]">{st.v}</p>
+            <p className="mt-2 w-max rounded-full bg-[#2b2522]/[0.06] px-2 py-0.5 text-[12px] text-[#2b2522]/70">{st.dlt} this week</p>
           </div>
         ))}
       </div>
@@ -121,7 +113,7 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
           <p className="text-[17px] font-[500]">{s.label}</p>
           <div className="flex gap-1 rounded-full bg-[#2b2522]/[0.05] p-1">
             {(Object.keys(SERIES) as (keyof typeof SERIES)[]).map((t) => (
-              <button key={t} type="button" tabIndex={interactive ? 0 : -1} onClick={() => interactive && setTab(t)} className={`rounded-full px-3 py-1 text-[13px] transition-colors duration-300 ${tab === t ? "bg-white text-[#2b2522] shadow-sm" : "text-[#2b2522]/50"}`}>
+              <button key={t} type="button" tabIndex={interactive ? 0 : -1} onClick={() => interactive && setTab(t)} className={`rounded-full px-3 py-1 text-[13px] transition-colors duration-300 ${tab === t ? "bg-[#1d1b18] text-white" : "text-[#2b2522]/50"}`}>
                 {t}
               </button>
             ))}
@@ -130,20 +122,19 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
         <svg viewBox={`-6 -10 ${cw + 12} ${ch + 40}`} className="mt-6 h-[300px] w-full overflow-visible" onMouseLeave={() => setHover(null)}>
           <defs>
             <linearGradient id="dash-fill" x1="0" x2="0" y1="0" y2="1">
-              <stop offset="0" stopColor="#f2a56a" stopOpacity="0.35" />
+              <stop offset="0" stopColor="#e0835f" stopOpacity="0.22" />
               <stop offset="1" stopColor="#f2a56a" stopOpacity="0" />
             </linearGradient>
             <linearGradient id="dash-line" x1="0" x2="1">
-              <stop offset="0" stopColor="#d9705d" />
-              <stop offset="0.6" stopColor="#6b4a5a" />
-              <stop offset="1" stopColor="#ef9b52" />
+              <stop offset="0" stopColor="#1d1b18" />
+              <stop offset="1" stopColor="#1d1b18" />
             </linearGradient>
           </defs>
           {[0, 0.25, 0.5, 0.75, 1].map((g) => (
             <line key={g} x1="0" x2={cw} y1={ch * g} y2={ch * g} stroke="#2b2522" strokeOpacity="0.07" />
           ))}
           <path key={tab + "f"} d={`${d} L${cw},${ch} L0,${ch} Z`} fill="url(#dash-fill)" className="dash-fade" />
-          <path key={tab} d={d} fill="none" stroke="url(#dash-line)" strokeWidth="3" strokeLinecap="round" className="dash-draw" pathLength={1} />
+          <path key={tab} d={d} fill="none" stroke="url(#dash-line)" strokeWidth="2.5" strokeLinecap="round" className="dash-draw" pathLength={1} />
           {s.ticks.map((t, i) => (
             <text key={i} x={(i / (s.ticks.length - 1)) * cw} y={ch + 28} textAnchor="middle" fontSize="12" fill="#2b2522" fillOpacity="0.4">{t}</text>
           ))}
@@ -166,16 +157,26 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
         </svg>
       </div>
 
-      {/* two cards on the right */}
-      <div className="absolute right-[44px] top-[48px] flex h-[300px] w-[300px] flex-col justify-end rounded-[26px] bg-gradient-to-br from-[#f8c98a] via-[#f3a07f] to-[#ec8576] p-6 text-white shadow-[0_10px_30px_rgb(200_100_80/0.2)]">
-        <span className="dash-live mb-auto inline-flex w-max items-center gap-2 rounded-full bg-white/25 px-3 py-1 text-[13px]"><i className="h-2 w-2 rounded-full bg-white" />Live</span>
-        <p className="text-[15px] text-white/85">Tables seated now</p>
-        <p className="text-[44px] font-[500] tabular-nums leading-none tracking-[-0.03em]">{seated}</p>
+      {/* two cards on the right: the rooms themselves */}
+      <div className="absolute right-[44px] top-[48px] h-[300px] w-[300px] overflow-hidden rounded-[26px] text-white shadow-[0_10px_30px_rgb(80_50_30/0.18)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={asset("/sites/img/int2.webp")} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 [background:linear-gradient(180deg,rgb(0_0_0/0.05),rgb(0_0_0/0.55))]" />
+        <div className="absolute inset-0 flex flex-col justify-end p-6">
+          <span className="dash-live mb-auto inline-flex w-max items-center gap-2 rounded-full bg-white/90 px-3 py-1 text-[13px] text-[#1d1b18]"><i className="h-2 w-2 rounded-full bg-[#e0835f]" />Live</span>
+          <p className="text-[15px] text-white/85">Tables seated now</p>
+          <p className="text-[48px] font-[500] tabular-nums leading-none tracking-[-0.04em]">{seated}</p>
+        </div>
       </div>
-      <div className="absolute bottom-[50px] right-[44px] flex h-[300px] w-[300px] flex-col justify-end rounded-[26px] bg-gradient-to-br from-[#bfe0e2] via-[#a9bdeb] to-[#8798e0] p-6 text-white shadow-[0_10px_30px_rgb(90_110_200/0.2)]">
-        <p className="text-[15px] text-white/85">Next arrival</p>
-        <p className="text-[30px] font-[500] leading-tight tracking-[-0.02em]">18:30 · Party of 6</p>
-        <p className="mt-2 text-[14px] text-white/80">Window table, anniversary</p>
+      <div className="absolute bottom-[50px] right-[44px] h-[300px] w-[300px] overflow-hidden rounded-[26px] text-white shadow-[0_10px_30px_rgb(80_50_30/0.18)]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src={asset("/sites/img/int3.webp")} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        <div className="absolute inset-0 [background:linear-gradient(180deg,rgb(0_0_0/0.0),rgb(0_0_0/0.6))]" />
+        <div className="absolute inset-0 flex flex-col justify-end p-6">
+          <p className="text-[15px] text-white/85">Next arrival</p>
+          <p className="text-[28px] font-[500] leading-tight tracking-[-0.03em]">18:30 · Party of 6</p>
+          <p className="mt-1 text-[14px] text-white/80">Window table, anniversary</p>
+        </div>
       </div>
       </>)}
 
@@ -187,7 +188,7 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
         <div key="g" className="dash-view absolute bottom-[50px] left-[262px] right-[44px] top-[48px] grid grid-cols-3 gap-[22px]">
           {GUESTS.map(([n, v, g]) => (
             <div key={n} className="flex flex-col justify-between rounded-[22px] bg-white/80 p-6 shadow-[0_6px_24px_rgb(120_80_50/0.08)]">
-              <div className="h-14 w-14 rounded-full" style={{ background: `linear-gradient(135deg,${g})` }} />
+              <div className="flex h-14 w-14 items-center justify-center rounded-full bg-[#1d1b18] text-[17px] font-[500] text-white" data-g={g}>{n.split(" ").map((w) => w[0]).join("").slice(0, 2)}</div>
               <div><p className="text-[18px] font-[500]">{n}</p><p className="text-[14px] text-[#2b2522]/50">{v}</p></div>
             </div>
           ))}
@@ -200,7 +201,7 @@ export function Dashboard({ interactive = false, view: controlled }: { interacti
           <div className="flex items-center justify-between"><p className="text-[17px] font-[500]">Revenue by month</p><p className="text-[13px] text-[#2b2522]/50">Up 31% on last year</p></div>
           <div className="mt-8 flex h-[460px] items-end gap-4">
             {REPORT.map((v, i) => (
-              <div key={i} className="dash-bar flex-1 rounded-t-[10px] bg-gradient-to-t from-[#f3a28d] to-[#f8c98a]" style={{ height: `${v}%`, animationDelay: `${i * 40}ms` }} />
+              <div key={i} className={`dash-bar flex-1 rounded-t-[10px] ${i === REPORT.length - 1 ? "bg-[#e0835f]" : "bg-[#1d1b18]/85"}`} style={{ height: `${v}%`, animationDelay: `${i * 40}ms` }} />
             ))}
           </div>
         </div>

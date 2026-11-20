@@ -64,6 +64,7 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
     cv.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     const { blds, far, stars } = skyline();
+    const calm = matchMedia("(prefers-reduced-motion: reduce)").matches;
     const g = game.current;
     let raf = 0, last = 0;
     const spawn = (now: number, attract: boolean) => {
@@ -84,7 +85,8 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
     const frame = (now: number) => {
       raf = requestAnimationFrame(frame);
       const dt = Math.min(0.05, (now - (last || now)) / 1000);
-      if (!g.playing && now - last < 30) return; // idling: 30 fps is plenty
+      // idling: 30 fps is plenty (and a gentle 6 when the device asks for less motion)
+      if (!g.playing && now - last < (calm ? 160 : 30)) return;
       last = now;
       // spawn
       if (now > g.nextSpawn) {
@@ -268,7 +270,7 @@ export function LightsGame({ live, active }: { live: boolean; active: boolean })
 
   return (
     <div className="relative h-full w-full overflow-hidden bg-[#070912] text-white">
-      <canvas ref={ref} onPointerDown={tap} className="absolute inset-0 h-full w-full" style={{ touchAction: "none", willChange: "transform", transform: "translateZ(0)" }} />
+      <canvas ref={ref} onPointerDown={tap} role="img" aria-label="Lights, a little game: tap the city's lights before they fade" className="absolute inset-0 h-full w-full" style={{ touchAction: "none", willChange: "transform", transform: "translateZ(0)" }} />
       {/* the title screen: the name, centred over the night; the clock and score while playing */}
       <div className={`pointer-events-none absolute inset-x-0 top-[180px] text-center transition-all duration-700 [transition-timing-function:cubic-bezier(0.23,1,0.32,1)] ${phase === "idle" ? "opacity-100" : "-translate-y-3 opacity-0"}`}>
         <p className="text-[13px] font-[500] uppercase tracking-[0.32em] text-[#ffd6a0]/80">A little game</p>

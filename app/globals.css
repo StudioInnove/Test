@@ -401,3 +401,10 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .reveal:not(.on) .svc-room { transition-duration: 300ms; transition-delay: 0ms; }
 @media (hover: hover) { .svc-room:hover { color: #fff; } }
 .svc-room2 { font-family: var(--font-serif); font-style: italic; font-size: clamp(20px, 1.9vw, 28px); color: rgb(239 233 224 / 0.8); }
+
+/* phones: nothing smaller than 15px to read; a visible focus ring for keyboards everywhere */
+@media (max-width: 767px) {
+  .t-label { font-size: 15px; }
+  .t-body { font-size: 16px; }
+}
+:where(a, button, input, [tabindex]):focus-visible { outline: 2px solid #f4b478; outline-offset: 3px; border-radius: 8px; }

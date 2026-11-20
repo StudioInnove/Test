@@ -31,7 +31,7 @@ export default function Home() {
     {
       "@context": "https://schema.org",
       "@type": "FAQPage",
-      mainEntity: faq.items.map((i) => ({ "@type": "Question", name: i.q, acceptedAnswer: { "@type": "Answer", text: i.a } })),
+      mainEntity: faq.items.map((i) => ({ "@type": "Question", name: i.q.replace(/\*/g, ""), acceptedAnswer: { "@type": "Answer", text: i.a } })),
     },
     { "@context": "https://schema.org", "@type": "WebSite", name: studio.name, url: SITE_URL },
   ];

@@ -191,7 +191,10 @@ body { transition: opacity 500ms cubic-bezier(0.22, 0.61, 0.36, 1); }
 html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; background: #070a12; animation: curtain-safety 0.6s ease 3s forwards; }
 @keyframes curtain-safety { to { opacity: 0; visibility: hidden; } }
 .page-curtain { position: fixed; inset: 0; z-index: 200; background: #070a12; pointer-events: none; display: flex; align-items: center; justify-content: center; }
-.page-curtain img { width: 72px; opacity: 0; }
+.page-curtain canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; transition: opacity 400ms ease; }
+.page-curtain-mark { position: relative; display: flex; flex-direction: column; align-items: center; gap: 18px; }
+.page-curtain-mark img { width: 84px; opacity: 0; }
+.page-curtain-mark span { display: block; width: 120px; height: 1px; background: rgb(239 233 224 / 0.5); transform: scaleX(0); transform-origin: left; }
 
 /* over the moving film the small labels need a touch more presence */
 .scene-text .t-label { color: rgb(239 233 224 / 0.66); text-shadow: 0 1px 10px rgb(7 10 18 / 0.6); }
@@ -281,6 +284,11 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .launch-mark { left: calc(8px + (100% - 16px) * var(--at)); opacity: 0; transition: opacity 700ms ease 1500ms; }
 .on .launch-fill, .on .launch-line { transform: scaleX(1); }
 .on .launch-mark { opacity: 1; }
+/* on a page the ruler is scrubbed by scroll instead */
+.launch-scrub .launch-fill, .launch-scrub .launch-line { transition: none; transform: scaleX(var(--fill, 0)); }
+.launch-scrub .launch-mark { transition: opacity 300ms ease; opacity: calc((var(--fill, 0) - 0.85) * 6.67); }
+.launch-scrub [data-tick] { background: rgb(255 255 255 / 0.15); transition: background-color 400ms ease; }
+.launch-scrub [data-tick].is-lit { background: rgb(239 233 224 / 0.7); }
 @keyframes dot { 0%, 100% { opacity: 0.35; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-2px); } }
 
 /* the waitlist pill brightens a touch while you type */
@@ -349,7 +357,7 @@ html.curtain-in::after { content: ""; position: fixed; inset: 0; z-index: 200; b
 .scene-title { font-weight: 320; font-size: clamp(40px, 4.6vw, 72px); line-height: 1.0; letter-spacing: -0.04em; text-wrap: balance; }
 
 /* the services index: very large light lines, a few words in the italic serif */
-.si-title { font-weight: 300; font-size: clamp(46px, 6.6vw, 108px); line-height: 0.98; letter-spacing: -0.045em; }
+.si-title { font-weight: 300; font-size: clamp(42px, 5.4vw, 84px); line-height: 0.98; letter-spacing: -0.045em; }
 .si-phrase { font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: 0.46em; letter-spacing: -0.005em; color: rgb(239 233 224 / 0.86); white-space: nowrap; margin-left: 0.18em; }
 @media (max-width: 767px) { .si-phrase { display: block; margin: 0.35em 0 0; font-size: 0.42em; white-space: normal; } }
 

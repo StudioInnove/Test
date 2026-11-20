@@ -180,27 +180,27 @@
     "line": "Anything else? Write to us.",
     "items": [
       {
-        "q": "How much does an app cost?",
+        "q": "How much does an app *cost?*",
         "a": "It depends on what it needs to do. After a free 30-minute call you get a clear, fixed quote, so there are no surprises later."
       },
       {
-        "q": "How long does it take?",
+        "q": "How long does it *take?*",
         "a": "You'll have a timeline before any work starts. Along the way you see every screen and try every build, so you always know where things are."
       },
       {
-        "q": "Do I own everything?",
+        "q": "Do I *own* everything?",
         "a": "Yes. Once the project is paid, the code, the designs and the accounts are all yours."
       },
       {
-        "q": "What happens after launch?",
+        "q": "What happens after *launch?*",
         "a": "We can stay on for updates, fixes and new features, or hand everything over cleanly. Whichever suits you."
       },
       {
-        "q": "Where are you based?",
+        "q": "Where are you *based?*",
         "a": "We work remotely with founders and teams worldwide, across every time zone. Calls are booked at a time that suits you."
       },
       {
-        "q": "Who do you work with?",
+        "q": "Who do you *work* with?",
         "a": "Founders with a first idea, and businesses that need an app for their customers or their team."
       }
     ]
@@ -271,19 +271,22 @@
             "title": "Platforms",
             "phrase": "people live in",
             "line": "Portals, marketplaces and member areas your customers sign in to every day.",
-            "image": "/services/web-platforms.webp"
+            "image": "/services/screens/web-platforms.webp",
+            "sketch": "web-platforms"
           },
           {
             "title": "Dashboards",
             "phrase": "clear at a glance",
             "line": "Revenue, bookings and stock in one calm screen, live on any device.",
-            "image": "/services/web-dashboards.webp"
+            "image": "/services/screens/web-dashboards.webp",
+            "sketch": "web-dashboards"
           },
           {
             "title": "Tools",
             "phrase": "that give hours back",
             "line": "Booking systems and admin panels that replace the spreadsheets.",
-            "image": "/services/web-tools.webp"
+            "image": "/services/screens/web-tools.webp",
+            "sketch": "web-tools"
           }
         ]
       }
@@ -348,19 +351,22 @@
             "title": "Events",
             "phrase": "in every pocket",
             "line": "Tickets, memberships and the night itself, a tap away.",
-            "image": "/services/mobile-events.webp"
+            "image": "/services/screens/mobile-events.webp",
+            "sketch": "mobile-events"
           },
           {
             "title": "Bookings",
             "phrase": "in a single tap",
             "line": "Tables, classes and appointments, booked in seconds and remembered next time.",
-            "image": "/services/mobile-bookings.webp"
+            "image": "/services/screens/mobile-bookings.webp",
+            "sketch": "mobile-bookings"
           },
           {
             "title": "Games",
             "phrase": "worth coming back to",
             "line": "Playful moments that bring people back every day.",
-            "image": "/services/mobile-play.webp"
+            "image": "/services/screens/mobile-play.webp",
+            "sketch": "mobile-play"
           }
         ]
       }

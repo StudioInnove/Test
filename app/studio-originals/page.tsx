@@ -26,7 +26,7 @@ export default function Page() {
       <CloseUp id="originals">
         <h2 className="t-title"><Words text={w.title} /></h2>
         <p className="rise t-lead" style={d(250)}>{w.line}</p>
-        <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack /></div>
+        <div className="rise mt-8 w-full" style={d(380)}><LaunchTrack scrub /></div>
         <div className="rise mt-8 w-full" style={d(500)}><WaitlistForm source="originals-page" /></div>
       </CloseUp>
       <Finale />

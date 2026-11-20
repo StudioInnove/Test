@@ -2,10 +2,11 @@
 
 /*
  * Questions, as a conversation with the studio. The section holds still while you scroll. Under a small
- * italic "You ask", a question types itself out letter by letter, with a fine caret; then "We answer"
- * appears and the reply comes up word by word, at your pace. Scroll on and the pair lifts away for the
- * next. Everything is scrubbed by GSAP ScrollTrigger. On a computer all the questions are listed down the
- * side: the one you're on is bright, and a click takes you straight to it.
+ * italic "You ask", a question surfaces the way every heading on the site does, word by word, rising a
+ * little out of the dark; then "We answer" appears and the reply comes up slowly, at your pace. Scroll on
+ * and the pair lifts gently away for the next. Everything is scrubbed by GSAP ScrollTrigger with a soft
+ * lag. On a computer all the questions are listed down the side: the one you're on is bright, and a click
+ * takes you straight to it.
  */
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { getGsap } from "@/lib/gsap";
@@ -15,6 +16,7 @@ import { Words } from "./Words";
 
 const useIso = typeof window === "undefined" ? useEffect : useLayoutEffect;
 const clamp = (x: number) => Math.max(0, Math.min(1, x));
+const ease = (x: number) => 1 - Math.pow(1 - x, 3);
 
 export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
   const { faq, studio } = content;
@@ -23,7 +25,11 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
   const ref = useRef<HTMLElement>(null);
   const pairs = useRef<(HTMLDivElement | null)[]>([]);
   const [active, setActive] = useState(0);
-  const split = useMemo(() => items.map((it) => ({ q: Array.from(it.q), a: it.a.split(/\s+/) })), [items]);
+  const split = useMemo(
+    () => items.map((it) => ({ q: it.q.split(/\s+/).map((w) => ({ t: w.replace(/\*/g, ""), a: /^\*.*\*[.,!?]?$/.test(w) })), a: it.a.split(/\s+/) })),
+    [items],
+  );
+  const plain = (q: string) => q.replace(/\*/g, "");
 
   useIso(() => {
     const { gsap } = getGsap();
@@ -38,31 +44,30 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
         const local = t - i;
         const lastOne = i === n - 1;
         // on stage from its start until it lifts away near the end of its stretch
-        const leave = lastOne ? 0 : clamp((local - 0.86) / 0.14);
-        const show = i === 0 ? 1 : clamp(local * 12);
+        const leave = lastOne ? 0 : ease(clamp((local - 0.84) / 0.16));
+        const show = i === 0 ? 1 : clamp(local * 8);
         el.style.opacity = String(local < 0 && i > 0 ? 0 : show * (1 - leave));
-        el.style.transform = `translate3d(0, ${-leave * 40}px, 0)`;
+        el.style.transform = `translate3d(0, ${-leave * 48}px, 0)`;
         el.style.visibility = local < -0.05 || leave >= 1 ? "hidden" : "visible";
-        // the question types itself out
-        const qs = el.querySelectorAll<HTMLElement>("[data-c]");
-        const typed = clamp(local / 0.28) * qs.length;
-        qs.forEach((c, k) => (c.style.opacity = k < typed ? "1" : "0"));
-        const caret = el.querySelector<HTMLElement>("[data-caret]");
-        if (caret) {
-          const pos = Math.min(qs.length - 1, Math.floor(typed));
-          const ch = qs[Math.max(0, pos)];
-          caret.style.opacity = typed > 0 && typed < qs.length ? "1" : "0";
-          if (ch) caret.style.transform = `translate3d(${ch.offsetLeft + (typed >= 1 ? ch.offsetWidth : 0)}px, ${ch.offsetTop}px, 0)`;
-        }
-        // then the reply
+        // "You ask", then the question surfaces word by word, a soft front moving through it
+        const ask = el.querySelector<HTMLElement>("[data-ask]");
+        if (ask) ask.style.opacity = String(i === 0 ? 1 : ease(clamp(local / 0.06)));
+        const qs = el.querySelectorAll<HTMLElement>("[data-q]");
+        const qf = clamp(local / 0.26) * (qs.length + 2.5);
+        qs.forEach((w, k) => {
+          const v = ease(clamp((qf - k) / 2.5));
+          w.style.opacity = String(v);
+          w.style.transform = `translate3d(0, ${(1 - v) * 0.32}em, 0)`;
+        });
+        // then "We answer", and the reply, slowly
         const lab = el.querySelector<HTMLElement>("[data-we]");
-        if (lab) lab.style.opacity = String(clamp((local - 0.3) / 0.06));
+        if (lab) lab.style.opacity = String(ease(clamp((local - 0.3) / 0.08)));
         const ws = el.querySelectorAll<HTMLElement>("[data-w]");
-        const lit = clamp((local - 0.34) / 0.44) * ws.length;
+        const af = clamp((local - 0.34) / 0.46) * (ws.length + 4);
         ws.forEach((w, k) => {
-          const v = clamp(lit - k);
-          w.style.opacity = String(0.1 + v * 0.9);
-          w.style.transform = `translate3d(0, ${(1 - v) * 0.25}em, 0)`;
+          const v = ease(clamp((af - k) / 4));
+          w.style.opacity = String(0.08 + v * 0.92);
+          w.style.transform = `translate3d(0, ${(1 - v) * 0.22}em, 0)`;
         });
       });
       const now = Math.min(n - 1, Math.floor(t));
@@ -73,7 +78,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
     };
     apply();
     const ctx = gsap.context(() => {
-      gsap.to(state, { t: n - 0.1, ease: "none", onUpdate: apply, scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 0.6 } });
+      gsap.to(state, { t: n - 0.1, ease: "none", onUpdate: apply, scrollTrigger: { trigger: root, start: "top top", end: "bottom bottom", scrub: 1.4 } });
     }, root);
     return () => ctx.revert();
   }, [n]);
@@ -88,7 +93,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
   };
 
   return (
-    <section ref={ref} id={id} className="relative" style={{ height: `${n * 85 + 40}svh` }} aria-label={faq.heading.replace(/\*/g, "")}>
+    <section ref={ref} id={id} className="relative" style={{ height: `${n * 125 + 40}svh` }} aria-label={faq.heading.replace(/\*/g, "")}>
       <div className="sticky top-0 flex h-[100svh] flex-col overflow-hidden px-[var(--gutter)] pb-[7svh] pt-[max(96px,12svh)]">
         <div aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-[85%]" style={{ background: `radial-gradient(80% 60% at 70% 0%, rgb(244 170 110 / ${warm}), transparent 75%)` }} />
 
@@ -101,7 +106,7 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
                 <li key={it.q}>
                   <button type="button" onClick={() => go(i)} className={`flex items-center gap-3 py-1.5 text-left text-[15px] transition-colors duration-500 ${i === active ? "text-paper" : "text-paper/40 hover:text-paper/75"}`}>
                     <span aria-hidden className={`h-px bg-paper transition-all duration-700 [transition-timing-function:var(--ease-out)] ${i === active ? "w-6 opacity-100" : "w-2 opacity-40"}`} />
-                    {it.q}
+                    {plain(it.q)}
                   </button>
                 </li>
               ))}
@@ -116,12 +121,11 @@ export function FaqDrum({ id, warm = 0.12 }: { id?: string; warm?: number }) {
           <div className="relative grid items-center">
             {split.map((s, i) => (
               <div key={items[i].q} ref={(el) => { pairs.current[i] = el; }} aria-hidden={i !== active} className="col-start-1 row-start-1 max-w-[720px] will-change-transform" style={{ opacity: i === 0 ? 1 : 0 }}>
-                <p className="kicker">You ask</p>
-                <h3 className="faq-q-size relative mt-3" aria-label={items[i].q}>
-                  {s.q.map((c, k) => (
-                    <span key={k} data-c aria-hidden style={{ opacity: 0 }}>{c}</span>
+                <p data-ask className="kicker">You ask</p>
+                <h3 className="faq-q-size relative mt-3" aria-label={plain(items[i].q)}>
+                  {s.q.map((w, k) => (
+                    <span key={k} data-q aria-hidden className={`inline-block ${w.a ? "accent" : ""}`} style={{ opacity: 0 }}>{w.t}{k < s.q.length - 1 ? "\u00a0" : ""}</span>
                   ))}
-                  <span data-caret aria-hidden className="absolute left-0 top-0 h-[1.05em] w-[2px] bg-paper/80" style={{ opacity: 0 }} />
                 </h3>
                 <p data-we className="kicker mt-10" style={{ opacity: 0 }}>We answer</p>
                 <p className="faq-a mt-3 max-w-[40ch]" aria-label={items[i].a}>

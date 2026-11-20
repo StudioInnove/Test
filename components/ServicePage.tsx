@@ -3,6 +3,7 @@ import { FaqDrum } from "./FaqDrum";
 import { InView } from "./InView";
 import { PageShell } from "./PageShell";
 import { Haze } from "./page/Haze";
+import { Handover } from "./page/Handover";
 import { Finale } from "./page/Finale";
 import { Journey } from "./page/Journey";
 import { ServiceIndex } from "./page/ServiceIndex";
@@ -23,10 +24,13 @@ export function ServicePage({ kind }: { kind: "web" | "mobile" }) {
     <PageShell still={still} alt={kind === "web" ? "A web dashboard on a monitor in a warm studio at night" : "A phone lighting up on an oak table in a warm studio at night"} title={p.headline} intro={p.intro}>
       <Haze />
       <Statement text={p.statement} />
+      <Handover />
       <ServiceIndex kicker={p.index.kicker} items={p.index.items} />
+      <Handover />
       <Journey heading={how.heading} steps={how.steps} titles={how.walk} order={how.order} image="/worlds/wall-d.webp" aspect={3168 / 1344} at={[0.11, 0.355, 0.61, 0.855]} />
 
       {/* questions, as a conversation */}
+      <Handover />
       <FaqDrum />
 
       <Finale />

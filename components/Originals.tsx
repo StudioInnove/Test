@@ -7,19 +7,43 @@
  *   WaitlistForm — one glass pill; the button turns into a tick when you're in.
  */
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
+import { getGsap } from "@/lib/gsap";
 import { content } from "@/lib/content";
 
 const ease = [0.23, 1, 0.32, 1] as const;
 
 /* ---------------------------------------------------------------- launch track */
 
-export function LaunchTrack({ size = "md" }: { size?: "md" | "lg" }) {
+export function LaunchTrack({ size = "md", scrub = false }: { size?: "md" | "lg"; scrub?: boolean }) {
   const { stages, current, statusLabel } = content.originals;
   const ticks = size === "lg" ? 72 : 48;
   const at = current / (stages.length - 1); // 0..1 along the ruler
+  const ref = useRef<HTMLDivElement>(null);
+  // on a page, the ruler fills as you scroll it into view (GSAP ScrollTrigger); in the film it sweeps in
+  useEffect(() => {
+    const el = ref.current;
+    if (!scrub || !el || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const { gsap } = getGsap();
+    el.classList.add("launch-scrub");
+    const ticksEls = Array.from(el.querySelectorAll<HTMLElement>("[data-tick]"));
+    const st = { v: 0 };
+    const apply = () => {
+      const v = st.v;
+      el.style.setProperty("--fill", String(v));
+      ticksEls.forEach((t, i) => t.classList.toggle("is-lit", i / ticks <= at * v + 0.0001 && v > 0.01));
+    };
+    apply();
+    const ctx = gsap.context(() => {
+      gsap.to(st, { v: 1, ease: "none", onUpdate: apply, scrollTrigger: { trigger: el, start: "top 92%", end: "top 48%", scrub: 0.8 } });
+    }, el);
+    return () => {
+      ctx.revert();
+      el.classList.remove("launch-scrub");
+    };
+  }, [scrub, at, ticks]);
   return (
-    <div className="launch" style={{ ["--at" as string]: at }}>
+    <div ref={ref} className="launch" style={{ ["--at" as string]: at }}>
       <p className="index mb-4">{statusLabel}</p>
       <div className="relative">
         {/* stage names over the ruler */}
@@ -44,7 +68,7 @@ export function LaunchTrack({ size = "md" }: { size?: "md" | "lg" }) {
             {Array.from({ length: ticks + 1 }, (_, i) => {
               const major = i % (ticks / (stages.length - 1)) === 0;
               const lit = i / ticks <= at;
-              return <span key={i} className={`block w-px ${major ? "h-[55%]" : "h-[28%]"} ${lit ? "bg-paper/70" : "bg-white/15"}`} />;
+              return <span key={i} data-tick className={`block w-px ${major ? "h-[55%]" : "h-[28%]"} ${lit ? "bg-paper/70" : "bg-white/15"}`} />;
             })}
           </div>
           {/* the lit part sweeps in */}

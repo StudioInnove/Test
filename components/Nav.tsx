@@ -30,6 +30,8 @@ export function Nav() {
   const [active, setActive] = useState<string | null>(null);
   const [compact, setCompact] = useState(false);
   const [inWorld, setInWorld] = useState(false);
+  // reading down the page, the navigation slips away; the moment you scroll back up, it returns
+  const [tucked, setTucked] = useState(false);
   const reduce = useReducedMotion() ?? false;
   const rootRef = useRef<HTMLDivElement>(null);
 
@@ -47,8 +49,17 @@ export function Nav() {
       setOpen(false);
     };
     window.addEventListener("film:world", onWorld);
+    let lastY = window.scrollY, travel = 0;
     const onScroll = () => {
-      if (!document.querySelector("[data-scene]")) setCompact(window.scrollY > 40);
+      const y = window.scrollY;
+      if (!document.querySelector("[data-scene]")) setCompact(y > 40);
+      const d = y - lastY;
+      lastY = y;
+      // a little give either way, so a wobble of the wheel doesn't flick it
+      travel = Math.sign(d) === Math.sign(travel) ? travel + d : d;
+      if (y < 160) setTucked(false);
+      else if (travel > 48) setTucked(true);
+      else if (travel < -24) setTucked(false);
     };
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => {
@@ -68,7 +79,7 @@ export function Nav() {
   const lit = active;
 
   return (
-    <header className={`nav-shade pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-[max(14px,env(safe-area-inset-top))] transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)] max-md:px-[var(--gutter)] md:px-3 md:pt-5 ${inWorld ? "-translate-y-3 opacity-0 [&_*]:!pointer-events-none" : ""}`}>
+    <header className={`nav-shade pointer-events-none fixed inset-x-0 top-0 z-50 flex justify-center pt-[max(14px,env(safe-area-inset-top))] transition-[opacity,transform] duration-700 [transition-timing-function:var(--ease-out)] max-md:px-[var(--gutter)] md:px-3 md:pt-5 ${inWorld ? "-translate-y-3 opacity-0 [&_*]:!pointer-events-none" : tucked && !open ? "-translate-y-[140%] opacity-0 [&_*]:!pointer-events-none" : ""}`}>
       <motion.div
         ref={rootRef}
         initial={reduce ? false : { opacity: 0, y: -12, filter: "blur(6px)" }}
